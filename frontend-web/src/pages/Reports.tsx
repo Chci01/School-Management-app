@@ -100,7 +100,7 @@ const Reports = () => {
           gradesToSave.push({
             studentId: selectedStudent,
             subjectId: sid,
-            classId: reportData?.class?.id || students.find(s => s.id === selectedStudent)?.classId || '',
+            classId: reportData?.class?.id || students.find((s: any) => s.id === selectedStudent)?.classId || '',
             academicYearId: selectedYear,
             term: selectedTerm,
             value: Number(row.value)
