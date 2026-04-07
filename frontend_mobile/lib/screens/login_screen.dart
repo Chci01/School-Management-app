@@ -59,7 +59,7 @@ class _LoginScreenState extends State<LoginScreen> {
         _selectedSchoolId!,
       );
       
-      Widget nextScreen = (auth.user?['role'] == 'TEACHER') 
+      Widget nextScreen = (auth.user?['role'] == 'ENSEIGNANT') 
           ? TeacherDashboardScreen() 
           : DashboardScreen();
 

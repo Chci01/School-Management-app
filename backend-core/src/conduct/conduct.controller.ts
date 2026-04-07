@@ -12,19 +12,19 @@ export class ConductController {
   constructor(private readonly conductService: ConductService) {}
 
   @Post('teacher')
-  @Roles(Role.TEACHER)
+  @Roles(Role.ENSEIGNANT)
   submitTeacherConduct(@Body() createConductDto: CreateConductDto, @Request() req) {
     return this.conductService.submitTeacherConduct(createConductDto, req.user);
   }
 
   @Post('admin/calculate')
-  @Roles(Role.SUPER_ADMIN, Role.SCHOOL_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN_ECOLE)
   calculateGlobalConduct(@Body() dto: CalculateConductDto, @Request() req) {
     return this.conductService.calculateGlobalConduct(dto, req.user);
   }
 
   @Get('global/:studentId')
-  @Roles(Role.SUPER_ADMIN, Role.SCHOOL_ADMIN, Role.TEACHER, Role.STUDENT, Role.PARENT)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN_ECOLE, Role.ENSEIGNANT, Role.ELEVE, Role.PARENT)
   getGlobalConduct(
     @Param('studentId') studentId: string,
     @Query('month') month: string,

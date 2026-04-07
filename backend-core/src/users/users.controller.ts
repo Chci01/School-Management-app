@@ -11,21 +11,21 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Get()
-  @Roles(Role.SCHOOL_ADMIN, Role.SUPER_ADMIN, Role.TEACHER)
+  @Roles(Role.ADMIN_ECOLE, Role.SUPER_ADMIN, Role.ENSEIGNANT)
   findAll(@Request() req, @Query('role') role?: string, @Query('schoolId') querySchoolId?: string) {
     const schoolId = req.user.schoolId;
     return this.usersService.findAll(schoolId, role, querySchoolId);
   }
 
   @Post()
-  @Roles(Role.SCHOOL_ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN_ECOLE, Role.SUPER_ADMIN)
   create(@Request() req, @Body() createUserDto: any) {
     const schoolId = req.user.schoolId || createUserDto.schoolId;
     return this.usersService.create({ ...createUserDto, schoolId });
   }
 
   @Delete(':id')
-  @Roles(Role.SCHOOL_ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN_ECOLE, Role.SUPER_ADMIN)
   remove(@Request() req, @Param('id') id: string) {
     const schoolId = req.user.schoolId;
     return this.usersService.remove(schoolId, id);

@@ -18,7 +18,7 @@ export class AdminService {
 
     return this.usersService.create({
       ...createAdminDto,
-      role: 'SCHOOL_ADMIN',
+      role: 'ADMIN_ECOLE',
     });
   }
 

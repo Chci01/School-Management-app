@@ -49,8 +49,8 @@ export class PaymentsService {
         }
 
         // Admins can see their school's students. Parents can see their children. Students can see themselves.
-        if (user.role === 'SCHOOL_ADMIN' && student.schoolId !== user.schoolId) throw new ForbiddenException();
-        if (user.role === 'STUDENT' && user.id !== studentId) throw new ForbiddenException();
+        if (user.role === 'ADMIN_ECOLE' && student.schoolId !== user.schoolId) throw new ForbiddenException();
+        if (user.role === 'ELEVE' && user.id !== studentId) throw new ForbiddenException();
         // PARENT logic would go here: check parentStudent relation.
 
         return this.prisma.payment.findMany({

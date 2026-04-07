@@ -13,37 +13,37 @@ export class AcademicYearsController {
   constructor(private readonly academicYearsService: AcademicYearsService) {}
 
   @Post()
-  @Roles(Role.SCHOOL_ADMIN)
+  @Roles(Role.ADMIN_ECOLE)
   create(@Request() req, @Body() createAcademicYearDto: CreateAcademicYearDto) {
     return this.academicYearsService.create(req.user.schoolId, createAcademicYearDto);
   }
 
   @Get()
-  @Roles(Role.SCHOOL_ADMIN, Role.TEACHER)
+  @Roles(Role.ADMIN_ECOLE, Role.ENSEIGNANT)
   findAll(@Request() req) {
     return this.academicYearsService.findAll(req.user.schoolId);
   }
 
   @Get('active')
-  @Roles(Role.SCHOOL_ADMIN, Role.TEACHER, Role.STUDENT, Role.PARENT)
+  @Roles(Role.ADMIN_ECOLE, Role.ENSEIGNANT, Role.ELEVE, Role.PARENT)
   findActive(@Request() req) {
     return this.academicYearsService.findActive(req.user.schoolId);
   }
 
   @Get(':id')
-  @Roles(Role.SCHOOL_ADMIN, Role.TEACHER)
+  @Roles(Role.ADMIN_ECOLE, Role.ENSEIGNANT)
   findOne(@Request() req, @Param('id') id: string) {
     return this.academicYearsService.findOne(req.user.schoolId, id);
   }
 
   @Patch(':id')
-  @Roles(Role.SCHOOL_ADMIN)
+  @Roles(Role.ADMIN_ECOLE)
   update(@Request() req, @Param('id') id: string, @Body() updateAcademicYearDto: UpdateAcademicYearDto) {
     return this.academicYearsService.update(req.user.schoolId, id, updateAcademicYearDto);
   }
 
   @Delete(':id')
-  @Roles(Role.SCHOOL_ADMIN)
+  @Roles(Role.ADMIN_ECOLE)
   remove(@Request() req, @Param('id') id: string) {
     return this.academicYearsService.remove(req.user.schoolId, id);
   }

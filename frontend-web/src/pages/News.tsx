@@ -45,7 +45,7 @@ export const News = () => {
           <h2>Actualités & Annonces</h2>
           <p>Informez les élèves, parents et professeurs des nouveautés de l'école.</p>
         </div>
-        {['SUPER_ADMIN', 'SCHOOL_ADMIN', 'TEACHER'].includes(user?.role || '') && (
+        {['SUPER_ADMIN', 'ADMIN_ECOLE', 'ENSEIGNANT'].includes(user?.role || '') && (
           <button className="btn-primary" onClick={() => setIsModalOpen(true)}>
              <Plus size={16} /> Publier
           </button>
@@ -62,7 +62,7 @@ export const News = () => {
            <article key={news.id} className="glass-panel" style={{ padding: '20px', display: 'flex', flexDirection: 'column' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                  <h3 style={{ margin: 0, fontSize: '18px' }}>{news.title}</h3>
-                 {['SUPER_ADMIN', 'SCHOOL_ADMIN'].includes(user?.role || '') && (
+                 {['SUPER_ADMIN', 'ADMIN_ECOLE'].includes(user?.role || '') && (
                    <button 
                      onClick={() => { if(window.confirm('Supprimer cette actualité ?')) deleteNewsMutation.mutate(news.id) }} 
                      className="btn-secondary" 

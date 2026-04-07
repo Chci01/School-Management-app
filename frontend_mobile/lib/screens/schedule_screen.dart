@@ -41,8 +41,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     if (user == null) return;
 
     try {
-      String? classId = user['role'] != 'TEACHER' ? user['classId'] : null;
-      String? teacherId = user['role'] == 'TEACHER' ? user['id'] : null;
+      String? classId = user['role'] != 'ENSEIGNANT' ? user['classId'] : null;
+      String? teacherId = user['role'] == 'ENSEIGNANT' ? user['id'] : null;
 
       final schedules = await _apiService.getSchedules(
         classId: classId,

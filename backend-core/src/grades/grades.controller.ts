@@ -13,19 +13,19 @@ export class GradesController {
   constructor(private readonly gradesService: GradesService) {}
 
   @Post()
-  @Roles(Role.SCHOOL_ADMIN, Role.TEACHER)
+  @Roles(Role.ADMIN_ECOLE, Role.ENSEIGNANT)
   create(@Request() req, @Body() createGradeDto: CreateGradeDto) {
     return this.gradesService.create(req.user.schoolId, createGradeDto);
   }
 
   @Post('bulk')
-  @Roles(Role.SCHOOL_ADMIN, Role.TEACHER)
+  @Roles(Role.ADMIN_ECOLE, Role.ENSEIGNANT)
   upsertBulk(@Request() req, @Body() grades: CreateGradeDto[]) {
     return this.gradesService.upsertBulk(req.user.schoolId, grades);
   }
 
   @Get('student/:studentId')
-  @Roles(Role.SCHOOL_ADMIN, Role.TEACHER, Role.STUDENT, Role.PARENT)
+  @Roles(Role.ADMIN_ECOLE, Role.ENSEIGNANT, Role.ELEVE, Role.PARENT)
   findAllByStudent(
     @Request() req, 
     @Param('studentId') studentId: string,
@@ -35,7 +35,7 @@ export class GradesController {
   }
 
   @Get('student/:studentId/average')
-  @Roles(Role.SCHOOL_ADMIN, Role.TEACHER, Role.STUDENT, Role.PARENT)
+  @Roles(Role.ADMIN_ECOLE, Role.ENSEIGNANT, Role.ELEVE, Role.PARENT)
   getStudentAverage(
     @Request() req, 
     @Param('studentId') studentId: string,

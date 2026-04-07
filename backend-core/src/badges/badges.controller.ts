@@ -11,19 +11,19 @@ export class BadgesController {
   constructor(private readonly badgesService: BadgesService) {}
 
   @Get('template')
-  @Roles(Role.SUPER_ADMIN, Role.SCHOOL_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN_ECOLE)
   getTemplate(@Request() req) {
     return this.badgesService.getTemplate(req.user);
   }
 
   @Patch('template')
-  @Roles(Role.SUPER_ADMIN, Role.SCHOOL_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN_ECOLE)
   updateTemplate(@Body() updateDto: any, @Request() req) {
     return this.badgesService.updateTemplate(updateDto, req.user);
   }
 
   @Get('generate/:userId')
-  @Roles(Role.SUPER_ADMIN, Role.SCHOOL_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN_ECOLE)
   generateBadgeForUser(@Param('userId') targetUserId: string, @Request() req) {
     return this.badgesService.generateBadgeForUser(targetUserId, req.user);
   }

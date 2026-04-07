@@ -12,25 +12,25 @@ export class SuppliesController {
   constructor(private readonly suppliesService: SuppliesService) {}
 
   @Post()
-  @Roles(Role.SUPER_ADMIN, Role.SCHOOL_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN_ECOLE)
   create(@Body() createSupplyDto: CreateSupplyDto, @Request() req) {
     return this.suppliesService.create(createSupplyDto, req.user);
   }
 
   @Get()
-  @Roles(Role.SUPER_ADMIN, Role.SCHOOL_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN_ECOLE)
   findAll(@Request() req) {
     return this.suppliesService.findAllBySchool(req.user);
   }
 
   @Get('class/:id')
-  @Roles(Role.SUPER_ADMIN, Role.SCHOOL_ADMIN, Role.TEACHER, Role.STUDENT, Role.PARENT)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN_ECOLE, Role.ENSEIGNANT, Role.ELEVE, Role.PARENT)
   findByClass(@Param('id') classId: string, @Request() req) {
     return this.suppliesService.findByClass(classId, req.user);
   }
 
   @Delete(':id')
-  @Roles(Role.SUPER_ADMIN, Role.SCHOOL_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN_ECOLE)
   remove(@Param('id') id: string, @Request() req) {
     return this.suppliesService.remove(id, req.user);
   }

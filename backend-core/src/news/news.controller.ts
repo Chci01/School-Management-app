@@ -10,7 +10,7 @@ export class NewsController {
   constructor(private readonly newsService: NewsService) {}
 
   @Post()
-  @Roles(Role.SUPER_ADMIN, Role.SCHOOL_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN_ECOLE)
   create(@Body() createNewsDto: any) {
     return this.newsService.create(createNewsDto);
   }
@@ -31,13 +31,13 @@ export class NewsController {
   }
 
   @Patch(':id')
-  @Roles(Role.SUPER_ADMIN, Role.SCHOOL_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN_ECOLE)
   update(@Param('id') id: string, @Body() updateNewsDto: any) {
     return this.newsService.update(id, updateNewsDto);
   }
 
   @Delete(':id')
-  @Roles(Role.SUPER_ADMIN, Role.SCHOOL_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN_ECOLE)
   remove(@Param('id') id: string) {
     return this.newsService.remove(id);
   }

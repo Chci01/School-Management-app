@@ -32,7 +32,7 @@ export class SchedulesService {
     const subject = await this.prisma.subject.findFirst({ where: { id: data.subjectId, schoolId } });
     if (!subject) throw new BadRequestException('Subject not found in this school');
 
-    const teacher = await this.prisma.user.findFirst({ where: { id: data.teacherId, schoolId, role: 'TEACHER' } });
+    const teacher = await this.prisma.user.findFirst({ where: { id: data.teacherId, schoolId, role: 'ENSEIGNANT' } });
     if (!teacher) throw new BadRequestException('Teacher not found in this school');
 
     return this.prisma.schedule.create({

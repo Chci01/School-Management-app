@@ -13,31 +13,31 @@ export class SubjectsController {
   constructor(private readonly subjectsService: SubjectsService) {}
 
   @Post()
-  @Roles(Role.SCHOOL_ADMIN, Role.TEACHER)
+  @Roles(Role.ADMIN_ECOLE, Role.ENSEIGNANT)
   create(@Request() req, @Body() createSubjectDto: CreateSubjectDto) {
     return this.subjectsService.create(req.user.schoolId, createSubjectDto);
   }
 
   @Get()
-  @Roles(Role.SCHOOL_ADMIN, Role.TEACHER)
+  @Roles(Role.ADMIN_ECOLE, Role.ENSEIGNANT)
   findAll(@Request() req) {
     return this.subjectsService.findAll(req.user.schoolId);
   }
 
   @Get(':id')
-  @Roles(Role.SCHOOL_ADMIN, Role.TEACHER)
+  @Roles(Role.ADMIN_ECOLE, Role.ENSEIGNANT)
   findOne(@Request() req, @Param('id') id: string) {
     return this.subjectsService.findOne(req.user.schoolId, id);
   }
 
   @Patch(':id')
-  @Roles(Role.SCHOOL_ADMIN)
+  @Roles(Role.ADMIN_ECOLE)
   update(@Request() req, @Param('id') id: string, @Body() updateSubjectDto: UpdateSubjectDto) {
     return this.subjectsService.update(req.user.schoolId, id, updateSubjectDto);
   }
 
   @Delete(':id')
-  @Roles(Role.SCHOOL_ADMIN)
+  @Roles(Role.ADMIN_ECOLE)
   remove(@Request() req, @Param('id') id: string) {
     return this.subjectsService.remove(req.user.schoolId, id);
   }

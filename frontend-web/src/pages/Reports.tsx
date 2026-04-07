@@ -9,7 +9,7 @@ import { Plus, Trash2, Save, X, Edit3 } from 'lucide-react';
 
 const Reports = () => {
   const { currentSchoolId, user } = useAuth();
-  const isAdminOrTeacher = user?.role === 'SCHOOL_ADMIN' || user?.role === 'TEACHER';
+  const isAdminOrTeacher = user?.role === 'ADMIN_ECOLE' || user?.role === 'ENSEIGNANT';
   
   // Selectors State
   const [selectedStudent, setSelectedStudent] = useState<string>('');
@@ -22,7 +22,7 @@ const Reports = () => {
   const [manualGrades, setManualGrades] = useState<any[]>([]);
 
   // Fetch Reference Data
-  const { users: students, isLoading: l1 } = useUsers(currentSchoolId!, 'STUDENT');
+  const { users: students, isLoading: l1 } = useUsers(currentSchoolId!, 'ELEVE');
   const { academicYears, isLoading: l2 } = useAcademic(currentSchoolId!);
   const { subjects, createSubject } = useSubjects();
   const { saveBulkGrades, isLoading: isSaving } = useGrades();
@@ -198,7 +198,7 @@ const Reports = () => {
                </button>
              )}
              
-             {user?.role === 'SCHOOL_ADMIN' && !isEditMode && (
+             {user?.role === 'ADMIN_ECOLE' && !isEditMode && (
                <div className="flex gap-2">
                   <button 
                     onClick={() => handlePublishToggle(true)}

@@ -6,7 +6,7 @@ const Badges = () => {
   const { currentSchoolId } = useAuth();
   const { template, users, isLoading } = useBadges(currentSchoolId || undefined);
   
-  const [activeTab, setActiveTab] = useState<'STUDENT' | 'STAFF'>('STUDENT');
+  const [activeTab, setActiveTab] = useState<'ELEVE' | 'STAFF'>('ELEVE');
   const [badgeToPrint, setBadgeToPrint] = useState<any>(null);
 
   if (isLoading) {
@@ -18,9 +18,9 @@ const Badges = () => {
   }
 
   // Filter users by role
-  const staffRoles = ['TEACHER', 'SCHOOL_ADMIN', 'SUPER_ADMIN'];
+  const staffRoles = ['ENSEIGNANT', 'ADMIN_ECOLE', 'SUPER_ADMIN'];
   const displayedUsers = Array.isArray(users) ? users.filter((u: any) => 
-     activeTab === 'STUDENT' ? u.role === 'STUDENT' : staffRoles.includes(u.role)
+     activeTab === 'ELEVE' ? u.role === 'ELEVE' : staffRoles.includes(u.role)
   ) : [];
 
   return (
@@ -36,8 +36,8 @@ const Badges = () => {
       {/* Tabs */}
       <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '16px' }}>
           <button 
-             onClick={() => setActiveTab('STUDENT')}
-             style={{ background: 'transparent', border: 'none', color: activeTab === 'STUDENT' ? 'var(--primary)' : 'white', fontWeight: activeTab === 'STUDENT' ? 'bold' : 'normal', borderBottom: activeTab === 'STUDENT' ? '2px solid var(--primary)' : 'none', paddingBottom: '8px', cursor: 'pointer' }}
+             onClick={() => setActiveTab('ELEVE')}
+             style={{ background: 'transparent', border: 'none', color: activeTab === 'ELEVE' ? 'var(--primary)' : 'white', fontWeight: activeTab === 'ELEVE' ? 'bold' : 'normal', borderBottom: activeTab === 'ELEVE' ? '2px solid var(--primary)' : 'none', paddingBottom: '8px', cursor: 'pointer' }}
           >
               Badges Élèves
           </button>
@@ -92,7 +92,7 @@ const Badges = () => {
                           <h3 style={{ margin: '0 0 4px 0', fontSize: '16px', fontWeight: 'bold', textAlign: 'center', color: template.primaryColor }}>{badgeToPrint.firstName} <br/> {badgeToPrint.lastName.toUpperCase()}</h3>
                           
                           <div style={{ background: template.secondaryColor, color: 'white', padding: '4px 12px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '8px' }}>
-                              {activeTab === 'STUDENT' ? 'Élève' : badgeToPrint.role}
+                              {activeTab === 'ELEVE' ? 'Élève' : badgeToPrint.role}
                           </div>
                       </div>
 

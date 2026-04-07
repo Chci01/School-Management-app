@@ -105,7 +105,7 @@ const Subscription = () => {
     }
   };
 
-  if (user?.role !== 'SCHOOL_ADMIN' && user?.role !== 'SUPER_ADMIN') {
+  if (user?.role !== 'ADMIN_ECOLE' && user?.role !== 'SUPER_ADMIN') {
     return (
       <div className="page-content" style={{ padding: '24px', maxWidth: '900px', margin: '0 auto' }}>
         <div className="glass-panel" style={{ padding: '30px', textAlign: 'center' }}>

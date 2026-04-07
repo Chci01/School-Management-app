@@ -30,7 +30,7 @@ export class HealthService {
     const whereClause: any = { schoolId: user.schoolId };
 
     // Parent/Student can only see their own health records
-    if (user.role === 'STUDENT' || user.role === 'PARENT') {
+    if (user.role === 'ELEVE' || user.role === 'PARENT') {
       whereClause.studentId = user.userId;
     }
 

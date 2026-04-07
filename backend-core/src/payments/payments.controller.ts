@@ -11,19 +11,19 @@ export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
   @Post()
-  @Roles(Role.SUPER_ADMIN, Role.SCHOOL_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN_ECOLE)
   create(@Body() createPaymentDto: any, @Request() req) {
     return this.paymentsService.create(createPaymentDto, req.user);
   }
 
   @Get()
-  @Roles(Role.SUPER_ADMIN, Role.SCHOOL_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN_ECOLE)
   findAll(@Request() req) {
     return this.paymentsService.findAll(req.user);
   }
 
   @Get('student/:id')
-  @Roles(Role.SUPER_ADMIN, Role.SCHOOL_ADMIN, Role.PARENT, Role.STUDENT)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN_ECOLE, Role.PARENT, Role.ELEVE)
   findByStudent(@Param('id') studentId: string, @Request() req) {
     return this.paymentsService.findByStudent(studentId, req.user);
   }

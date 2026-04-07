@@ -13,7 +13,7 @@ const Users = () => {
   const [capturedPhoto, setCapturedPhoto] = useState<string | null>(null);
 
   // Form states
-  const [selectedRole, setSelectedRole] = useState('STUDENT');
+  const [selectedRole, setSelectedRole] = useState('ELEVE');
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -45,7 +45,7 @@ const Users = () => {
   });
 
   // Derive roles for filter
-  const roles = ['STUDENT', 'TEACHER', 'PARENT', 'SCHOOL_ADMIN', 'SUPER_ADMIN'];
+  const roles = ['ELEVE', 'ENSEIGNANT', 'PARENT', 'ADMIN_ECOLE', 'SUPER_ADMIN'];
 
   const handleWhatsApp = (phone: string, type: 'conduct' | 'grade' | 'medical') => {
     if (!phone) return alert("Numéro de téléphone manquant pour cet utilisateur.");
@@ -141,7 +141,7 @@ const Users = () => {
                       <button className="btn-secondary" style={{ padding: '6px 10px', fontSize: '12px', color: 'var(--danger)', borderColor: 'rgba(239, 68, 68, 0.3)' }} onClick={() => {
                           if(window.confirm('Supprimer cet utilisateur ?')) deleteUser(user.id);
                       }}>🗑️</button>
-                      {user.role === 'STUDENT' && user.phone && (
+                      {user.role === 'ELEVE' && user.phone && (
                         <div className="relative group inline-block z-10">
                           <button className="btn-secondary !border-green-500/30 !text-green-400 hover:!bg-green-500/10" style={{ padding: '6px 10px', fontSize: '12px' }}>
                             💬 WhatsApp
@@ -213,7 +213,7 @@ const Users = () => {
                       </div>
 
                       {/* Dynamic form for Students */}
-                      {selectedRole === 'STUDENT' && (
+                      {selectedRole === 'ELEVE' && (
                           <div style={{ marginTop: '24px' }}>
                               <h4 style={{ margin: '20px 0 10px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px' }}>Profil Élève & Filiation</h4>
                               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
@@ -233,7 +233,7 @@ const Users = () => {
                       )}
 
                       {/* Dynamic form for Staff */}
-                      {(selectedRole === 'SCHOOL_ADMIN' || selectedRole === 'TEACHER') && (
+                      {(selectedRole === 'ADMIN_ECOLE' || selectedRole === 'ENSEIGNANT') && (
                           <div style={{ marginTop: '24px' }}>
                               <h4 style={{ margin: '20px 0 10px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px' }}>Dossier Personnel</h4>
                               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
@@ -254,8 +254,8 @@ const Users = () => {
                               ...formData,
                               role: selectedRole,
                               photo: capturedPhoto,
-                              studentProfile: selectedRole === 'STUDENT' ? studentProfile : undefined,
-                              staffProfile: ['SCHOOL_ADMIN', 'TEACHER'].includes(selectedRole) ? staffProfile : undefined
+                              studentProfile: selectedRole === 'ELEVE' ? studentProfile : undefined,
+                              staffProfile: ['ADMIN_ECOLE', 'ENSEIGNANT'].includes(selectedRole) ? staffProfile : undefined
                           };
                           
                           createUser(payload, {

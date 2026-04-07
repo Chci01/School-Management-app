@@ -11,7 +11,7 @@ export class HealthController {
   constructor(private readonly healthService: HealthService) {}
 
   @Post()
-  @Roles(Role.SUPER_ADMIN, Role.SCHOOL_ADMIN, Role.TEACHER)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN_ECOLE, Role.ENSEIGNANT)
   create(@Body() createHealthDto: any, @Request() req) {
     return this.healthService.create(createHealthDto, req.user);
   }

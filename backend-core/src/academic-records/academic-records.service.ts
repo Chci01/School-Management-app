@@ -6,7 +6,7 @@ export class AcademicRecordsService {
     constructor(private prisma: PrismaService) {}
 
     async createOrUpdate(data: any, user: any) {
-        if (user.role !== 'SUPER_ADMIN' && user.role !== 'SCHOOL_ADMIN') {
+        if (user.role !== 'SUPER_ADMIN' && user.role !== 'ADMIN_ECOLE') {
             throw new ForbiddenException('Only admins can manage academic records');
         }
 

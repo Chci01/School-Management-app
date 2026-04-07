@@ -6,7 +6,7 @@ export class DocumentsService {
   constructor(private prisma: PrismaService) {}
 
   async create(createDocumentDto: any, user: any) {
-    const studentId = (user.role === 'SUPER_ADMIN' || user.role === 'SCHOOL_ADMIN') 
+    const studentId = (user.role === 'SUPER_ADMIN' || user.role === 'ADMIN_ECOLE') 
       ? createDocumentDto.studentId 
       : user.userId;
 
@@ -25,7 +25,7 @@ export class DocumentsService {
     const whereClause: any = { schoolId: user.schoolId };
     
     // Students/Parents only see their requests
-    if (user.role === 'STUDENT' || user.role === 'PARENT') {
+    if (user.role === 'ELEVE' || user.role === 'PARENT') {
        whereClause.studentId = user.userId;
     }
 
@@ -39,7 +39,7 @@ export class DocumentsService {
   }
 
   async updateStatus(id: string, status: string, user: any) {
-    if (user.role !== 'SUPER_ADMIN' && user.role !== 'SCHOOL_ADMIN') {
+    if (user.role !== 'SUPER_ADMIN' && user.role !== 'ADMIN_ECOLE') {
         throw new ForbiddenException('Only administrators can update document status');
     }
 

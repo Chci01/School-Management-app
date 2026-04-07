@@ -75,12 +75,18 @@ export class UsersService {
     };
 
     // If student, attach nested create
-    if (userData.role === 'STUDENT' && studentProfile) {
+    if (userData.role === 'ELEVE' && studentProfile) {
+      if (studentProfile.birthDate && typeof studentProfile.birthDate === 'string') {
+        studentProfile.birthDate = new Date(studentProfile.birthDate);
+      }
       createData.studentProfile = { create: studentProfile };
     }
 
     // If staff, attach nested create
-    if (['TEACHER', 'SCHOOL_ADMIN'].includes(userData.role) && staffProfile) {
+    if (['ENSEIGNANT', 'ADMIN_ECOLE'].includes(userData.role) && staffProfile) {
+      if (staffProfile.hireDate && typeof staffProfile.hireDate === 'string') {
+        staffProfile.hireDate = new Date(staffProfile.hireDate);
+      }
       createData.staffProfile = { create: staffProfile };
     }
 

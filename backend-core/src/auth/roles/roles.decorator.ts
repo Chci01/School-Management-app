@@ -2,9 +2,9 @@ import { SetMetadata } from '@nestjs/common';
 
 export enum Role {
   SUPER_ADMIN = 'SUPER_ADMIN',
-  SCHOOL_ADMIN = 'SCHOOL_ADMIN',
-  TEACHER = 'TEACHER',
-  STUDENT = 'STUDENT',
+  ADMIN_ECOLE = 'ADMIN_ECOLE',
+  ENSEIGNANT = 'ENSEIGNANT',
+  ELEVE = 'ELEVE',
   PARENT = 'PARENT',
 }
 

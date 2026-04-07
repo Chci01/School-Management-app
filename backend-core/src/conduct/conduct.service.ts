@@ -7,7 +7,7 @@ export class ConductService {
   constructor(private prisma: PrismaService) {}
 
   async submitTeacherConduct(createConductDto: CreateConductDto, user: any) {
-    if (user.role !== 'TEACHER') throw new BadRequestException('Only teachers can submit this');
+    if (user.role !== 'ENSEIGNANT') throw new BadRequestException('Only teachers can submit this');
 
     const existing = await this.prisma.conductGrade.findFirst({
       where: {
@@ -36,7 +36,7 @@ export class ConductService {
   async calculateGlobalConduct(dto: CalculateConductDto, user: any) {
     // 1. Get all students in the school
     const students = await this.prisma.user.findMany({
-      where: { schoolId: user.schoolId, role: 'STUDENT' }
+      where: { schoolId: user.schoolId, role: 'ELEVE' }
     });
 
     let processedCount = 0;

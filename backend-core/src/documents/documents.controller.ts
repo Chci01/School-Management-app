@@ -11,7 +11,7 @@ export class DocumentsController {
   constructor(private readonly documentsService: DocumentsService) {}
 
   @Post()
-  @Roles(Role.STUDENT, Role.PARENT, Role.SUPER_ADMIN, Role.SCHOOL_ADMIN)
+  @Roles(Role.ELEVE, Role.PARENT, Role.SUPER_ADMIN, Role.ADMIN_ECOLE)
   create(@Body() createDocumentDto: any, @Request() req) {
     return this.documentsService.create(createDocumentDto, req.user);
   }
@@ -22,7 +22,7 @@ export class DocumentsController {
   }
 
   @Patch(':id/status')
-  @Roles(Role.SUPER_ADMIN, Role.SCHOOL_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN_ECOLE)
   updateStatus(
     @Param('id') id: string, 
     @Body('status') status: string,

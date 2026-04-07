@@ -11,20 +11,20 @@ export class AcademicRecordsController {
   constructor(private readonly academicRecordsService: AcademicRecordsService) {}
 
   @Post()
-  @Roles(Role.SUPER_ADMIN, Role.SCHOOL_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN_ECOLE)
   createOrUpdate(@Body() data: any, @Request() req) {
     return this.academicRecordsService.createOrUpdate(data, req.user);
   }
 
   @Get('student/:id')
-  @Roles(Role.SUPER_ADMIN, Role.SCHOOL_ADMIN, Role.TEACHER, Role.PARENT, Role.STUDENT)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN_ECOLE, Role.ENSEIGNANT, Role.PARENT, Role.ELEVE)
   findByStudent(@Param('id') studentId: string, @Request() req) {
     // Parent/Student authorization happens inside service or via extra guards in production.
     return this.academicRecordsService.findByStudent(studentId, req.user);
   }
 
   @Get('class/:classId/year/:yearId')
-  @Roles(Role.SUPER_ADMIN, Role.SCHOOL_ADMIN, Role.TEACHER)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN_ECOLE, Role.ENSEIGNANT)
   findByClassAndYear(
     @Param('classId') classId: string, 
     @Param('yearId') yearId: string, 

@@ -49,7 +49,7 @@ export class SchoolsController {
 
   @Get(':id')
   @UseGuards(JwtAuthGuard, LicenseGuard, RolesGuard)
-  @Roles(Role.SUPER_ADMIN, Role.SCHOOL_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN_ECOLE)
   findOne(@Param('id') id: string) {
     return this.schoolsService.findOne(id);
   }
@@ -71,7 +71,7 @@ export class SchoolsController {
   @Post(':id/activate-license')
   // We explicitly DO NOT use LicenseGuard here so expired schools can activate!
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.SUPER_ADMIN, Role.SCHOOL_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN_ECOLE)
   async activateLicense(
     @Param('id') id: string,
     @Body('licenseKey') licenseKey: string,

@@ -11,7 +11,7 @@ export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 
   @Get('bulletin/:studentId')
-  @Roles(Role.SCHOOL_ADMIN, Role.SUPER_ADMIN, Role.TEACHER, Role.STUDENT, Role.PARENT)
+  @Roles(Role.ADMIN_ECOLE, Role.SUPER_ADMIN, Role.ENSEIGNANT, Role.ELEVE, Role.PARENT)
   generateBulletin(
     @Request() req,
     @Param('studentId') studentId: string,
@@ -23,7 +23,7 @@ export class ReportsController {
   }
 
   @Patch('publish')
-  @Roles(Role.SCHOOL_ADMIN, Role.SUPER_ADMIN)
+  @Roles(Role.ADMIN_ECOLE, Role.SUPER_ADMIN)
   publishTerm(
     @Request() req,
     @Body('academicYearId') academicYearId: string,

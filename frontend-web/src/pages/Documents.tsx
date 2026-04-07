@@ -147,7 +147,7 @@ const Documents = () => {
                       </select>
                   </div>
 
-                  {['SUPER_ADMIN', 'SCHOOL_ADMIN'].includes(user?.role || '') && (
+                  {['SUPER_ADMIN', 'ADMIN_ECOLE'].includes(user?.role || '') && (
                     <div className="input-group" style={{ marginTop: '16px' }}>
                         <label>ID / Matricule de l'élève</label>
                         <input 

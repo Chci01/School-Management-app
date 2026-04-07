@@ -16,8 +16,8 @@ export const useDashboard = (schoolId?: string) => {
       const payments = paymentsRes.data || [];
 
       // Calculate aggregations
-      const studentsCount = users.filter((u: any) => u.role === 'STUDENT').length;
-      const staffCount = users.filter((u: any) => u.role === 'TEACHER' || u.role === 'SCHOOL_ADMIN').length;
+      const studentsCount = users.filter((u: any) => u.role === 'ELEVE').length;
+      const staffCount = users.filter((u: any) => u.role === 'ENSEIGNANT' || u.role === 'ADMIN_ECOLE').length;
       const revenues = payments.reduce((acc: number, curr: any) => acc + (curr.amount || 0), 0);
 
       return {

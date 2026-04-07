@@ -43,7 +43,7 @@ export class RegistrationService {
           password: hashedPassword,
           firstName: 'Admin',
           lastName: schoolName,
-          role: 'SCHOOL_ADMIN',
+          role: 'ADMIN_ECOLE',
         },
       });
 

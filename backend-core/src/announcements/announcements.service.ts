@@ -6,7 +6,7 @@ export class AnnouncementsService {
     constructor(private prisma: PrismaService) {}
 
     async create(createDto: any, user: any) {
-        if (user.role !== 'SUPER_ADMIN' && user.role !== 'SCHOOL_ADMIN') {
+        if (user.role !== 'SUPER_ADMIN' && user.role !== 'ADMIN_ECOLE') {
              throw new ForbiddenException('Only admins can create announcements');
         }
 
