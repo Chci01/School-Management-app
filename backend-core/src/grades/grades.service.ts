@@ -47,4 +47,33 @@ export class GradesService {
 
     return totalCoefficients > 0 ? (totalPoints / totalCoefficients) : 0;
   }
+
+  async upsertBulk(schoolId: string, grades: CreateGradeDto[]) {
+    // Process each grade
+    const results: any[] = [];
+    for (const g of grades) {
+      // Find if exists
+      const existing = await this.prisma.grade.findFirst({
+        where: {
+          schoolId,
+          studentId: g.studentId,
+          subjectId: g.subjectId,
+          academicYearId: g.academicYearId,
+          term: g.term || 1,
+        }
+      });
+
+      if (existing) {
+        results.push(await this.prisma.grade.update({
+          where: { id: existing.id },
+          data: { value: g.value }
+        }));
+      } else {
+        results.push(await this.prisma.grade.create({
+          data: { ...g, schoolId }
+        }));
+      }
+    }
+    return results;
+  }
 }

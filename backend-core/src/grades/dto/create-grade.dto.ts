@@ -25,4 +25,10 @@ export class CreateGradeDto {
   @IsOptional()
   @IsString()
   evaluationType?: string; // ex: "Devoir", "Composition", "Interrogation"
+
+  @IsNumber()
+  @IsNotEmpty()
+  @Min(1)
+  @Max(3)
+  term: number;
 }

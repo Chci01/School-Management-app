@@ -1,44 +1,66 @@
+import { useState } from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
 import { ThemeToggle } from '../ThemeToggle';
 import { useAuth } from '../../hooks/useAuth';
-import { LogOut } from 'lucide-react';
+import { LogOut, Menu, X } from 'lucide-react';
 
 const RootLayout = () => {
     const { user, logout } = useAuth();
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+    const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
+    const closeSidebar = () => setIsSidebarOpen(false);
+
     return (
         <div className="app-container">
-            <aside className="sidebar glass-panel">
-                <div className="sidebar-header" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                     <img src="logo.png" alt="App Logo" style={{ height: '36px', objectFit: 'contain' }} />
-                     <h3 style={{ fontSize: '1.2rem' }}>KalanSira du Mali</h3>
+            {/* Mobile Overlay */}
+            {isSidebarOpen && (
+                <div className="sidebar-overlay" onClick={closeSidebar}></div>
+            )}
+
+            <aside className={`sidebar glass-panel ${isSidebarOpen ? 'open' : ''}`}>
+                <div className="sidebar-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <img src="logo.png" alt="App Logo" style={{ height: '32px', objectFit: 'contain' }} />
+                        <h3 style={{ fontSize: '1.1rem' }}>KalanSira Mali</h3>
+                    </div>
+                    <button className="sidebar-close-btn" onClick={closeSidebar}>
+                        <X size={20} />
+                    </button>
                 </div>
                  <nav className="sidebar-nav">
                     <ul>
-                         <li><NavLink to="/" end>Tableau de Bord</NavLink></li>
-                         <li><NavLink to="/schools">Écoles</NavLink></li>
-                         <li><NavLink to="/users">Utilisateurs</NavLink></li>
-                         <li><NavLink to="/academic">Scolarité</NavLink></li>
-                         <li><NavLink to="/reports">Bulletins</NavLink></li>
-                         <li><NavLink to="/payments">Paiements</NavLink></li>
-                         <li><NavLink to="/documents">Documents</NavLink></li>
-                         <li><NavLink to="/health">Infirmerie</NavLink></li>
-                         <li><NavLink to="/supplies">Fournitures</NavLink></li>
-                         <li><NavLink to="/conduct">Conduite</NavLink></li>
-                         <li><NavLink to="/badges">Badges</NavLink></li>
-                         <li><NavLink to="/news">Actualités</NavLink></li>
-                         <li><NavLink to="/subscription">Abonnement</NavLink></li>
+                         <li><NavLink to="/" end onClick={closeSidebar}>Tableau de Bord</NavLink></li>
+                         <li><NavLink to="/schools" onClick={closeSidebar}>Écoles</NavLink></li>
+                         <li><NavLink to="/users" onClick={closeSidebar}>Utilisateurs</NavLink></li>
+                         <li><NavLink to="/academic" onClick={closeSidebar}>Scolarité</NavLink></li>
+                         <li><NavLink to="/reports" onClick={closeSidebar}>Bulletins</NavLink></li>
+                         <li><NavLink to="/payments" onClick={closeSidebar}>Paiements</NavLink></li>
+                         <li><NavLink to="/documents" onClick={closeSidebar}>Documents</NavLink></li>
+                         <li><NavLink to="/health" onClick={closeSidebar}>Infirmerie</NavLink></li>
+                         <li><NavLink to="/supplies" onClick={closeSidebar}>Fournitures</NavLink></li>
+                         <li><NavLink to="/conduct" onClick={closeSidebar}>Conduite</NavLink></li>
+                         <li><NavLink to="/badges" onClick={closeSidebar}>Badges</NavLink></li>
+                         <li><NavLink to="/news" onClick={closeSidebar}>Actualités</NavLink></li>
+                         <li><NavLink to="/subscription" onClick={closeSidebar}>Abonnement</NavLink></li>
                     </ul>
                 </nav>
             </aside>
+
             <main className="main-content">
                 <header className="topbar glass-panel">
-                     <div className="topbar-search">
-                          <input type="text" placeholder="Rechercher..." />
+                     <div className="topbar-left">
+                        <button className="menu-toggle-btn" onClick={toggleSidebar}>
+                            <Menu size={24} />
+                        </button>
+                        <div className="topbar-search">
+                            <input type="text" placeholder="Rechercher..." />
+                        </div>
                      </div>
                      <div className="topbar-user" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                           <ThemeToggle />
                           <div className="avatar">{user?.firstName?.[0] ? user.firstName[0].toUpperCase() : 'U'}</div>
-                          <div className="user-info">
+                          <div className="user-info mobile-hidden">
                               <span className="user-name">{user?.firstName || 'Utilisateur'} {user?.lastName || ''}</span>
                               <span className="user-role" style={{ fontSize: '12px', opacity: 0.8 }}>{user?.role || ''}</span>
                           </div>

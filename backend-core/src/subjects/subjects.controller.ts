@@ -13,7 +13,7 @@ export class SubjectsController {
   constructor(private readonly subjectsService: SubjectsService) {}
 
   @Post()
-  @Roles(Role.SCHOOL_ADMIN)
+  @Roles(Role.SCHOOL_ADMIN, Role.TEACHER)
   create(@Request() req, @Body() createSubjectDto: CreateSubjectDto) {
     return this.subjectsService.create(req.user.schoolId, createSubjectDto);
   }

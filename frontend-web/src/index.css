@@ -450,3 +450,125 @@ body {
   background: rgba(128, 128, 128, 0.1);
   transform: scale(1.05);
 }
+
+/* --- RESPONSIVE DESIGN --- */
+
+/* Mobile Hidden Utility */
+.mobile-hidden {
+  display: flex;
+}
+
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.menu-toggle-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 8px;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.menu-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.sidebar-close-btn {
+  display: none;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  color: white;
+  padding: 6px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 998;
+}
+
+/* Tablet & Mobile Breakpoint */
+@media (max-width: 1024px) {
+  .menu-toggle-btn {
+    display: flex;
+  }
+  
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -320px; /* Hidden by default */
+    bottom: 0;
+    margin: 0;
+    height: 100vh;
+    border-radius: 0 24px 24px 0;
+    z-index: 1000;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 20px 0 50px rgba(0, 0, 0, 0.3);
+  }
+  
+  .sidebar.open {
+    left: 0;
+  }
+  
+  .sidebar-close-btn {
+    display: flex;
+  }
+  
+  .main-content {
+    padding: 16px;
+  }
+  
+  .sidebar-header {
+    padding: 24px;
+  }
+  
+  .topbar-search input {
+    width: 200px;
+  }
+  
+  .dashboard-content {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Phone Breakpoint */
+@media (max-width: 768px) {
+  .mobile-hidden {
+    display: none !important;
+  }
+  
+  .topbar-search {
+    display: none;
+  }
+  
+  .page-header h1 {
+    font-size: 1.5rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .topbar {
+    padding: 0 12px;
+  }
+  
+  .stat-card {
+    padding: 16px;
+  }
+}

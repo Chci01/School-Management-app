@@ -18,6 +18,12 @@ export class GradesController {
     return this.gradesService.create(req.user.schoolId, createGradeDto);
   }
 
+  @Post('bulk')
+  @Roles(Role.SCHOOL_ADMIN, Role.TEACHER)
+  upsertBulk(@Request() req, @Body() grades: CreateGradeDto[]) {
+    return this.gradesService.upsertBulk(req.user.schoolId, grades);
+  }
+
   @Get('student/:studentId')
   @Roles(Role.SCHOOL_ADMIN, Role.TEACHER, Role.STUDENT, Role.PARENT)
   findAllByStudent(
