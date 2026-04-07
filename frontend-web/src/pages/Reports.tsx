@@ -5,7 +5,7 @@ import { useUsers } from '../hooks/useUsers';
 import { useAcademic } from '../hooks/useAcademic';
 import { useSubjects } from '../hooks/useSubjects';
 import { useGrades } from '../hooks/useGrades';
-import { Plus, Trash2, Save, X, Edit3, Check } from 'lucide-react';
+import { Plus, Trash2, Save, X, Edit3 } from 'lucide-react';
 
 const Reports = () => {
   const { currentSchoolId, user } = useAuth();
@@ -87,7 +87,7 @@ const Reports = () => {
         
         // Flexibilité Totale: Create subject if it doesn't exist
         if (!sid && row.subjectName) {
-          const existingSub = subjects.find(s => s.name.toLowerCase() === row.subjectName.toLowerCase());
+          const existingSub = subjects.find((s: any) => s.name.toLowerCase() === row.subjectName.toLowerCase());
           if (existingSub) {
             sid = existingSub.id;
           } else {
