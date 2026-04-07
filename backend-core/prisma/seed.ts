@@ -8,7 +8,7 @@ const prisma = new PrismaClient();
 
 async function main() {
   console.log('Start seeding...');
-  
+
   // 1. Clean existing database
   await prisma.grade.deleteMany();
   await prisma.academicRecord.deleteMany();
@@ -68,10 +68,10 @@ async function main() {
 
   // 4. Create Settings (Badge Templates)
   await prisma.badgeTemplate.createMany({
-      data: [
-          { schoolId: school1.id, primaryColor: '#2563eb', secondaryColor: '#ffffff' },
-          { schoolId: school2.id, primaryColor: '#10b981', secondaryColor: '#ffffff' },
-      ]
+    data: [
+      { schoolId: school1.id, primaryColor: '#2563eb', secondaryColor: '#ffffff' },
+      { schoolId: school2.id, primaryColor: '#10b981', secondaryColor: '#ffffff' },
+    ]
   });
 
   // 5. Create Academic Years
@@ -86,10 +86,10 @@ async function main() {
   });
 
   // 6. Create Classes
-  const class1 = await prisma.class.create({ data: { name: 'Terminale Sciences Exactes', level: 12, schoolId: school1.id, academicYearId: year2.id }});
-  const class2 = await prisma.class.create({ data: { name: '10ème Commune', level: 10, schoolId: school1.id, academicYearId: year2.id }});
-  
-  const class3 = await prisma.class.create({ data: { name: '9ème Année Fondamentale', level: 9, schoolId: school2.id, academicYearId: year3.id }});
+  const class1 = await prisma.class.create({ data: { name: 'Terminale Sciences Exactes', level: 12, schoolId: school1.id, academicYearId: year2.id } });
+  const class2 = await prisma.class.create({ data: { name: '10ème Commune', level: 10, schoolId: school1.id, academicYearId: year2.id } });
+
+  const class3 = await prisma.class.create({ data: { name: '9ème Année Fondamentale', level: 9, schoolId: school2.id, academicYearId: year3.id } });
 
   // 7. Create Users (Admins, Teachers, Students) for School 1
   const schoolAdmin1 = await prisma.user.create({
@@ -113,51 +113,51 @@ async function main() {
   });
 
   // Link Parent to Student
-  await prisma.parentStudent.create({ data: { parentId: parent1.id, studentId: student1.id }});
-  
+  await prisma.parentStudent.create({ data: { parentId: parent1.id, studentId: student1.id } });
+
   // Assign Students to Class (via AcademicRecord)
-  await prisma.academicRecord.create({ data: { studentId: student1.id, classId: class1.id, academicYearId: year2.id, schoolId: school1.id, average: 0, status: 'PROMOTED' }});
-  await prisma.academicRecord.create({ data: { studentId: student2.id, classId: class1.id, academicYearId: year2.id, schoolId: school1.id, average: 0, status: 'PROMOTED' }});
+  await prisma.academicRecord.create({ data: { studentId: student1.id, classId: class1.id, academicYearId: year2.id, schoolId: school1.id, average: 0, status: 'PROMOTED' } });
+  await prisma.academicRecord.create({ data: { studentId: student2.id, classId: class1.id, academicYearId: year2.id, schoolId: school1.id, average: 0, status: 'PROMOTED' } });
 
   // 8. Create Users for School 2
   await prisma.user.create({
     data: { matricule: 'ADM_SMM_01', password: adminPassword, role: 'SCHOOL_ADMIN', firstName: 'Directeur', lastName: 'SMM', schoolId: school2.id }
   });
-  
+
   const student3 = await prisma.user.create({
     data: { matricule: 'ETU_SMM_001', password: userPassword, role: 'STUDENT', firstName: 'Fatoumata', lastName: 'Coulibaly', schoolId: school2.id }
   });
-  await prisma.academicRecord.create({ data: { studentId: student3.id, classId: class3.id, academicYearId: year3.id, schoolId: school2.id, average: 0, status: 'PROMOTED' }});
+  await prisma.academicRecord.create({ data: { studentId: student3.id, classId: class3.id, academicYearId: year3.id, schoolId: school2.id, average: 0, status: 'PROMOTED' } });
 
   // 9. Generate Dummy Data (Announcements & Payments)
   await prisma.announcement.create({
-     data: {
-         title: 'Réunion des Parents d\'Élèves',
-         content: 'La première réunion de prise de contact se tiendra le samedi prochain dans la grande salle.',
-         schoolId: school1.id,
-         target: 'PARENT'
-     }
+    data: {
+      title: 'Réunion des Parents d\'Élèves',
+      content: 'La première réunion de prise de contact se tiendra le samedi prochain dans la grande salle.',
+      schoolId: school1.id,
+      target: 'PARENT'
+    }
   });
 
   await prisma.payment.create({
-      data: {
-          studentId: student1.id,
-          schoolId: school1.id,
-          amount: 50000,
-          tranche: 1,
-          receiptNumber: 'REC-2024-001'
-      }
+    data: {
+      studentId: student1.id,
+      schoolId: school1.id,
+      amount: 50000,
+      tranche: 1,
+      receiptNumber: 'REC-2024-001'
+    }
   });
-  
+
   await prisma.payment.create({
     data: {
-        studentId: student2.id,
-        schoolId: school1.id,
-        amount: 25000,
-        tranche: 2,
-        receiptNumber: 'REC-2024-002'
+      studentId: student2.id,
+      schoolId: school1.id,
+      amount: 25000,
+      tranche: 2,
+      receiptNumber: 'REC-2024-002'
     }
-});
+  });
 
   // 10. Create Subjects (Added for schedules)
   const mathSubject = await prisma.subject.create({ data: { name: 'Mathématiques', schoolId: school1.id } });
@@ -169,7 +169,7 @@ async function main() {
   console.log('📝 Seeding schedules...');
   const monday = 1;
   const tuesday = 2;
-  
+
   await prisma.schedule.createMany({
     data: [
       {

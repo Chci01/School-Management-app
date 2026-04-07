@@ -22,11 +22,16 @@ export class RegistrationService {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     return this.prisma.$transaction(async (tx) => {
+      // Set up a 7-day free trial automatically on signup
+      const trialExpiration = new Date();
+      trialExpiration.setDate(trialExpiration.getDate() + 7);
+
       const school = await tx.school.create({
         data: {
           name: schoolName,
           email: email,
-          isActive: false, // Must be activated with license
+          isActive: true, // Active immediately with the trial
+          licenseExpiresAt: trialExpiration,
         },
       });
 
@@ -43,9 +48,10 @@ export class RegistrationService {
       });
 
       return {
-        message: 'Compte créé avec succès',
+        message: 'Compte créé avec succès. Votre essai gratuit de 7 jours commence maintenant !',
         schoolId: school.id,
         adminMatricule: admin.matricule,
+        trialExpiresAt: trialExpiration,
       };
     });
   }

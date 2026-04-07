@@ -32,8 +32,13 @@ const Activation = () => {
            </div>
            <h2>Activation du logiciel</h2>
            <p style={{ margin: '10px 0' }}>
-             Après paiement du montant de clé en FCFA (Annuel) ou (Mensuel), vous recevez une clé unique. Entrez-la pour débloquer toutes les fonctionnalités.
+             Après paiement, vous recevrez une clé unique. Entrez-la ci-dessous pour activer votre abonnement.
            </p>
+           <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap', margin: '12px 0' }}>
+             <span style={{ fontSize: '0.8rem', padding: '4px 10px', borderRadius: '12px', background: '#6366f122', color: '#6366f1', fontWeight: 600 }}>Mensuel · 15 000 FCFA</span>
+             <span style={{ fontSize: '0.8rem', padding: '4px 10px', borderRadius: '12px', background: '#f59e0b22', color: '#f59e0b', fontWeight: 600 }}>Annuel · 150 000 FCFA</span>
+             <span style={{ fontSize: '0.8rem', padding: '4px 10px', borderRadius: '12px', background: '#10b98122', color: '#10b981', fontWeight: 600 }}>À Vie · 500 000 FCFA</span>
+           </div>
         </div>
 
         {status === 'SUCCESS' ? (
@@ -67,7 +72,7 @@ const Activation = () => {
             <div style={{ marginTop: '30px', textAlign: 'center' }}>
                <p style={{ opacity: 0.7, marginBottom: '10px' }}>💬 Besoin d'aide ou d'une clé ?</p>
                <a 
-                 href="https://wa.me/22370000000" // Placeholder WhatsApp
+                 href="https://wa.me/22374480652"
                  target="_blank" 
                  rel="noopener noreferrer"
                  className="btn-secondary"
