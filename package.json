@@ -1,0 +1,8 @@
+{
+  "name": "school-management",
+  "private": true,
+  "scripts": {
+    "build": "cd frontend-web && npm install && npm run build",
+    "install": "cd frontend-web && npm install"
+  }
+}

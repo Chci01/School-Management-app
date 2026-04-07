@@ -1,0 +1,10 @@
+{
+  "framework": "vite",
+  "outputDirectory": "frontend-web/dist",
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/"
+    }
+  ]
+}
