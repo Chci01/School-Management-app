@@ -29,12 +29,14 @@ export const useAuth = () => {
     navigate('/login');
   };
 
+  const user = localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!) : null;
+
   return {
     login: loginMutation.mutate,
     isLoading: loginMutation.isPending,
     error: loginMutation.error,
     logout,
-    user: (localStorage.getItem('user') ? JSON.parse(localStorage.getItem('user')!) : null),
-    currentSchoolId: localStorage.getItem('schoolId')
+    user,
+    currentSchoolId: localStorage.getItem('schoolId') || user?.schoolId
   };
 };

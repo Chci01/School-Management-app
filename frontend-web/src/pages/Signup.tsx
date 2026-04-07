@@ -30,16 +30,22 @@ const Signup = () => {
       <div className="login-container">
         <div className="glass-panel login-box success-box" style={{ textAlign: 'center', padding: '40px' }}>
           <div className="success-icon" style={{ fontSize: '64px', marginBottom: '20px' }}>✅</div>
-          <h2 style={{ color: 'var(--success)', marginBottom: '16px' }}>Compte Créé avec Succès !</h2>
+          <h2 style={{ color: 'var(--success)', marginBottom: '16px' }}>Bienvenue sur KalanSira !</h2>
           <p style={{ fontSize: '18px', marginBottom: '24px' }}>
-            Votre compte pour <strong>{formData.schoolName}</strong> a été créé avec succès.
+            Votre compte pour <strong>{formData.schoolName}</strong> est prêt.
           </p>
           <div className="alert-info" style={{ backgroundColor: 'rgba(59, 130, 246, 0.1)', padding: '20px', borderRadius: '12px', marginBottom: '30px' }}>
-             <p style={{ margin: 0 }}>Il doit maintenant être activé avec une licence pour accéder au logiciel.</p>
+             <p style={{ fontWeight: 'bold', marginBottom: '8px', color: '#3b82f6' }}>🎁 Essai Gratuit de 7 Jours Activé !</p>
+             <p style={{ margin: 0, fontSize: '14px' }}>Vous avez un accès complet à toutes les fonctionnalités dès maintenant. Profitez-en pour configurer votre établissement.</p>
           </div>
-          <button className="btn-primary" onClick={() => navigate('/activate')} style={{ width: '100%', padding: '15px' }}>
-            Activer ma licence
-          </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <button className="btn-primary" onClick={() => navigate('/admin/login')} style={{ width: '100%', padding: '15px', fontSize: '16px' }}>
+              Commencer mon Essai Gratuit
+            </button>
+            <button className="btn-secondary" onClick={() => navigate('/activate')} style={{ width: '100%', padding: '12px', opacity: 0.8 }}>
+              J'ai déjà une clé de licence
+            </button>
+          </div>
         </div>
       </div>
     );

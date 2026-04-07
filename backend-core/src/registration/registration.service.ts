@@ -56,25 +56,20 @@ export class RegistrationService {
     });
   }
 
-  async activateLicense(licenseKey: string) {
-    // Logic to find a school with this license key (or validate a new one)
-    // For now, let's assume we logic to mark a school as active if the key is valid.
-    // In a real scenario, we might have a pool of valid unused keys.
-    // For this implementation, we will look for a school that entered this key OR 
-    // simply use the key to activate the most recently created inactive school for demo purposes
-    // or better: the user should be logged in? But they can't log in if not active.
-    
-    // Improved logic: find school by email/name if we had that, 
-    // but the prompt says they enter it after signup.
-    
-    // Simple demo logic: Activate the last inactive school
-    const school = await this.prisma.school.findFirst({
-      where: { isActive: false },
-      orderBy: { createdAt: 'desc' },
-    });
+  async activateLicense(licenseKey: string, schoolId?: string) {
+    // Determine which school to activate
+    let school;
+    if (schoolId) {
+      school = await this.prisma.school.findUnique({ where: { id: schoolId } });
+    } else {
+      // Fuzzy logic for backward compatibility/quick activation
+      school = await this.prisma.school.findFirst({
+        orderBy: { createdAt: 'desc' },
+      });
+    }
 
     if (!school) {
-      throw new BadRequestException('Aucun établissement en attente d activation.');
+      throw new BadRequestException('Aucun établissement trouvé pour l\'activation.');
     }
 
     // Verify against real LicenseVoucher
@@ -90,8 +85,12 @@ export class RegistrationService {
       throw new BadRequestException('Cette clé de licence a déjà été utilisée.');
     }
 
-    const now = new Date();
-    const newExpiration = new Date(now);
+    // Calculate new expiration
+    // If the school already has a future expiration (trial), extend from there
+    const currentExpiration = school.licenseExpiresAt ? new Date(school.licenseExpiresAt) : new Date();
+    const baseDate = currentExpiration > new Date() ? currentExpiration : new Date();
+    
+    const newExpiration = new Date(baseDate);
     newExpiration.setDate(newExpiration.getDate() + voucher.days);
 
     return this.prisma.$transaction(async (tx) => {
@@ -99,7 +98,7 @@ export class RegistrationService {
         where: { id: voucher.id },
         data: {
           isUsed: true,
-          usedAt: now,
+          usedAt: new Date(),
           schoolId: school.id,
         },
       });

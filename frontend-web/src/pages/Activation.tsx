@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import { api } from '../services/api';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { useAuth } from '../hooks/useAuth';
 
 const Activation = () => {
+  const { currentSchoolId } = useAuth();
   const [licenseKey, setLicenseKey] = useState('');
   const [status, setStatus] = useState<'IDLE' | 'LOADING' | 'SUCCESS' | 'ERROR'>('IDLE');
   const [error, setError] = useState('');
@@ -11,7 +13,10 @@ const Activation = () => {
     e.preventDefault();
     setStatus('LOADING');
     try {
-      await api.post('/registration/activate', { licenseKey });
+      await api.post('/registration/activate', { 
+          licenseKey,
+          schoolId: currentSchoolId 
+      });
       setStatus('SUCCESS');
       // Redirect to login after successful activation
       setTimeout(() => {

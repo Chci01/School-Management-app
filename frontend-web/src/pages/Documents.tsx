@@ -3,7 +3,7 @@ import { useDocuments } from '../hooks/useDocuments';
 import { useAuth } from '../hooks/useAuth';
 
 const Documents = () => {
-  const { currentSchoolId } = useAuth();
+  const { currentSchoolId, user } = useAuth();
   const { documents, isLoading, updateStatus, createRequest } = useDocuments(currentSchoolId || undefined);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [documentToPrint, setDocumentToPrint] = useState<any>(null);
@@ -147,7 +147,7 @@ const Documents = () => {
                       </select>
                   </div>
 
-                  {['SUPER_ADMIN', 'SCHOOL_ADMIN'].includes(useAuth().user?.role || '') && (
+                  {['SUPER_ADMIN', 'SCHOOL_ADMIN'].includes(user?.role || '') && (
                     <div className="input-group" style={{ marginTop: '16px' }}>
                         <label>ID / Matricule de l'élève</label>
                         <input 
