@@ -9,7 +9,7 @@ const RootLayout = () => {
         <div className="app-container">
             <aside className="sidebar glass-panel">
                 <div className="sidebar-header" style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                     <img src="/logo.png" alt="App Logo" style={{ height: '36px', objectFit: 'contain' }} />
+                     <img src="logo.png" alt="App Logo" style={{ height: '36px', objectFit: 'contain' }} />
                      <h3 style={{ fontSize: '1.2rem' }}>KalanSira du Mali</h3>
                 </div>
                  <nav className="sidebar-nav">

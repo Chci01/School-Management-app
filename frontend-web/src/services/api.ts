@@ -32,14 +32,14 @@ api.interceptors.response.use(
       localStorage.removeItem('user');
       // Only redirect if they are not already on one of the login pages
       if (!window.location.hash.includes('/login')) {
-          window.location.href = '/#/login';
+          window.location.hash = '#/login';
       }
     } else if (error.response?.status === 403) {
       const message = error.response.data?.message || '';
       if (message.includes('expiré') || message.includes('inactif') || message.includes('licence')) {
          // DO NOT remove token! Allow the user to visit the subscription page to enter a new key.
          if (window.location.hash !== '#/subscription') {
-             window.location.href = '#/subscription';
+             window.location.hash = '#/subscription';
          }
       }
     }

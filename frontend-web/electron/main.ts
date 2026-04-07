@@ -24,11 +24,21 @@ log(`__dirname: ${__dirname}`);
 
 function createWindow() {
   try {
-    const rootDir = path.join(__dirname, '..');
-    const preloadPath = path.join(__dirname, 'preload.js');
-    const indexPath = path.join(rootDir, 'dist', 'index.html');
+    const isDev = !!process.env.VITE_DEV_SERVER_URL;
+    const rootDir = isDev 
+        ? path.join(__dirname, '..') 
+        : path.join(app.getAppPath());
     
-    log(`Attempting to create window...`);
+    const preloadPath = isDev 
+        ? path.join(__dirname, 'preload.js') 
+        : path.join(__dirname, 'preload.js'); // In asar, dist-electron/preload.js
+
+    const indexPath = isDev 
+        ? path.join(rootDir, 'dist', 'index.html') 
+        : path.join(rootDir, 'dist', 'index.html');
+    
+    log(`App mode: ${isDev ? 'DEV' : 'PROD'}`);
+    log(`App path: ${app.getAppPath()}`);
     log(`Preload path: ${preloadPath}`);
     log(`Index path: ${indexPath}`);
 

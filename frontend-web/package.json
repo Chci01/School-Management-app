@@ -20,7 +20,8 @@
   },
   "build": {
     "appId": "com.schoolmanagement.app",
-    "productName": "KalanSira du Mali",
+    "productName": "Kalansira Mali V1",
+    "artifactName": "Kalansira Mali V1.exe",
     "files": [
       "dist",
       "dist-electron"
