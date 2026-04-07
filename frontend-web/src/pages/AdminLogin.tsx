@@ -74,10 +74,10 @@ const AdminLogin = () => {
           )}
 
           <div className="input-group">
-            <label>Identifiant (Matricule Admin)</label>
+            <label>Identifiant (Email ou Matricule)</label>
             <input 
                type="text" 
-               placeholder="Entrez votre identifiant" 
+               placeholder="Email ou Matricule admin" 
                value={matricule}
                onChange={(e) => setMatricule(e.target.value)}
                required 

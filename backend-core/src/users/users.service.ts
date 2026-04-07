@@ -7,16 +7,24 @@ import * as bcrypt from 'bcrypt';
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
-  async findByMatricule(schoolId: string | null, matricule: string): Promise<User | null> {
+  async findByMatricule(schoolId: string | null, identifier: string): Promise<User | null> {
+    const whereClause: any = {
+      OR: [
+        { matricule: identifier },
+        { email: identifier }
+      ]
+    };
+
     if (schoolId) {
-       return this.prisma.user.findUnique({
-         where: { schoolId_matricule: { schoolId, matricule } }
+       whereClause.schoolId = schoolId;
+       return this.prisma.user.findFirst({
+         where: whereClause
        });
     } else {
-       // Super Admin login fallback, assuming super admins might just use an email fallback or global unique matricule
-       // For this design, let's allow finding first match for now, or specifically where schoolId is null.
+       // Super Admin login fallback
+       whereClause.schoolId = null;
        return this.prisma.user.findFirst({
-         where: { matricule, schoolId: null },
+         where: whereClause,
        });
     }
   }

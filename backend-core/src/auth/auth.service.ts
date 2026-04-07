@@ -10,10 +10,10 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async validateUser(schoolId: string | null, matricule: string, pass: string): Promise<any> {
-    const user = await this.usersService.findByMatricule(schoolId, matricule);
+  async validateUser(schoolId: string | null, identifier: string, pass: string): Promise<any> {
+    const user = await this.usersService.findByMatricule(schoolId, identifier);
     if (!user) {
-       console.log(`[AUTH DEBUG] User not found in DB with matricule ${matricule} + school ${schoolId}`);
+       console.log(`[AUTH DEBUG] User not found with ID ${identifier} in school ${schoolId}`);
        return null;
     }
     
