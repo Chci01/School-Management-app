@@ -58,7 +58,7 @@ export class SchoolsService {
   }
 
   async toggleActive(id: string) {
-    const school = await this.findOne(id);
+    const school = await this.findOne(id) as any;
     return this.firestore.update(this.collection, id, { isActive: !school.isActive });
   }
 
