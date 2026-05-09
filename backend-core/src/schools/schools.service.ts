@@ -1,42 +1,52 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateSchoolDto } from './dto/create-school.dto';
 import { UpdateSchoolDto } from './dto/update-school.dto';
-import { PrismaService } from '../prisma/prisma.service';
+import { FirestoreService } from '../firebase/firestore.service';
 import { v4 as uuidv4 } from 'uuid';
+import * as admin from 'firebase-admin';
 
 @Injectable()
 export class SchoolsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private firestore: FirestoreService) {}
+
+  private readonly collection = 'schools';
+  private readonly vouchersCollection = 'license_vouchers';
 
   async create(createSchoolDto: CreateSchoolDto) {
     const licenseKey = uuidv4();
-    return this.prisma.school.create({
-      data: {
-        ...createSchoolDto,
-        licenseKey,
-      },
+    return this.firestore.create(this.collection, {
+      ...createSchoolDto,
+      licenseKey,
+      isActive: true,
+      theme: 'light',
+      defaultLanguage: 'fr',
     });
   }
 
   async findAll() {
-    return this.prisma.school.findMany();
+    return this.firestore.findAll(this.collection);
   }
 
   async findPublic() {
-    return this.prisma.school.findMany({
-      where: { isActive: true },
-      select: {
-        id: true,
-        name: true,
-        logo: true,
-        slogan: true,
-        isActive: true,
-      }
+    const db = this.firestore.getDb();
+    const snapshot = await db.collection(this.collection)
+      .where('isActive', '==', true)
+      .get();
+    
+    return snapshot.docs.map(doc => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        name: data.name,
+        logo: data.logo,
+        slogan: data.slogan,
+        isActive: data.isActive,
+      };
     });
   }
 
   async findOne(id: string) {
-    const school = await this.prisma.school.findUnique({ where: { id } });
+    const school = await this.firestore.findOne(this.collection, id);
     if (!school) {
         throw new NotFoundException(`School with ID ${id} not found`);
     }
@@ -44,88 +54,80 @@ export class SchoolsService {
   }
 
   async update(id: string, updateSchoolDto: UpdateSchoolDto) {
-    // Just verify existence first via findOne (will throw if absent)
-    await this.findOne(id);
-    return this.prisma.school.update({
-      where: { id },
-      data: updateSchoolDto,
-    });
+    return this.firestore.update(this.collection, id, updateSchoolDto);
   }
 
   async toggleActive(id: string) {
     const school = await this.findOne(id);
-    return this.prisma.school.update({
-      where: { id },
-      data: { isActive: !school.isActive },
-    });
+    return this.firestore.update(this.collection, id, { isActive: !school.isActive });
   }
 
   async generateLicense(days: number, userId: string) {
     const generateSegment = () => Math.random().toString(36).substring(2, 6).toUpperCase();
     const code = `KALAN-${generateSegment()}-${generateSegment()}`;
     
-    return this.prisma.licenseVoucher.create({
-      data: {
-        code,
-        days,
-        createdBy: userId,
-      }
+    return this.firestore.create(this.vouchersCollection, {
+      code,
+      days,
+      createdBy: userId,
+      isUsed: false,
     });
   }
 
   async getAllLicenses() {
-    return this.prisma.licenseVoucher.findMany({
-      orderBy: { createdAt: 'desc' },
-    });
+    return this.firestore.findAll(this.vouchersCollection);
   }
 
   async activateLicense(id: string, licenseKey: string, userId: string) {
-    // Verify school exists
-    const school = await this.findOne(id);
+    const db = this.firestore.getDb();
+    const schoolRef = db.collection(this.collection).doc(id);
+    const voucherQuery = await db.collection(this.vouchersCollection)
+      .where('code', '==', licenseKey)
+      .limit(1)
+      .get();
 
-    // Find the voucher
-    const voucher = await this.prisma.licenseVoucher.findUnique({
-      where: { code: licenseKey },
-    });
-
-    if (!voucher) {
+    if (voucherQuery.empty) {
       throw new NotFoundException('Clé de licence invalide.');
     }
+
+    const voucherDoc = voucherQuery.docs[0];
+    const voucher = voucherDoc.data();
 
     if (voucher.isUsed) {
       throw new Error('Cette clé de licence a déjà été utilisée.');
     }
 
-    // Determine new expiration date
-    const now = new Date();
-    let newExpiration = now;
-    if (school.licenseExpiresAt && school.licenseExpiresAt > now) {
-      // Add days to the current valid expiration
-      newExpiration = new Date(school.licenseExpiresAt);
-    }
-    
-    // Add the days from the voucher
-    newExpiration.setDate(newExpiration.getDate() + voucher.days);
+    return db.runTransaction(async (transaction) => {
+      const schoolDoc = await transaction.get(schoolRef);
+      if (!schoolDoc.exists) throw new NotFoundException('École non trouvée.');
+      
+      const school = schoolDoc.data()!;
+      const now = new Date();
+      let newExpiration = now;
 
-    // Update the voucher and the school in a transaction
-    return this.prisma.$transaction(async (tx) => {
-      await tx.licenseVoucher.update({
-        where: { id: voucher.id },
-        data: {
-          isUsed: true,
-          usedById: userId,
-          usedAt: now,
-          schoolId: id,
-        },
+      if (school.licenseExpiresAt) {
+        const currentExp = school.licenseExpiresAt.toDate ? school.licenseExpiresAt.toDate() : new Date(school.licenseExpiresAt);
+        if (currentExp > now) {
+          newExpiration = currentExp;
+        }
+      }
+      
+      newExpiration.setDate(newExpiration.getDate() + voucher.days);
+
+      transaction.update(voucherDoc.ref, {
+        isUsed: true,
+        usedById: userId,
+        usedAt: admin.firestore.FieldValue.serverTimestamp(),
+        schoolId: id,
       });
 
-      return tx.school.update({
-        where: { id },
-        data: {
-          licenseExpiresAt: newExpiration,
-        },
+      transaction.update(schoolRef, {
+        licenseExpiresAt: admin.firestore.Timestamp.fromDate(newExpiration),
       });
+
+      return { success: true, newExpiration };
     });
   }
 }
+
 

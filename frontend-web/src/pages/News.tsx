@@ -99,7 +99,7 @@ export const News = () => {
       {isModalOpen && (
           <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
               <div className="modal-content glass-panel" style={{ width: '600px', maxWidth: '90%', padding: '24px' }}>
-                  <h3>Publier une Actualité</h3>
+                  <h3 style={{color: 'var(--text)'}}>Publier une Actualité</h3>
                   <div className="input-group" style={{ marginTop: '20px' }}>
                       <label>Titre de l'annonce</label>
                       <input 
@@ -115,7 +115,7 @@ export const News = () => {
                       <textarea 
                         rows={6} 
                         placeholder="Détails de l'actualité..." 
-                        style={{ width: '100%', padding: '12px', background: 'var(--surface)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px' }}
+                        style={{ width: '100%', padding: '12px', background: 'var(--surface)', color: 'var(--text)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px' }}
                         value={formData.content}
                         onChange={(e) => setFormData({...formData, content: e.target.value})}
                       ></textarea>

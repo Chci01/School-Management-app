@@ -2,11 +2,13 @@ import axios from 'axios';
 
 // Create a globally configured Axios instance
 export const api = axios.create({
-  baseURL: 'https://school-management-app-6pkq.onrender.com', // Force production backend
+  // baseURL: 'https://school-management-app-6pkq.onrender.com', // Old Render backend
+  baseURL: 'https://us-central1-kalansira-mali.cloudfunctions.net/api', // New Firebase Functions backend
   headers: {
     'Content-Type': 'application/json',
   },
 });
+
 
 // Intercept requests to automatically inject the Bearer token
 api.interceptors.request.use(

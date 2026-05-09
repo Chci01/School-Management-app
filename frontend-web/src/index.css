@@ -16,6 +16,11 @@
   --glass-bg: rgba(15, 23, 42, 0.6);
   --glass-border: rgba(255, 255, 255, 0.08);
   --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+
+  /* Aliases for cleaner code */
+  --text: var(--text-primary);
+  --text-muted: var(--text-secondary);
+  --border: var(--surface-border);
 }
 
 [data-theme='light'] {
@@ -28,6 +33,10 @@
   --glass-bg: rgba(255, 255, 255, 0.6);
   --glass-border: rgba(0, 0, 0, 0.08);
   --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+
+  --text: var(--text-primary);
+  --text-muted: var(--text-secondary);
+  --border: var(--surface-border);
 }
 
 * {
@@ -88,7 +97,7 @@ body {
   display: flex;
   flex-direction: column;
   z-index: 10;
-  background: linear-gradient(180deg, var(--primary) 0%, var(--primary-hover) 100%);
+  background: #1E293B; /* Dark blue from the image */
   border: none;
   color: white;
 }
@@ -148,11 +157,19 @@ body {
   transition: all 0.2s ease;
 }
 
-.sidebar-nav a:hover,
-.sidebar-nav a.active {
-  background: rgba(255, 255, 255, 0.15);
+.sidebar-nav a:hover {
+  background: rgba(255, 255, 255, 0.1);
   color: white;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.sidebar-nav a.active {
+  background: #3B82F6; /* Solid blue active state from image */
+  color: white;
+}
+
+.logout-btn:hover {
+  background: rgba(255, 59, 48, 0.1) !important;
+  color: #ff3b30 !important;
 }
 
 /* Main Content Area */

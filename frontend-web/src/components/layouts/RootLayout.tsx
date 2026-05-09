@@ -1,15 +1,53 @@
 import { useState } from 'react';
-import { Outlet, NavLink } from 'react-router-dom';
-import { ThemeToggle } from '../ThemeToggle';
+import { Outlet, NavLink, useLocation } from 'react-router-dom';
+
 import { useAuth } from '../../hooks/useAuth';
-import { LogOut, Menu, X } from 'lucide-react';
+import { LogOut, Menu, X, LayoutDashboard, Users, UserCheck, Briefcase, Layers, BookOpen, ClipboardList, CalendarX, Calendar, FileText, MessageSquare, CreditCard, Library, BarChart, Settings, GraduationCap, FolderOpen, HeartPulse, Package, Activity, Award, Newspaper, Bell, ChevronDown } from 'lucide-react';
 
 const RootLayout = () => {
-    const { user, logout } = useAuth();
+    const { logout, user } = useAuth();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const location = useLocation();
 
     const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
     const closeSidebar = () => setIsSidebarOpen(false);
+
+    const routeNames: Record<string, string> = {
+        '/': 'Tableau de bord',
+        '/students': 'Élèves',
+        '/parents': 'Parents',
+        '/teachers': 'Enseignants',
+        '/classes': 'Classes',
+        '/subjects': 'Matières',
+        '/grades': 'Notes',
+        '/reports': 'Bulletins',
+        '/absences': 'Absences',
+        '/timetable': 'Emploi du temps',
+        '/exams': 'Examens',
+        '/academic': 'Années Scolaires',
+        '/messages': 'Messages',
+        '/news': 'Actualités',
+        '/conduct': 'Conduite',
+        '/badges': 'Badges',
+        '/payments': 'Frais scolaires',
+        '/library': 'Bibliothèque',
+        '/documents': 'Documents',
+        '/health': 'Infirmerie',
+        '/supplies': 'Fournitures',
+        '/settings': 'Paramètres'
+    };
+    const currentPageName = routeNames[location.pathname] || 'Tableau de bord';
+    const schoolName = "Lycée KalanSira"; // Could be dynamically fetched
+
+    const isMobileRole = ['TEACHER', 'PROFESSOR', 'PARENT', 'STUDENT'].includes(user?.role?.toUpperCase() || '');
+
+    if (isMobileRole) {
+        return (
+            <div className="app-container" style={{ display: 'block', height: '100vh', overflowY: 'auto' }}>
+                <Outlet />
+            </div>
+        );
+    }
 
     return (
         <div className="app-container">
@@ -22,51 +60,89 @@ const RootLayout = () => {
                 <div className="sidebar-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <img src="logo.png" alt="App Logo" style={{ height: '32px', objectFit: 'contain' }} />
-                        <h3 style={{ fontSize: '1.1rem' }}>KalanSira Mali</h3>
+                        <div>
+                            <h3 style={{ fontSize: '1.1rem', margin: 0 }}>KalanSira Mali</h3>
+                            <p style={{ fontSize: '0.75rem', margin: 0, color: 'rgba(255,255,255,0.6)' }}>{schoolName}</p>
+                        </div>
                     </div>
                     <button className="sidebar-close-btn" onClick={closeSidebar}>
                         <X size={20} />
                     </button>
                 </div>
                  <nav className="sidebar-nav">
-                    <ul>
-                         <li><NavLink to="/" end onClick={closeSidebar}>Tableau de Bord</NavLink></li>
-                         <li><NavLink to="/schools" onClick={closeSidebar}>Écoles</NavLink></li>
-                         <li><NavLink to="/users" onClick={closeSidebar}>Utilisateurs</NavLink></li>
-                         <li><NavLink to="/academic" onClick={closeSidebar}>Scolarité</NavLink></li>
-                         <li><NavLink to="/reports" onClick={closeSidebar}>Bulletins</NavLink></li>
-                         <li><NavLink to="/payments" onClick={closeSidebar}>Paiements</NavLink></li>
-                         <li><NavLink to="/documents" onClick={closeSidebar}>Documents</NavLink></li>
-                         <li><NavLink to="/health" onClick={closeSidebar}>Infirmerie</NavLink></li>
-                         <li><NavLink to="/supplies" onClick={closeSidebar}>Fournitures</NavLink></li>
-                         <li><NavLink to="/conduct" onClick={closeSidebar}>Conduite</NavLink></li>
-                         <li><NavLink to="/badges" onClick={closeSidebar}>Badges</NavLink></li>
-                         <li><NavLink to="/news" onClick={closeSidebar}>Actualités</NavLink></li>
-                         <li><NavLink to="/subscription" onClick={closeSidebar}>Abonnement</NavLink></li>
-                    </ul>
-                </nav>
-            </aside>
+                     <ul style={{ paddingBottom: '64px' }}>
+                         <li className="nav-group-title" style={{ padding: '12px 16px', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>Principal</li>
+                         <li><NavLink to="/" end onClick={closeSidebar}><LayoutDashboard size={20} /> Tableau de bord</NavLink></li>
+                         <li><NavLink to="/students" onClick={closeSidebar}><Users size={20} /> Élèves</NavLink></li>
+                         <li><NavLink to="/parents" onClick={closeSidebar}><UserCheck size={20} /> Parents</NavLink></li>
+                         <li><NavLink to="/teachers" onClick={closeSidebar}><Briefcase size={20} /> Enseignants</NavLink></li>
+                         <li><NavLink to="/classes" onClick={closeSidebar}><Layers size={20} /> Classes</NavLink></li>
+                         <li><NavLink to="/subjects" onClick={closeSidebar}><BookOpen size={20} /> Matières</NavLink></li>
+                         
+                         <li className="nav-group-title" style={{ padding: '12px 16px', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: 'rgba(255,255,255,0.4)', fontWeight: 600, marginTop: '8px' }}>Scolarité & Pédagogie</li>
+                         <li><NavLink to="/grades" onClick={closeSidebar}><ClipboardList size={20} /> Notes</NavLink></li>
+                         <li><NavLink to="/reports" onClick={closeSidebar}><BarChart size={20} /> Bulletins</NavLink></li>
+                         <li><NavLink to="/absences" onClick={closeSidebar}><CalendarX size={20} /> Absences</NavLink></li>
+                         <li><NavLink to="/timetable" onClick={closeSidebar}><Calendar size={20} /> Emploi du temps</NavLink></li>
+                         <li><NavLink to="/exams" onClick={closeSidebar}><FileText size={20} /> Examens</NavLink></li>
+                         <li><NavLink to="/academic" onClick={closeSidebar}><GraduationCap size={20} /> Années Scolaires</NavLink></li>
+                         
+                         <li className="nav-group-title" style={{ padding: '12px 16px', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: 'rgba(255,255,255,0.4)', fontWeight: 600, marginTop: '8px' }}>Communication & Vie</li>
+                         <li><NavLink to="/messages" onClick={closeSidebar}><MessageSquare size={20} /> Messages</NavLink></li>
+                         <li><NavLink to="/news" onClick={closeSidebar}><Newspaper size={20} /> Actualités</NavLink></li>
+                         <li><NavLink to="/conduct" onClick={closeSidebar}><Activity size={20} /> Conduite</NavLink></li>
+                         <li><NavLink to="/badges" onClick={closeSidebar}><Award size={20} /> Badges</NavLink></li>
+                         
+                         <li className="nav-group-title" style={{ padding: '12px 16px', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: 'rgba(255,255,255,0.4)', fontWeight: 600, marginTop: '8px' }}>Administration</li>
+                         <li><NavLink to="/payments" onClick={closeSidebar}><CreditCard size={20} /> Frais scolaires</NavLink></li>
+                         <li><NavLink to="/library" onClick={closeSidebar}><Library size={20} /> Bibliothèque</NavLink></li>
+                         <li><NavLink to="/documents" onClick={closeSidebar}><FolderOpen size={20} /> Documents</NavLink></li>
+                         <li><NavLink to="/health" onClick={closeSidebar}><HeartPulse size={20} /> Infirmerie</NavLink></li>
+                         <li><NavLink to="/supplies" onClick={closeSidebar}><Package size={20} /> Fournitures</NavLink></li>
+                         <li><NavLink to="/settings" onClick={closeSidebar}><Settings size={20} /> Paramètres</NavLink></li>
+                     </ul>
+                 </nav>
+                 
+                 <div className="sidebar-footer" style={{ padding: '16px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                    <button onClick={logout} className="logout-btn" style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.75)', cursor: 'pointer', borderRadius: '12px', fontSize: '14px', fontWeight: 500, transition: 'all 0.2s ease' }}>
+                        <LogOut size={20} /> Déconnexion
+                    </button>
+                 </div>
+             </aside>
 
             <main className="main-content">
                 <header className="topbar glass-panel">
-                     <div className="topbar-left">
+                     <div className="topbar-left" style={{ display: 'flex', alignItems: 'center' }}>
                         <button className="menu-toggle-btn" onClick={toggleSidebar}>
-                            <Menu size={24} />
+                            <Menu size={24} color="var(--text)" />
                         </button>
-                        <div className="topbar-search">
-                            <input type="text" placeholder="Rechercher..." />
-                        </div>
+                        <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: 'var(--text)', marginLeft: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                            <Menu size={20} color="var(--text-muted)" className="mobile-hidden" /> {currentPageName}
+                        </h2>
                      </div>
-                     <div className="topbar-user" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                          <ThemeToggle />
-                          <div className="avatar">{user?.firstName?.[0] ? user.firstName[0].toUpperCase() : 'U'}</div>
-                          <div className="user-info mobile-hidden">
-                              <span className="user-name">{user?.firstName || 'Utilisateur'} {user?.lastName || ''}</span>
-                              <span className="user-role" style={{ fontSize: '12px', opacity: 0.8 }}>{user?.role || ''}</span>
+                     <div className="topbar-user" style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                          <div className="mobile-hidden" style={{ fontWeight: 600, color: 'var(--text-muted)', fontSize: '14px' }}>
+                              {schoolName}
                           </div>
-                          <button onClick={logout} className="btn-secondary" style={{ padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255, 59, 48, 0.1)', color: 'var(--danger, #ff3b30)', border: '1px solid rgba(255, 59, 48, 0.2)', borderRadius: '8px', cursor: 'pointer' }} title="Se déconnecter">
-                              <LogOut size={18} />
-                          </button>
+                          
+                          <div className="dropdown-mini mobile-hidden" style={{ border: '1px solid var(--glass-border)', padding: '8px 16px', borderRadius: '8px', color: 'var(--text)', fontSize: '14px', background: 'var(--surface)', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                              Année scolaire 2024-2025 <ChevronDown size={16} />
+                          </div>
+                          
+                          <div style={{ position: 'relative', cursor: 'pointer', padding: '8px' }}>
+                              <Bell size={22} color="var(--text-muted)" />
+                              <span style={{ position: 'absolute', top: '6px', right: '8px', width: '8px', height: '8px', backgroundColor: '#EF4444', borderRadius: '50%', border: '2px solid var(--surface)' }}></span>
+                          </div>
+                          
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
+                              <div className="avatar" style={{ width: '40px', height: '40px', borderRadius: '50%', overflow: 'hidden' }}>
+                                  <img src={user?.photo || "https://i.pravatar.cc/150?u=admin"} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                              </div>
+                              <div className="user-info mobile-hidden">
+                                  <span className="user-name" style={{ color: 'var(--text)', fontWeight: 600, fontSize: '14px' }}>{user?.firstName || 'Admin'}</span>
+                                  <span className="user-role" style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{user?.role || 'Administrateur'}</span>
+                              </div>
+                          </div>
                      </div>
                 </header>
                 <div className="page-content">

@@ -24,7 +24,7 @@ const Reports = () => {
   // Fetch Reference Data
   const { users: students, isLoading: l1 } = useUsers(currentSchoolId!, 'ELEVE');
   const { academicYears, isLoading: l2 } = useAcademic(currentSchoolId!);
-  const { subjects, createSubject } = useSubjects();
+  const { subjects, createSubject } = useSubjects(currentSchoolId!);
   const { saveBulkGrades, isLoading: isSaving } = useGrades();
 
   // Fetch Report Data

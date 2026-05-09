@@ -1,0 +1,362 @@
+
+:root {
+  --prof-primary: #3B82F6;
+  --prof-bg: #E0E7FF;
+  --parent-primary: #10B981;
+  --parent-bg: #D1FAE5;
+  --student-primary: #8B5CF6;
+  --student-bg: #EDE9FE;
+  
+  --mobile-card-bg: #FFFFFF;
+  --mobile-text-main: #1E293B;
+  --mobile-text-muted: #64748B;
+  --mobile-border: #F1F5F9;
+}
+
+.mobile-dashboard {
+  background-color: #F8FAFC;
+  min-height: 100vh;
+  padding-bottom: 90px; /* Space for bottom nav */
+  font-family: 'Inter', sans-serif;
+  color: var(--mobile-text-main);
+  overflow-x: hidden;
+}
+
+/* Header Styles */
+.mobile-header {
+  padding: 40px 24px 80px 24px;
+  position: relative;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.mobile-header.professor { background: linear-gradient(135deg, #3B82F6, #60A5FA); }
+.mobile-header.parent { background: linear-gradient(135deg, #10B981, #34D399); }
+.mobile-header.student { background: linear-gradient(135deg, #8B5CF6, #A78BFA); }
+
+.profile-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.profile-pic {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: 3px solid rgba(255, 255, 255, 0.4);
+  object-fit: cover;
+}
+
+.welcome-text h2 {
+  font-size: 0.9rem;
+  font-weight: 400;
+  opacity: 0.9;
+  margin-bottom: 2px;
+}
+
+.welcome-text p {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.notif-bell {
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  cursor: pointer;
+}
+
+.notif-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #EF4444;
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid white;
+}
+
+/* Content Container - Overlaps Header */
+.mobile-content {
+  margin-top: -50px;
+  padding: 0 20px;
+  position: relative;
+  z-index: 2;
+}
+
+/* Summary Cards (Grid) */
+.mobile-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.summary-card {
+  background: white;
+  border-radius: 20px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+}
+
+.summary-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.summary-card h3 {
+  font-size: 0.8rem;
+  color: var(--mobile-text-muted);
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.summary-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--mobile-text-main);
+}
+
+/* List Sections */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.section-header h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.see-all {
+  font-size: 0.85rem;
+  color: #3B82F6;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.mobile-list-card {
+  background: white;
+  border-radius: 20px;
+  padding: 8px 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  margin-bottom: 24px;
+}
+
+.list-item {
+  display: flex;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--mobile-border);
+}
+
+.list-item:last-child {
+  border-bottom: none;
+}
+
+.time-box {
+  min-width: 90px;
+  font-size: 0.85rem;
+  color: var(--mobile-text-muted);
+  font-weight: 500;
+}
+
+.item-main-info {
+  flex: 1;
+}
+
+.item-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+
+.item-subtitle {
+  font-size: 0.8rem;
+  color: var(--mobile-text-muted);
+}
+
+.item-extra {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #3B82F6;
+}
+
+/* Grading Card Style */
+.grading-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.grading-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.progress-circle {
+  width: 50px;
+  height: 50px;
+  position: relative;
+}
+
+/* Parent Child Selector */
+.child-selector {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.child-tab {
+  background: white;
+  border-radius: 16px;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 160px;
+  border: 1px solid transparent;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.03);
+}
+
+.child-tab.active {
+  border-color: var(--parent-primary);
+  background: rgba(16, 185, 129, 0.05);
+}
+
+.child-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+/* Bottom Navigation */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  background: white;
+  border-top: 1px solid var(--mobile-border);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding-bottom: 10px;
+  z-index: 100;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+  color: #94A3B8;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.nav-item.active {
+  color: var(--prof-primary);
+}
+
+.parent .nav-item.active { color: var(--parent-primary); }
+.student .nav-item.active { color: var(--student-primary); }
+
+/* Progress Bar */
+.progress-container {
+  width: 100%;
+  height: 8px;
+  background: #F1F5F9;
+  border-radius: 4px;
+  margin-top: 12px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  border-radius: 4px;
+}
+
+/* Student Main Stats Card */
+.student-main-card {
+  background: white;
+  border-radius: 24px;
+  padding: 24px;
+  box-shadow: 0 10px 30px rgba(139, 92, 246, 0.1);
+  margin-bottom: 24px;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.stat-group label {
+  font-size: 0.85rem;
+  color: var(--mobile-text-muted);
+  display: block;
+  margin-bottom: 8px;
+}
+
+.big-stat {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--student-primary);
+}
+
+.rank-box {
+  text-align: right;
+}
+
+.rank-val {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.rank-trend {
+  color: #10B981;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+}

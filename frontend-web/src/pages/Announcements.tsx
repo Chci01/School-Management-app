@@ -57,7 +57,7 @@ const Announcements = () => {
       {isModalOpen && (
           <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
               <div className="modal-content glass-panel" style={{ width: '600px', maxWidth: '90%', padding: '24px' }}>
-                  <h3>Rédiger une Annonce</h3>
+                  <h3 style={{color: 'var(--text)'}}>Rédiger une Annonce</h3>
                   
                   <div className="input-group" style={{ marginTop: '16px' }}>
                       <label>Titre de l'annonce</label>
@@ -66,7 +66,7 @@ const Announcements = () => {
 
                   <div className="input-group" style={{ marginTop: '16px' }}>
                       <label>Niveau de priorité</label>
-                      <select style={{ width: '100%', padding: '10px', background: 'var(--surface)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px' }}>
+                      <select style={{ width: '100%', padding: '10px', background: 'var(--surface)', color: 'var(--text)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px' }}>
                           <option value="INFO">Information Normale</option>
                           <option value="IMPORTANT">Important / Urgent</option>
                       </select>
@@ -74,7 +74,7 @@ const Announcements = () => {
 
                   <div className="input-group" style={{ marginTop: '16px' }}>
                       <label>Contenu du message</label>
-                      <textarea placeholder="Saisissez votre message ici..." style={{ width: '100%', minHeight: '150px', padding: '12px', background: 'rgba(0,0,0,0.2)', color: 'white', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', resize: 'vertical' }}></textarea>
+                      <textarea placeholder="Saisissez votre message ici..." style={{ width: '100%', minHeight: '150px', padding: '12px', background: 'rgba(0,0,0,0.2)', color: 'var(--text)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', resize: 'vertical' }}></textarea>
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>

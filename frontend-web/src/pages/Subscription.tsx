@@ -110,7 +110,7 @@ const Subscription = () => {
       <div className="page-content" style={{ padding: '24px', maxWidth: '900px', margin: '0 auto' }}>
         <div className="glass-panel" style={{ padding: '30px', textAlign: 'center' }}>
           <AlertTriangle size={48} color="var(--warning)" style={{ marginBottom: '16px' }} />
-          <h3>Accès Restreint</h3>
+          <h3 style={{color: 'var(--text)'}}>Accès Restreint</h3>
           <p>Seul l'administration de l'école peut gérer la licence.</p>
         </div>
       </div>
@@ -153,7 +153,7 @@ const Subscription = () => {
             {plan.recommended && (
               <div style={{
                 position: 'absolute', top: '-14px', left: '50%', transform: 'translateX(-50%)',
-                background: plan.color, color: '#fff', padding: '4px 14px',
+                background: plan.color, color: 'var(--text)', padding: '4px 14px',
                 borderRadius: '20px', fontSize: '0.75rem', fontWeight: 700, whiteSpace: 'nowrap',
               }}>
                 ⭐ RECOMMANDÉ
@@ -273,7 +273,7 @@ const Subscription = () => {
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'none' }}>
-              <button className="btn-secondary" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', backgroundColor: '#25D366', color: 'white', border: 'none' }}>
+              <button className="btn-secondary" style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', backgroundColor: '#25D366', color: 'var(--text)', border: 'none' }}>
                 <MessageSquare size={18} /> Discuter sur WhatsApp
               </button>
             </a>

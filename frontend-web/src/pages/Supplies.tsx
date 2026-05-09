@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import { useSupplies } from '../hooks/useSupplies';
+import { useAuth } from '../hooks/useAuth';
 // Temporary stub for useClasses
-const useClasses = () => ({ classes: [], isLoading: false });
+import { useClasses } from '../hooks/useClasses';
+
 
 const Supplies = () => {
+  const { currentSchoolId } = useAuth();
   const { supplies, isLoading, createSupply, deleteSupply } = useSupplies();
-  const { classes } = useClasses();
+  const { classes } = useClasses(currentSchoolId!);
 
   const [formData, setFormData] = useState({
     name: '',

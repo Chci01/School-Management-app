@@ -30,7 +30,7 @@ const Academic = () => {
       </header>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '16px' }}>
+      <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', borderBottom: '1px solid var(--border)', paddingBottom: '16px' }}>
           <button 
              onClick={() => setActiveTab('classes')}
              style={{ background: 'transparent', border: 'none', color: activeTab === 'classes' ? 'var(--primary)' : 'white', fontWeight: activeTab === 'classes' ? 'bold' : 'normal', borderBottom: activeTab === 'classes' ? '2px solid var(--primary)' : 'none', paddingBottom: '8px', cursor: 'pointer' }}
@@ -56,7 +56,7 @@ const Academic = () => {
                       <h3 style={{ marginBottom: '16px', fontSize: '20px' }}>{cls.name}</h3>
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', fontSize: '14px', color: 'var(--text-secondary)' }}>
                            <span>Effectif Actuel</span>
-                           <span style={{ color: 'white', fontWeight: 'bold' }}>{cls.currentEnrolled} / {cls.capacity}</span>
+                           <span style={{ color: 'var(--text)', fontWeight: 'bold' }}>{cls.currentEnrolled} / {cls.capacity}</span>
                       </div>
                       <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.1)', borderRadius: '4px', overflow: 'hidden' }}>
                            <div style={{ width: `${(cls.currentEnrolled / cls.capacity) * 100}%`, height: '100%', background: 'var(--primary)' }}></div>
@@ -83,13 +83,13 @@ const Academic = () => {
                   </thead>
                   <tbody>
                       {academicYears.map((year: any) => (
-                          <tr key={year.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                          <tr key={year.id} style={{ borderBottom: '1px solid var(--border)' }}>
                               <td style={{ padding: '16px', fontWeight: 'bold', fontSize: '18px' }}>{year.year}</td>
                               <td style={{ padding: '16px' }}>
                                   {year.isActive ? (
                                       <span className="badge" style={{ padding: '6px 12px', borderRadius: '4px', fontSize: '12px', background: 'rgba(34, 197, 94, 0.2)', color: '#4ade80' }}>En cours</span>
                                   ) : (
-                                      <span className="badge" style={{ padding: '6px 12px', borderRadius: '4px', fontSize: '12px', background: 'rgba(255,255,255,0.1)', color: 'white' }}>Clôturée</span>
+                                      <span className="badge" style={{ padding: '6px 12px', borderRadius: '4px', fontSize: '12px', background: 'rgba(255,255,255,0.1)', color: 'var(--text)' }}>Clôturée</span>
                                   )}
                               </td>
                               <td style={{ padding: '16px' }}>
@@ -108,7 +108,7 @@ const Academic = () => {
       {isClassModalOpen && (
           <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
               <div className="modal-content glass-panel" style={{ width: '400px', maxWidth: '90%', padding: '24px' }}>
-                  <h3>Créer une Classe</h3>
+                  <h3 style={{color: 'var(--text)'}}>Créer une Classe</h3>
                   
                   <div className="input-group" style={{ marginTop: '16px' }}>
                       <label>Nom de la classe</label>

@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { useUsers } from '../hooks/useUsers';
+import { useAuth } from '../hooks/useAuth';
 import WebcamCapture from '../components/common/WebcamCapture';
 import { Camera } from 'lucide-react';
 
 const Users = () => {
+  const { currentSchoolId } = useAuth();
   const [roleFilter, setRoleFilter] = useState('');
-  const { users, isLoading, error, deleteUser, createUser, isCreating } = useUsers(undefined, roleFilter);
+  const { users, isLoading, error, deleteUser, createUser, isCreating } = useUsers(currentSchoolId!, roleFilter);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
   // Photo capture state
@@ -89,7 +91,7 @@ const Users = () => {
               <select 
                  value={roleFilter} 
                  onChange={(e) => setRoleFilter(e.target.value)}
-                 style={{ padding: '12px', background: 'var(--surface)', border: '1px solid rgba(255,255,255,0.1)', color: 'white', borderRadius: '8px' }}
+                 style={{ padding: '12px', background: 'var(--surface)', border: '1px solid rgba(255,255,255,0.1)', color: 'var(--text)', borderRadius: '8px' }}
               >
                   <option value="">Tous les Rôles</option>
                   {roles.map(r => <option key={r} value={r}>{r}</option>)}
@@ -118,7 +120,7 @@ const Users = () => {
           </thead>
           <tbody>
             {displayedUsers.length > 0 ? displayedUsers.map((user: any) => (
-              <tr key={user.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+              <tr key={user.id} style={{ borderBottom: '1px solid var(--border)' }}>
                 <td style={{ padding: '16px' }}>
                     <div className="avatar" style={{ width: '40px', height: '40px', borderRadius: '50%', background: 'var(--surface)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         {user.photo ? <img src={user.photo} alt={user.firstName} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} /> : '👤'}
@@ -171,8 +173,8 @@ const Users = () => {
       {isModalOpen && (
           <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
               <div className="modal-content glass-panel" style={{ width: '800px', maxWidth: '95vw', padding: '0', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
-                  <div style={{ padding: '24px', borderBottom: '1px solid rgba(255,255,255,0.1)' }}>
-                      <h3>Inscription / Nouvel Utilisateur</h3>
+                  <div style={{ padding: '24px', borderBottom: '1px solid var(--border)' }}>
+                      <h3 style={{color: 'var(--text)'}}>Inscription / Nouvel Utilisateur</h3>
                       <p style={{ margin: 0, color: 'var(--text-secondary)' }}>Veuillez remplir le formulaire d'inscription détaillé.</p>
                   </div>
                   
@@ -182,13 +184,13 @@ const Users = () => {
                           <select 
                             value={selectedRole}
                             onChange={(e) => setSelectedRole(e.target.value)}
-                            style={{ width: '100%', padding: '10px', background: 'var(--surface)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px' }}
+                            style={{ width: '100%', padding: '10px', background: 'var(--surface)', color: 'var(--text)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px' }}
                           >
                               {roles.map(r => <option key={r} value={r}>{r}</option>)}
                           </select>
                       </div>
 
-                      <h4 style={{ margin: '20px 0 10px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px' }}>Informations Globales</h4>
+                      <h4 style={{ margin: '20px 0 10px 0', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>Informations Globales</h4>
                       
                       <div className="input-group" style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
                           {capturedPhoto ? (
@@ -215,7 +217,7 @@ const Users = () => {
                       {/* Dynamic form for Students */}
                       {selectedRole === 'ELEVE' && (
                           <div style={{ marginTop: '24px' }}>
-                              <h4 style={{ margin: '20px 0 10px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px' }}>Profil Élève & Filiation</h4>
+                              <h4 style={{ margin: '20px 0 10px 0', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>Profil Élève & Filiation</h4>
                               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                   <div className="input-group"><label>Date de Naissance</label><input type="date" style={{ width: '100%' }} value={studentProfile.birthDate} onChange={(e) => setStudentProfile({...studentProfile, birthDate: e.target.value})} /></div>
                                   <div className="input-group"><label>Lieu de Naissance</label><input type="text" style={{ width: '100%' }} value={studentProfile.birthPlace} onChange={(e) => setStudentProfile({...studentProfile, birthPlace: e.target.value})}/></div>
@@ -235,7 +237,7 @@ const Users = () => {
                       {/* Dynamic form for Staff */}
                       {(selectedRole === 'ADMIN_ECOLE' || selectedRole === 'ENSEIGNANT') && (
                           <div style={{ marginTop: '24px' }}>
-                              <h4 style={{ margin: '20px 0 10px 0', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '8px' }}>Dossier Personnel</h4>
+                              <h4 style={{ margin: '20px 0 10px 0', borderBottom: '1px solid var(--border)', paddingBottom: '8px' }}>Dossier Personnel</h4>
                               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                                   <div className="input-group"><label>Date d'embauche</label><input type="date" style={{ width: '100%' }} value={staffProfile.hireDate} onChange={(e) => setStaffProfile({...staffProfile, hireDate: e.target.value})} /></div>
                                   <div className="input-group"><label>Poste / Titre</label><input type="text" placeholder="Ex: Proviseur adjoint" style={{ width: '100%' }} value={staffProfile.position} onChange={(e) => setStaffProfile({...staffProfile, position: e.target.value})} /></div>

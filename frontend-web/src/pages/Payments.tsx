@@ -68,7 +68,7 @@ const Payments = () => {
           </thead>
           <tbody>
             {displayedPayments.length > 0 ? displayedPayments.map((payment: any) => (
-              <tr key={payment.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+              <tr key={payment.id} style={{ borderBottom: '1px solid var(--border)' }}>
                 <td style={{ padding: '16px', fontFamily: 'monospace', fontWeight: 'bold' }}>{payment.receiptNumber}</td>
                 <td style={{ padding: '16px' }}>{new Date(payment.date).toLocaleDateString('fr-FR')}</td>
                 <td style={{ padding: '16px' }}>
@@ -101,11 +101,11 @@ const Payments = () => {
       {isModalOpen && (
           <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
               <div className="modal-content glass-panel" style={{ width: '500px', maxWidth: '90%', padding: '24px' }}>
-                  <h3>Enregistrer un Paiement</h3>
+                  <h3 style={{color: 'var(--text)'}}>Enregistrer un Paiement</h3>
                   
                   <div className="input-group" style={{ marginTop: '16px' }}>
                       <label>Élève</label>
-                      <select style={{ width: '100%', padding: '10px', background: 'var(--surface)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px' }}>
+                      <select style={{ width: '100%', padding: '10px', background: 'var(--surface)', color: 'var(--text)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px' }}>
                           <option>Sélectionnez un élève...</option>
                       </select>
                   </div>
@@ -117,7 +117,7 @@ const Payments = () => {
                       </div>
                       <div className="input-group" style={{ flex: 1 }}>
                           <label>Tranche</label>
-                          <select style={{ width: '100%', padding: '10px', background: 'var(--surface)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px' }}>
+                          <select style={{ width: '100%', padding: '10px', background: 'var(--surface)', color: 'var(--text)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px' }}>
                               <option value="1">Tranche 1</option>
                               <option value="2">Tranche 2</option>
                               <option value="3">Tranche 3</option>
@@ -139,7 +139,7 @@ const Payments = () => {
              <div className="modal-content" style={{ 
                  width: '500px', 
                  padding: '40px', 
-                 background: 'white', 
+                 background: 'var(--surface)', 
                  color: 'black', 
                  borderRadius: '12px', 
                  boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
@@ -166,7 +166,7 @@ const Payments = () => {
                   <div style={{ position: 'relative', zIndex: 1 }}>
                       <div style={{ textAlign: 'center', marginBottom: '32px', borderBottom: '2px solid #f0f0f0', paddingBottom: '20px' }}>
                           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '12px' }}>
-                             <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold' }}>
+                             <div style={{ width: '60px', height: '60px', borderRadius: '50%', background: '#1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text)', fontWeight: 'bold' }}>
                                  KSM
                              </div>
                           </div>
@@ -225,7 +225,7 @@ const Payments = () => {
                       <div className="no-print" style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '40px', borderTop: '1px solid #f1f5f9', paddingTop: '20px' }}>
                           <button 
                             className="btn-secondary" 
-                            style={{ color: '#475569', borderColor: '#cbd5e1', background: 'transparent' }} 
+                            style={{ color: 'var(--text-muted)', borderColor: '#cbd5e1', background: 'transparent' }} 
                             onClick={() => setReceiptToPrint(null)}
                           >Fermer</button>
                           <button 

@@ -81,7 +81,7 @@ const Activation = () => {
                  target="_blank" 
                  rel="noopener noreferrer"
                  className="btn-secondary"
-                 style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', textDecoration: 'none', backgroundColor: '#25D366', color: 'white', border: 'none' }}
+                 style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', textDecoration: 'none', backgroundColor: '#25D366', color: 'var(--text)', border: 'none' }}
                >
                  Contactez le support WhatsApp
                </a>

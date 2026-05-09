@@ -19,7 +19,8 @@ export class ReportsController {
     @Query('academicYearId') academicYearId: string
   ) {
     const schoolId = req.user.schoolId;
-    return this.reportsService.generateBulletin(schoolId, studentId, term, academicYearId);
+    const role = req.user.role;
+    return this.reportsService.generateBulletin(schoolId, studentId, term, academicYearId, role);
   }
 
   @Patch('publish')

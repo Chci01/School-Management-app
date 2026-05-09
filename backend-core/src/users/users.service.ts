@@ -1,120 +1,75 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { User } from '@prisma/client';
+import { FirestoreService } from '../firebase/firestore.service';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private firestore: FirestoreService) {}
 
-  async findByMatricule(schoolId: string | null, identifier: string): Promise<User | null> {
-    const whereClause: any = {
-      OR: [
-        { matricule: identifier },
-        { email: identifier }
-      ]
-    };
+  private readonly collection = 'users';
 
-    if (schoolId) {
-       whereClause.schoolId = schoolId;
-       return this.prisma.user.findFirst({
-         where: whereClause
-       });
-    } else {
-       // Super Admin login fallback
-       whereClause.schoolId = null;
-       return this.prisma.user.findFirst({
-         where: whereClause,
-       });
+  async findByMatricule(schoolId: string | null, identifier: string): Promise<any | null> {
+    const db = this.firestore.getDb();
+    let query = db.collection(this.collection)
+      .where('schoolId', '==', schoolId);
+
+    // Try matricule first
+    let snapshot = await query.where('matricule', '==', identifier).get();
+    if (snapshot.empty) {
+      // Try email
+      snapshot = await query.where('email', '==', identifier).get();
     }
+
+    if (snapshot.empty) return null;
+    
+    const doc = snapshot.docs[0];
+    return { id: doc.id, ...doc.data() };
   }
 
-  async findById(id: string): Promise<User | null> {
-    return this.prisma.user.findUnique({ where: { id } });
+  async findById(id: string): Promise<any | null> {
+    return this.firestore.findOne(this.collection, id);
   }
 
-  // Find all users (filtered by schoolId and optionally by role)
-  async findAll(schoolId: string | null, role?: string, querySchoolId?: string): Promise<User[]> {
-    const whereClause: any = {};
+  async findAll(schoolId: string | null, role?: string, querySchoolId?: string): Promise<any[]> {
+    const db = this.firestore.getDb();
     const finalSchoolId = schoolId || querySchoolId;
+    
+    let query: any = db.collection(this.collection);
+    
     if (finalSchoolId) {
-      whereClause.schoolId = finalSchoolId;
+      query = query.where('schoolId', '==', finalSchoolId);
     }
     
     if (role) {
-      whereClause.role = role;
+      query = query.where('role', '==', role);
     }
 
-    const users = await this.prisma.user.findMany({
-      where: whereClause,
-      select: {
-         id: true,
-         matricule: true,
-         firstName: true,
-         lastName: true,
-         email: true,
-         role: true,
-         createdAt: true,
-      },
-      orderBy: { createdAt: 'desc' }
+    const snapshot = await query.orderBy('createdAt', 'desc').get();
+    return snapshot.docs.map(doc => {
+      const { password, ...user } = doc.data() as any;
+      return { id: doc.id, ...user };
     });
-    
-    return users as any; // Cast list to satisfy strict User model checks
   }
 
-  // Create user (password will be hashed here)
-  async create(data: any): Promise<User> {
+  async create(data: any): Promise<any> {
     const hashedPassword = await bcrypt.hash(data.password, 10);
-    
-    // Extract specialized profiles
-    const { studentProfile, staffProfile, ...userData } = data;
+    const { password, ...userData } = data;
 
-    const createData: any = {
+    const userToCreate = {
       ...userData,
       password: hashedPassword,
     };
 
-    // If student, attach nested create
-    if (userData.role === 'ELEVE' && studentProfile) {
-      if (studentProfile.birthDate && typeof studentProfile.birthDate === 'string') {
-        studentProfile.birthDate = new Date(studentProfile.birthDate);
-      }
-      createData.studentProfile = { create: studentProfile };
-    }
-
-    // If staff, attach nested create
-    if (['ENSEIGNANT', 'ADMIN_ECOLE'].includes(userData.role) && staffProfile) {
-      if (staffProfile.hireDate && typeof staffProfile.hireDate === 'string') {
-        staffProfile.hireDate = new Date(staffProfile.hireDate);
-      }
-      createData.staffProfile = { create: staffProfile };
-    }
-
-    const user = await this.prisma.user.create({
-      data: createData,
-      select: {
-          id: true,
-          matricule: true,
-          firstName: true,
-          lastName: true,
-          role: true,
-          schoolId: true,
-          email: true,
-          phone: true,
-          createdAt: true,
-          updatedAt: true,
-          password: false, // Ensure password isn't returned
-      }
-    });
-
-    return user as any; // Cast as User to satisfy strict types if needed, or update return type to Partial<User>
+    return this.firestore.create(this.collection, userToCreate);
   }
 
-  // Delete User
-  async remove(schoolId: string, id: string): Promise<User> {
-    // Only allow deletion if the user belongs to the requester's school
-    return this.prisma.user.delete({
-       where: { id, schoolId }
-    });
+  async remove(schoolId: string, id: string): Promise<any> {
+    const user = await this.findById(id);
+    if (user && user.schoolId === schoolId) {
+      await this.firestore.delete(this.collection, id);
+      return user;
+    }
+    throw new Error('Unauthorized or user not found');
   }
 }
+

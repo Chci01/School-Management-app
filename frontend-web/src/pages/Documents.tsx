@@ -87,7 +87,7 @@ const Documents = () => {
           </thead>
           <tbody>
               {displayedDocs.map((doc: any) => (
-                  <tr key={doc.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                  <tr key={doc.id} style={{ borderBottom: '1px solid var(--border)' }}>
                        <td style={{ padding: '16px', fontWeight: 'bold' }}>
                            {doc.type === 'CERTIFICATE' ? '📄 Certificat' : '🕒 Permission'}
                        </td>
@@ -133,14 +133,14 @@ const Documents = () => {
       {isModalOpen && (
           <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
               <div className="modal-content glass-panel" style={{ width: '500px', maxWidth: '90%', padding: '24px' }}>
-                  <h3>Initier une Demande</h3>
+                  <h3 style={{color: 'var(--text)'}}>Initier une Demande</h3>
                   
                   <div className="input-group" style={{ marginTop: '16px' }}>
                       <label>Type de requête</label>
                       <select 
                         value={newRequest.type}
                         onChange={(e) => setNewRequest({...newRequest, type: e.target.value})}
-                        style={{ width: '100%', padding: '10px', background: 'var(--surface)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px' }}
+                        style={{ width: '100%', padding: '10px', background: 'var(--surface)', color: 'var(--text)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px' }}
                       >
                           <option value="PERMISSION">Demande de Permission (Absence)</option>
                           <option value="CERTIFICATE">Certificat de Scolarité</option>
@@ -164,7 +164,7 @@ const Documents = () => {
                       <label>Motif de la demande</label>
                       <textarea 
                         placeholder="Expliquez la raison..." 
-                        style={{ width: '100%', minHeight: '80px', padding: '12px', background: 'rgba(0,0,0,0.2)', color: 'white', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                        style={{ width: '100%', minHeight: '80px', padding: '12px', background: 'rgba(0,0,0,0.2)', color: 'var(--text)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
                         value={newRequest.reason}
                         onChange={(e) => setNewRequest({...newRequest, reason: e.target.value})}
                       ></textarea>
@@ -184,7 +184,7 @@ const Documents = () => {
               <div className="modal-content" style={{ 
                   width: '800px', 
                   padding: '60px', 
-                  background: 'white', 
+                  background: 'var(--surface)', 
                   color: 'black', 
                   boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
                   fontFamily: '"Times New Roman", Times, serif',

@@ -45,7 +45,7 @@ export class ReportsService {
     return publication;
   }
 
-  async generateBulletin(schoolId: string, studentId: string, term: number, academicYearId: string) {
+  async generateBulletin(schoolId: string, studentId: string, term: number, academicYearId: string, userRole: string = 'ELEVE') {
     // 1. Fetch Student Details
     const student = await this.prisma.user.findUnique({
       where: { id: studentId, schoolId },
@@ -63,21 +63,24 @@ export class ReportsService {
     });
 
     if (!record) {
-      throw new NotFoundException('Academic record not found for this year');
+      throw new NotFoundException("L'eleve n'est inscrit dans aucune classe pour cette annee academique.");
     }
 
-    // 2.b Check if Term is Published
-    const publication = await this.prisma.termPublication.findFirst({
-      where: {
-        schoolId,
-        academicYearId,
-        term: Number(term),
-        OR: [{ classId: null }, { classId: record.class.id }]
-      }
-    });
+    const isAdminOrTeacher = ['ADMIN_ECOLE', 'SUPER_ADMIN', 'ENSEIGNANT'].includes(userRole);
 
-    if (!publication || !publication.isPublished) {
-      throw new ForbiddenException('Le bulletin de ce trimestre n\'est pas encore publié par l\'administration.');
+    if (!isAdminOrTeacher) {
+      const publication = await this.prisma.termPublication.findFirst({
+        where: {
+          schoolId,
+          academicYearId,
+          term: Number(term),
+          OR: [{ classId: null }, { classId: record.class.id }]
+        }
+      });
+
+      if (!publication || !publication.isPublished) {
+        throw new ForbiddenException('Le bulletin de ce trimestre n\'est pas encore publié par l\'administration.');
+      }
     }
 
     // 3. Fetch all grades for this student, term, and year

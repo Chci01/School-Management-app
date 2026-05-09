@@ -50,7 +50,7 @@ const Health = () => {
           </thead>
           <tbody>
               {records.map((record: any) => (
-                  <tr key={record.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                  <tr key={record.id} style={{ borderBottom: '1px solid var(--border)' }}>
                        <td style={{ padding: '16px', fontSize: '14px', whiteSpace: 'nowrap' }}>
                            {new Date(record.date).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' })}
                        </td>
@@ -79,11 +79,11 @@ const Health = () => {
       {isModalOpen && (
           <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
               <div className="modal-content glass-panel" style={{ width: '600px', maxWidth: '90%', padding: '24px' }}>
-                  <h3>Rapport d'Infirmerie</h3>
+                  <h3 style={{color: 'var(--text)'}}>Rapport d'Infirmerie</h3>
                   
                   <div className="input-group" style={{ marginTop: '16px' }}>
                       <label>Élève concerné</label>
-                      <select style={{ width: '100%', padding: '10px', background: 'var(--surface)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px' }}>
+                      <select style={{ width: '100%', padding: '10px', background: 'var(--surface)', color: 'var(--text)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px' }}>
                           <option>Rechercher un élève...</option>
                       </select>
                   </div>
@@ -95,12 +95,12 @@ const Health = () => {
 
                   <div className="input-group" style={{ marginTop: '16px' }}>
                       <label>Actions / Soins apportés</label>
-                      <textarea placeholder="Ex: Désinfection, appel aux parents..." style={{ width: '100%', minHeight: '80px', padding: '12px', background: 'rgba(0,0,0,0.2)', color: 'white', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}></textarea>
+                      <textarea placeholder="Ex: Désinfection, appel aux parents..." style={{ width: '100%', minHeight: '80px', padding: '12px', background: 'rgba(0,0,0,0.2)', color: 'var(--text)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}></textarea>
                   </div>
 
                   <div className="input-group" style={{ marginTop: '16px' }}>
                       <label>Niveau de Gravité</label>
-                      <select style={{ width: '100%', padding: '10px', background: 'var(--surface)', color: 'white', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px' }}>
+                      <select style={{ width: '100%', padding: '10px', background: 'var(--surface)', color: 'var(--text)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px' }}>
                           <option value="FAIBLE">Faible (Soins bénins)</option>
                           <option value="MOYENNE">Moyenne (Alerte parents)</option>
                           <option value="GRAVE">Grave (Urgence médicale)</option>

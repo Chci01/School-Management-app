@@ -19,6 +19,18 @@ import { News } from '../pages/News';
 import Signup from '../pages/Signup';
 import Activation from '../pages/Activation';
 import Subscription from '../pages/Subscription';
+import Students from '../pages/Students';
+import Parents from '../pages/Parents';
+import Teachers from '../pages/Teachers';
+import Classes from '../pages/Classes';
+import Subjects from '../pages/Subjects';
+import Grades from '../pages/Grades';
+import Absences from '../pages/Absences';
+import Timetable from '../pages/Timetable';
+import Exams from '../pages/Exams';
+import Messages from '../pages/Messages';
+import Library from '../pages/Library';
+import Settings from '../pages/Settings';
 
 export const router = createHashRouter([
   {
@@ -100,6 +112,54 @@ export const router = createHashRouter([
       {
         path: 'subscription',
         element: <Subscription />,
+      },
+      {
+        path: 'students',
+        element: <Students />,
+      },
+      {
+        path: 'parents',
+        element: <Parents />,
+      },
+      {
+        path: 'teachers',
+        element: <Teachers />,
+      },
+      {
+        path: 'classes',
+        element: <Classes />,
+      },
+      {
+        path: 'subjects',
+        element: <Subjects />,
+      },
+      {
+        path: 'grades',
+        element: <Grades />,
+      },
+      {
+        path: 'absences',
+        element: <Absences />,
+      },
+      {
+        path: 'timetable',
+        element: <Timetable />,
+      },
+      {
+        path: 'exams',
+        element: <Exams />,
+      },
+      {
+        path: 'messages',
+        element: <Messages />,
+      },
+      {
+        path: 'library',
+        element: <Library />,
+      },
+      {
+        path: 'settings',
+        element: <Settings />,
       },
       {
         path: '*',

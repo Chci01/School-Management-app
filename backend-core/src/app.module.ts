@@ -26,10 +26,14 @@ import { AiAgentModule } from './ai-agent/ai-agent.module';
 import { NewsModule } from './news/news.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { RegistrationModule } from './registration/registration.module';
+import { FirebaseModule } from './firebase/firebase.module';
+
 
 @Module({
   imports: [
     PrismaModule,
+    FirebaseModule,
+
     AuthModule,
     UsersModule,
     SchoolsModule,

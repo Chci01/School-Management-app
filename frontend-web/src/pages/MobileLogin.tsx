@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { useSchools } from '../hooks/useSchools';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { User, Lock, Building2, ChevronRight } from 'lucide-react';
+import '../MobileAesthetics.css';
 
 const MobileLogin = () => {
   const [matricule, setMatricule] = useState('');
@@ -16,80 +18,198 @@ const MobileLogin = () => {
   };
 
   return (
-    <div className="login-container mobile-login-container">
-      <div className="glass-panel login-box mobile-login-box">
-        <div className="login-header" style={{ position: 'relative' }}>
-           <div style={{ position: 'absolute', top: 0, right: 0 }}>
-               <ThemeToggle />
-           </div>
-           <div className="logo-placeholder" style={{ backgroundColor: 'transparent', margin: '0 auto', width: '160px', height: 'auto', marginBottom: '10px' }}>
-              <img src="/logo.png" alt="KalanSira Logo" style={{ width: '100%', height: 'auto', objectFit: 'contain', borderRadius: '12px' }} />
-           </div>
-           <h2>Espace Utilisateur</h2>
-           <p>Étudiants, Parents & Professeurs</p>
-        </div>
-        
-        {error && (
-          <div className="alert-error" style={{ color: 'var(--danger)', marginBottom: '16px', textAlign: 'center', backgroundColor: 'rgba(239, 68, 68, 0.1)', padding: '10px', borderRadius: '8px' }}>
-             Identifiants invalides ou école non sélectionnée.
-          </div>
-        )}
+    <div className="login-container mobile-login-page" style={{ 
+      background: 'linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%)',
+      display: 'flex',
+      flexDirection: 'column',
+      padding: '0'
+    }}>
+      <div style={{ 
+        background: 'linear-gradient(135deg, #3B82F6, #60A5FA)', 
+        height: '35vh', 
+        width: '100%', 
+        borderBottomLeftRadius: '40px', 
+        borderBottomRightRadius: '40px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: 'white',
+        position: 'relative'
+      }}>
+         <div style={{ position: 'absolute', top: 20, right: 20 }}>
+            <ThemeToggle />
+         </div>
+         <div style={{ backgroundColor: 'rgba(255,255,255,0.2)', padding: '15px', borderRadius: '24px', marginBottom: '15px' }}>
+            <img src="/logo.png" alt="KalanSira Logo" style={{ width: '80px', height: 'auto', filter: 'brightness(0) invert(1)' }} />
+         </div>
+         <h1 style={{ fontSize: '1.75rem', fontWeight: 800 }}>KalanSira</h1>
+         <p style={{ opacity: 0.9, fontSize: '0.9rem' }}>Votre portail éducatif intelligent</p>
+      </div>
 
-        <form className="login-form" onSubmit={handleSubmit}>
-          <div className="input-group">
-            <label>Votre Établissement</label>
-            <select 
-               value={schoolId} 
-               onChange={(e) => setSchoolId(e.target.value)} 
-               required
-               disabled={isLoadingSchools}
-               className="school-select"
-            >
-              <option value="">Sélectionnez une école...</option>
-              {schools?.map(school => (
-                <option key={school.id} value={school.id}>
-                   {school.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="input-group">
-            <label>Matricule / Identifiant</label>
-            <input 
-               type="text" 
-               placeholder="Entrez votre matricule" 
-               value={matricule}
-               onChange={(e) => setMatricule(e.target.value)}
-               required 
-            />
+      <div style={{ 
+        marginTop: '-40px', 
+        padding: '0 24px', 
+        width: '100%',
+        maxWidth: '500px',
+        margin: '-40px auto 0 auto'
+      }}>
+        <div className="glass-panel" style={{ 
+          background: 'white', 
+          padding: '32px', 
+          borderRadius: '32px',
+          boxShadow: '0 20px 40px rgba(0, 0, 0, 0.08)'
+        }}>
+          <div style={{ marginBottom: '24px' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#1E293B', marginBottom: '4px' }}>Connexion</h2>
+            <p style={{ fontSize: '0.85rem', color: '#64748B' }}>Entrez vos identifiants pour accéder à votre espace.</p>
           </div>
           
-          <div className="input-group">
-            <label>Mot de passe</label>
-            <input 
-               type="password" 
-               placeholder="••••••••" 
-               value={password}
-               onChange={(e) => setPassword(e.target.value)}
-               required
-            />
-          </div>
+          {error && (
+            <div style={{ 
+              color: '#EF4444', 
+              marginBottom: '20px', 
+              fontSize: '0.85rem', 
+              backgroundColor: '#FEF2F2', 
+              padding: '12px', 
+              borderRadius: '12px',
+              border: '1px solid #FEE2E2',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px'
+            }}>
+               Identifiants invalides ou erreur de connexion.
+            </div>
+          )}
 
-          <button type="submit" className="btn-primary" disabled={isLoading || isLoadingSchools} style={{ marginTop: '10px', width: '100%', padding: '14px', fontSize: '16px' }}>
-              {isLoading ? 'Connexion...' : 'Se Connecter'}
-          </button>
+          <form onSubmit={handleSubmit}>
+            <div className="input-group" style={{ marginBottom: '20px' }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748B', marginBottom: '8px', display: 'block' }}>Établissement</label>
+              <div style={{ position: 'relative' }}>
+                <Building2 size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
+                <select 
+                  value={schoolId} 
+                  onChange={(e) => setSchoolId(e.target.value)} 
+                  required
+                  disabled={isLoadingSchools}
+                  style={{ 
+                    width: '100%', 
+                    padding: '14px 16px 14px 48px', 
+                    borderRadius: '16px', 
+                    border: '1.5px solid #F1F5F9', 
+                    background: '#F8FAFC',
+                    fontSize: '0.95rem',
+                    color: '#1E293B',
+                    appearance: 'none'
+                  }}
+                >
+                  <option value="">Sélectionnez votre école</option>
+                  {schools?.map(school => (
+                    <option key={school.id} value={school.id}>{school.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
 
-          <div style={{ marginTop: '20px', textAlign: 'center' }}>
-             <p style={{ opacity: 0.8, fontSize: '0.9rem' }}>Vous êtes un administrateur ?</p>
-             <a href="#/admin/login" style={{ color: 'var(--primary)', textDecoration: 'none', fontWeight: 'bold' }}>
-                Accéder au Portail Administration
+            <div className="input-group" style={{ marginBottom: '20px' }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748B', marginBottom: '8px', display: 'block' }}>Matricule</label>
+              <div style={{ position: 'relative' }}>
+                <User size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
+                <input 
+                  type="text" 
+                  placeholder="Ex: 2024-STUD-001" 
+                  value={matricule}
+                  onChange={(e) => setMatricule(e.target.value)}
+                  required 
+                  style={{ 
+                    width: '100%', 
+                    padding: '14px 16px 14px 48px', 
+                    borderRadius: '16px', 
+                    border: '1.5px solid #F1F5F9', 
+                    background: '#F8FAFC',
+                    fontSize: '0.95rem',
+                    color: '#1E293B'
+                  }}
+                />
+              </div>
+            </div>
+            
+            <div className="input-group" style={{ marginBottom: '24px' }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748B', marginBottom: '8px', display: 'block' }}>Mot de passe</label>
+              <div style={{ position: 'relative' }}>
+                <Lock size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
+                <input 
+                  type="password" 
+                  placeholder="••••••••" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  style={{ 
+                    width: '100%', 
+                    padding: '14px 16px 14px 48px', 
+                    borderRadius: '16px', 
+                    border: '1.5px solid #F1F5F9', 
+                    background: '#F8FAFC',
+                    fontSize: '0.95rem',
+                    color: '#1E293B'
+                  }}
+                />
+              </div>
+            </div>
+
+            <button 
+              type="submit" 
+              disabled={isLoading || isLoadingSchools} 
+              style={{ 
+                width: '100%', 
+                padding: '16px', 
+                borderRadius: '16px', 
+                background: 'linear-gradient(135deg, #3B82F6, #2563EB)', 
+                color: 'white', 
+                border: 'none', 
+                fontSize: '1rem', 
+                fontWeight: 700, 
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                boxShadow: '0 10px 20px rgba(59, 130, 246, 0.2)'
+              }}
+            >
+              {isLoading ? 'Connexion en cours...' : (
+                <>
+                  Se Connecter <ChevronRight size={20} />
+                </>
+              )}
+            </button>
+          </form>
+
+          <div style={{ marginTop: '24px', textAlign: 'center' }}>
+             <p style={{ color: '#94A3B8', fontSize: '0.85rem' }}>Vous rencontrez un problème ?</p>
+             <a href="mailto:support@kalansira.com" style={{ color: '#3B82F6', textDecoration: 'none', fontWeight: 600, fontSize: '0.85rem' }}>
+                Contacter le support
              </a>
           </div>
-        </form>
+        </div>
+        
+        <div style={{ marginTop: '30px', textAlign: 'center', paddingBottom: '40px' }}>
+           <a href="#/admin/login" style={{ 
+             color: '#64748B', 
+             textDecoration: 'none', 
+             fontSize: '0.85rem', 
+             background: 'rgba(255,255,255,0.5)', 
+             padding: '8px 16px', 
+             borderRadius: '20px',
+             border: '1px solid #E2E8F0'
+           }}>
+              Portail Administration
+           </a>
+        </div>
       </div>
     </div>
   );
 };
 
 export default MobileLogin;
+

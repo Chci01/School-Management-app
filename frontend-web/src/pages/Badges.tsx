@@ -34,7 +34,7 @@ const Badges = () => {
       </header>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '16px' }}>
+      <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', borderBottom: '1px solid var(--border)', paddingBottom: '16px' }}>
           <button 
              onClick={() => setActiveTab('ELEVE')}
              style={{ background: 'transparent', border: 'none', color: activeTab === 'ELEVE' ? 'var(--primary)' : 'white', fontWeight: activeTab === 'ELEVE' ? 'bold' : 'normal', borderBottom: activeTab === 'ELEVE' ? '2px solid var(--primary)' : 'none', paddingBottom: '8px', cursor: 'pointer' }}
@@ -81,7 +81,7 @@ const Badges = () => {
                       display: 'flex', flexDirection: 'column'
                   }}>
                       {/* Badge Header (School Colors) */}
-                      <div style={{ background: template.primaryColor, color: 'white', padding: '12px', textAlign: 'center', minHeight: '60px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                      <div style={{ background: template.primaryColor, color: 'var(--text)', padding: '12px', textAlign: 'center', minHeight: '60px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
                           <h4 style={{ margin: 0, fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase' }}>{template.schoolName}</h4>
                           <div style={{ fontSize: '10px', opacity: 0.8, marginTop: '2px' }}>2024 - 2025</div>
                       </div>
@@ -91,7 +91,7 @@ const Badges = () => {
                           <img src={badgeToPrint.photo || 'https://via.placeholder.com/120'} alt="ID" style={{ width: '100px', height: '100px', borderRadius: '8px', objectFit: 'cover', border: `3px solid ${template.secondaryColor}`, marginBottom: '12px' }} />
                           <h3 style={{ margin: '0 0 4px 0', fontSize: '16px', fontWeight: 'bold', textAlign: 'center', color: template.primaryColor }}>{badgeToPrint.firstName} <br/> {badgeToPrint.lastName.toUpperCase()}</h3>
                           
-                          <div style={{ background: template.secondaryColor, color: 'white', padding: '4px 12px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '8px' }}>
+                          <div style={{ background: template.secondaryColor, color: 'var(--text)', padding: '4px 12px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '8px' }}>
                               {activeTab === 'ELEVE' ? 'Élève' : badgeToPrint.role}
                           </div>
                       </div>
