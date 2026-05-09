@@ -1,51 +1,57 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { FirestoreService } from '../firebase/firestore.service';
 
 @Injectable()
 export class SchedulesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private firestore: FirestoreService) {}
+
+  private readonly collection = 'schedules';
+  private readonly classesCollection = 'classes';
+  private readonly subjectsCollection = 'subjects';
+  private readonly usersCollection = 'users';
 
   async findAll(schoolId: string, classId?: string, teacherId?: string) {
-    const where: any = { schoolId };
-    if (classId) where.classId = classId;
-    if (teacherId) where.teacherId = teacherId;
+    const db = this.firestore.getDb();
+    let query = db.collection(this.collection).where('schoolId', '==', schoolId);
+    
+    if (classId) query = query.where('classId', '==', classId);
+    if (teacherId) query = query.where('teacherId', '==', teacherId);
 
-    return this.prisma.schedule.findMany({
-      where,
-      include: {
-        subject: true,
-        teacher: { select: { id: true, firstName: true, lastName: true } },
-        class: { select: { id: true, name: true, level: true } }
-      },
-      orderBy: [
-        { dayOfWeek: 'asc' },
-        { startTime: 'asc' }
-      ]
-    });
+    const snapshot = await query.orderBy('dayOfWeek', 'asc').orderBy('startTime', 'asc').get();
+    const schedules = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any }));
+
+    // Manual joins
+    for (const s of schedules) {
+      s.subject = await this.firestore.findOne(this.subjectsCollection, s.subjectId);
+      s.teacher = await this.firestore.findOne(this.usersCollection, s.teacherId);
+      s.class = await this.firestore.findOne(this.classesCollection, s.classId);
+    }
+
+    return schedules;
   }
 
   async create(schoolId: string, data: any) {
-    // Validate that the entities exist in this school
-    const cls = await this.prisma.class.findFirst({ where: { id: data.classId, schoolId } });
-    if (!cls) throw new BadRequestException('Class not found in this school');
+    const cls = await this.firestore.findOne(this.classesCollection, data.classId) as any;
+    if (!cls || cls.schoolId !== schoolId) throw new BadRequestException('Class not found in this school');
 
-    const subject = await this.prisma.subject.findFirst({ where: { id: data.subjectId, schoolId } });
-    if (!subject) throw new BadRequestException('Subject not found in this school');
+    const subject = await this.firestore.findOne(this.subjectsCollection, data.subjectId) as any;
+    if (!subject || subject.schoolId !== schoolId) throw new BadRequestException('Subject not found in this school');
 
-    const teacher = await this.prisma.user.findFirst({ where: { id: data.teacherId, schoolId, role: 'ENSEIGNANT' } });
-    if (!teacher) throw new BadRequestException('Teacher not found in this school');
+    const teacher = await this.firestore.findOne(this.usersCollection, data.teacherId) as any;
+    if (!teacher || teacher.schoolId !== schoolId || teacher.role !== 'ENSEIGNANT') {
+      throw new BadRequestException('Teacher not found in this school');
+    }
 
-    return this.prisma.schedule.create({
-      data: {
-        schoolId,
-        classId: data.classId,
-        subjectId: data.subjectId,
-        teacherId: data.teacherId,
-        dayOfWeek: data.dayOfWeek,
-        startTime: data.startTime,
-        endTime: data.endTime,
-        room: data.room,
-      }
+    return this.firestore.create(this.collection, {
+      schoolId,
+      classId: data.classId,
+      subjectId: data.subjectId,
+      teacherId: data.teacherId,
+      dayOfWeek: data.dayOfWeek,
+      startTime: data.startTime,
+      endTime: data.endTime,
+      room: data.room,
     });
   }
 }
+

@@ -1,20 +1,21 @@
 import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { FirestoreService } from '../firebase/firestore.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class HealthService {
   constructor(
-    private prisma: PrismaService,
+    private firestore: FirestoreService,
     private eventEmitter: EventEmitter2
   ) {}
 
+  private readonly collection = 'health_records';
+  private readonly usersCollection = 'users';
+
   async create(createHealthDto: any, user: any) {
-    const record = await this.prisma.healthRecord.create({
-      data: {
-        ...createHealthDto,
-        schoolId: user.schoolId, // Must be logged by staff in the school context
-      },
+    const record = await this.firestore.create(this.collection, {
+      ...createHealthDto,
+      schoolId: user.schoolId,
     });
 
     this.eventEmitter.emit('health.added', {
@@ -27,19 +28,21 @@ export class HealthService {
   }
 
   async findAll(user: any) {
-    const whereClause: any = { schoolId: user.schoolId };
+    const db = this.firestore.getDb();
+    let query = db.collection(this.collection).where('schoolId', '==', user.schoolId);
 
-    // Parent/Student can only see their own health records
     if (user.role === 'ELEVE' || user.role === 'PARENT') {
-      whereClause.studentId = user.userId;
+      query = query.where('studentId', '==', user.userId);
     }
 
-    return this.prisma.healthRecord.findMany({
-      where: whereClause,
-      include: {
-        student: { select: { firstName: true, lastName: true, matricule: true } }
-      },
-      orderBy: { createdAt: 'desc' }
-    });
+    const snapshot = await query.orderBy('createdAt', 'desc').get();
+    const records = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any }));
+
+    for (const r of records) {
+      r.student = await this.firestore.findOne(this.usersCollection, r.studentId);
+    }
+
+    return records;
   }
 }
+

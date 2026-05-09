@@ -1,35 +1,50 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateGradeDto } from './dto/create-grade.dto';
 import { UpdateGradeDto } from './dto/update-grade.dto';
-import { PrismaService } from '../prisma/prisma.service';
+import { FirestoreService } from '../firebase/firestore.service';
 
 @Injectable()
 export class GradesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private firestore: FirestoreService) {}
+
+  private readonly collection = 'grades';
+  private readonly subjectsCollection = 'subjects';
+  private readonly classesCollection = 'classes';
 
   async create(schoolId: string, createGradeDto: CreateGradeDto) {
-    // Vérification de base (on pourrait abstraire ça)
-    const subject = await this.prisma.subject.findFirst({ where: { id: createGradeDto.subjectId, schoolId } });
-    if (!subject) throw new NotFoundException('Matière invalide');
-    const classEntity = await this.prisma.class.findFirst({ where: { id: createGradeDto.classId, schoolId } });
-    if (!classEntity) throw new NotFoundException('Classe invalide');
+    const subject = await this.firestore.findOne(this.subjectsCollection, createGradeDto.subjectId) as any;
+    if (!subject || subject.schoolId !== schoolId) throw new NotFoundException('Matière invalide');
+    
+    const classEntity = await this.firestore.findOne(this.classesCollection, createGradeDto.classId) as any;
+    if (!classEntity || classEntity.schoolId !== schoolId) throw new NotFoundException('Classe invalide');
 
-    return this.prisma.grade.create({
-      data: {
-        ...createGradeDto,
-        schoolId,
-      },
-      include: { subject: true }
-    });
+    const grade = {
+      ...createGradeDto,
+      schoolId,
+    };
+
+    return this.firestore.create(this.collection, grade);
   }
 
   async findAllByStudent(schoolId: string, studentId: string, academicYearId?: string) {
-    const whereClause: any = { schoolId, studentId };
-    if (academicYearId) whereClause.academicYearId = academicYearId;
-    return this.prisma.grade.findMany({
-      where: whereClause,
-      include: { subject: true }
-    });
+    const db = this.firestore.getDb();
+    let query = db.collection(this.collection)
+      .where('schoolId', '==', schoolId)
+      .where('studentId', '==', studentId);
+    
+    if (academicYearId) {
+      query = query.where('academicYearId', '==', academicYearId);
+    }
+
+    const snapshot = await query.get();
+    const grades = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any }));
+
+    // Manually join subjects for coefficient logic
+    for (const g of grades) {
+      g.subject = await this.firestore.findOne(this.subjectsCollection, g.subjectId);
+    }
+
+    return grades;
   }
 
   async calculateStudentAverage(schoolId: string, studentId: string, academicYearId: string) {
@@ -40,7 +55,7 @@ export class GradesService {
     let totalCoefficients = 0;
 
     grades.forEach(g => {
-        const coef = g.subject.coefficient || 1;
+        const coef = g.subject?.coefficient || 1;
         totalPoints += g.value * coef;
         totalCoefficients += coef;
     });
@@ -49,31 +64,29 @@ export class GradesService {
   }
 
   async upsertBulk(schoolId: string, grades: CreateGradeDto[]) {
-    // Process each grade
+    const db = this.firestore.getDb();
     const results: any[] = [];
-    for (const g of grades) {
-      // Find if exists
-      const existing = await this.prisma.grade.findFirst({
-        where: {
-          schoolId,
-          studentId: g.studentId,
-          subjectId: g.subjectId,
-          academicYearId: g.academicYearId,
-          term: g.term || 1,
-        }
-      });
 
-      if (existing) {
-        results.push(await this.prisma.grade.update({
-          where: { id: existing.id },
-          data: { value: g.value }
-        }));
+    for (const g of grades) {
+      const snapshot = await db.collection(this.collection)
+        .where('schoolId', '==', schoolId)
+        .where('studentId', '==', g.studentId)
+        .where('subjectId', '==', g.subjectId)
+        .where('academicYearId', '==', g.academicYearId)
+        .where('term', '==', g.term || 1)
+        .limit(1)
+        .get();
+
+      if (!snapshot.empty) {
+        const doc = snapshot.docs[0];
+        await this.firestore.update(this.collection, doc.id, { value: g.value });
+        results.push({ id: doc.id, ...doc.data(), value: g.value });
       } else {
-        results.push(await this.prisma.grade.create({
-          data: { ...g, schoolId }
-        }));
+        const newGrade = await this.firestore.create(this.collection, { ...g, schoolId });
+        results.push(newGrade);
       }
     }
     return results;
   }
 }
+

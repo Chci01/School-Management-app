@@ -1,116 +1,122 @@
 import { Injectable, BadRequestException, ConflictException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { FirestoreService } from '../firebase/firestore.service';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class RegistrationService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private firestore: FirestoreService) {}
+
+  private readonly schoolsCollection = 'schools';
+  private readonly usersCollection = 'users';
+  private readonly vouchersCollection = 'license_vouchers';
 
   async registerSchool(dto: any) {
     const { schoolName, email, password } = dto;
+    const db = this.firestore.getDb();
 
-    // Check if school or user already exists
-    const existingUser = await this.prisma.user.findFirst({
-      where: { email },
-    });
+    // Check if user already exists
+    const existingSnapshot = await db.collection(this.usersCollection)
+      .where('email', '==', email)
+      .limit(1)
+      .get();
 
-    if (existingUser) {
+    if (!existingSnapshot.empty) {
       throw new ConflictException('Un utilisateur avec cet email existe déjà.');
     }
 
-    // Create school and its first admin
     const hashedPassword = await bcrypt.hash(password, 10);
+    const trialExpiration = new Date();
+    trialExpiration.setDate(trialExpiration.getDate() + 7);
 
-    return this.prisma.$transaction(async (tx) => {
-      // Set up a 7-day free trial automatically on signup
-      const trialExpiration = new Date();
-      trialExpiration.setDate(trialExpiration.getDate() + 7);
+    return db.runTransaction(async (transaction) => {
+      const schoolRef = db.collection(this.schoolsCollection).doc();
+      const userRef = db.collection(this.usersCollection).doc();
 
-      const school = await tx.school.create({
-        data: {
-          name: schoolName,
-          email: email,
-          isActive: true, // Active immediately with the trial
-          licenseExpiresAt: trialExpiration,
-        },
+      transaction.set(schoolRef, {
+        name: schoolName,
+        email: email,
+        isActive: true,
+        licenseExpiresAt: trialExpiration,
+        createdAt: new Date(),
       });
 
-      const admin = await tx.user.create({
-        data: {
-          schoolId: school.id,
-          matricule: 'ADMIN-01', // Default matricule for the first school admin
-          email: email,
-          password: hashedPassword,
-          firstName: 'Admin',
-          lastName: schoolName,
-          role: 'ADMIN_ECOLE',
-        },
+      transaction.set(userRef, {
+        schoolId: schoolRef.id,
+        matricule: 'ADMIN-01',
+        email: email,
+        password: hashedPassword,
+        firstName: 'Admin',
+        lastName: schoolName,
+        role: 'ADMIN_ECOLE',
+        createdAt: new Date(),
       });
 
       return {
         message: 'Compte créé avec succès. Votre essai gratuit de 7 jours commence maintenant !',
-        schoolId: school.id,
-        adminMatricule: admin.matricule,
+        schoolId: schoolRef.id,
+        adminMatricule: 'ADMIN-01',
         trialExpiresAt: trialExpiration,
       };
     });
   }
 
   async activateLicense(licenseKey: string, schoolId?: string) {
-    // Determine which school to activate
-    let school;
-    if (schoolId) {
-      school = await this.prisma.school.findUnique({ where: { id: schoolId } });
-    } else {
-      // Fuzzy logic for backward compatibility/quick activation
-      school = await this.prisma.school.findFirst({
-        orderBy: { createdAt: 'desc' },
-      });
-    }
-
-    if (!school) {
-      throw new BadRequestException('Aucun établissement trouvé pour l\'activation.');
-    }
-
-    // Verify against real LicenseVoucher
-    const voucher = await this.prisma.licenseVoucher.findUnique({
-      where: { code: licenseKey },
-    });
-
-    if (!voucher) {
-      throw new BadRequestException('Format de clé de licence invalide ou clé introuvable.');
-    }
-
-    if (voucher.isUsed) {
-      throw new BadRequestException('Cette clé de licence a déjà été utilisée.');
-    }
-
-    // Calculate new expiration
-    // If the school already has a future expiration (trial), extend from there
-    const currentExpiration = school.licenseExpiresAt ? new Date(school.licenseExpiresAt) : new Date();
-    const baseDate = currentExpiration > new Date() ? currentExpiration : new Date();
+    const db = this.firestore.getDb();
     
-    const newExpiration = new Date(baseDate);
-    newExpiration.setDate(newExpiration.getDate() + voucher.days);
+    return db.runTransaction(async (transaction) => {
+      // Find school
+      let schoolRef;
+      let schoolData;
 
-    return this.prisma.$transaction(async (tx) => {
-      await tx.licenseVoucher.update({
-        where: { id: voucher.id },
-        data: {
-          isUsed: true,
-          usedAt: new Date(),
-          schoolId: school.id,
-        },
+      if (schoolId) {
+        schoolRef = db.collection(this.schoolsCollection).doc(schoolId);
+        const schoolDoc = await transaction.get(schoolRef) as any;
+        if (!schoolDoc.exists) throw new BadRequestException('Établissement introuvable.');
+        schoolData = schoolDoc.data();
+      } else {
+        const snapshot = await db.collection(this.schoolsCollection)
+          .orderBy('createdAt', 'desc')
+          .limit(1)
+          .get();
+        if (snapshot.empty) throw new BadRequestException('Aucun établissement trouvé.');
+        schoolRef = snapshot.docs[0].ref;
+        schoolData = snapshot.docs[0].data();
+      }
+
+      // Find voucher
+      const voucherSnapshot = await db.collection(this.vouchersCollection)
+        .where('code', '==', licenseKey)
+        .limit(1)
+        .get();
+
+      if (voucherSnapshot.empty) throw new BadRequestException('Clé de licence invalide.');
+      
+      const voucherDoc = voucherSnapshot.docs[0];
+      const voucherData = voucherDoc.data() as any;
+
+      if (voucherData.isUsed) throw new BadRequestException('Clé déjà utilisée.');
+
+      // Calculate expiration
+      const currentExpiration = schoolData.licenseExpiresAt ? schoolData.licenseExpiresAt.toDate() : new Date();
+      const baseDate = currentExpiration > new Date() ? currentExpiration : new Date();
+      
+      const newExpiration = new Date(baseDate);
+      newExpiration.setDate(newExpiration.getDate() + voucherData.days);
+
+      transaction.update(voucherDoc.ref, {
+        isUsed: true,
+        usedAt: new Date(),
+        schoolId: schoolRef.id,
       });
 
-      return tx.school.update({
-        where: { id: school.id },
-        data: {
-          licenseKey: licenseKey,
-          isActive: true,
-          licenseExpiresAt: newExpiration,
-        },
+      transaction.update(schoolRef, {
+        licenseKey: licenseKey,
+        isActive: true,
+        licenseExpiresAt: newExpiration,
       });
+
+      return { id: schoolRef.id, ...schoolData, licenseExpiresAt: newExpiration };
     });
   }
 }
+

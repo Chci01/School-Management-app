@@ -1,9 +1,11 @@
 import { Injectable, ForbiddenException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { FirestoreService } from '../firebase/firestore.service';
 
 @Injectable()
 export class AnnouncementsService {
-    constructor(private prisma: PrismaService) {}
+    constructor(private firestore: FirestoreService) {}
+
+    private readonly collection = 'announcements';
 
     async create(createDto: any, user: any) {
         if (user.role !== 'SUPER_ADMIN' && user.role !== 'ADMIN_ECOLE') {
@@ -21,22 +23,33 @@ export class AnnouncementsService {
             data.targetId = createDto.targetId;
         }
 
-        return this.prisma.announcement.create({ data });
+        return this.firestore.create(this.collection, data);
     }
 
     async findAll(user: any) {
+        const db = this.firestore.getDb();
+        
         if (user.role === 'SUPER_ADMIN') {
-             return this.prisma.announcement.findMany();
+             return this.firestore.findAll(this.collection);
         }
 
-        return this.prisma.announcement.findMany({
-            where: {
-                 OR: [
-                      { schoolId: user.schoolId }, // School specific
-                      { schoolId: null }           // Global announcements
-                 ]
-            },
-            orderBy: { createdAt: 'desc' }
-        });
+        // Firestore OR is supported in newer SDKs, otherwise we merge results
+        // For school specific OR global
+        const schoolSnapshot = await db.collection(this.collection)
+            .where('schoolId', '==', user.schoolId)
+            .orderBy('createdAt', 'desc')
+            .get();
+        
+        const globalSnapshot = await db.collection(this.collection)
+            .where('schoolId', '==', null)
+            .orderBy('createdAt', 'desc')
+            .get();
+
+        const results = [...schoolSnapshot.docs, ...globalSnapshot.docs]
+            .map(doc => ({ id: doc.id, ...doc.data() as any }))
+            .sort((a, b) => b.createdAt?._seconds - a.createdAt?._seconds);
+
+        return results;
     }
 }
+

@@ -1,43 +1,61 @@
 import { Injectable } from '@nestjs/common';
 import { CreateHomeworkDto } from './dto/create-homework.dto';
-import { PrismaService } from '../prisma/prisma.service';
+import { FirestoreService } from '../firebase/firestore.service';
 
 @Injectable()
 export class HomeworksService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private firestore: FirestoreService) {}
 
-  create(createHomeworkDto: CreateHomeworkDto) {
-    return this.prisma.homework.create({
-      data: {
-        ...createHomeworkDto,
-        dueDate: new Date(createHomeworkDto.dueDate),
-      },
+  private readonly collection = 'homeworks';
+  private readonly classesCollection = 'classes';
+  private readonly subjectsCollection = 'subjects';
+  private readonly usersCollection = 'users';
+
+  async create(createHomeworkDto: CreateHomeworkDto) {
+    return this.firestore.create(this.collection, {
+      ...createHomeworkDto,
+      dueDate: new Date(createHomeworkDto.dueDate),
     });
   }
 
-  findByClass(schoolId: string, classId: string) {
-    return this.prisma.homework.findMany({
-      where: { schoolId, classId },
-      include: {
-        subject: { select: { id: true, name: true } },
-        teacher: { select: { id: true, firstName: true, lastName: true } },
-      },
-      orderBy: { dueDate: 'asc' },
-    });
+  async findByClass(schoolId: string, classId: string) {
+    const db = this.firestore.getDb();
+    const snapshot = await db.collection(this.collection)
+      .where('schoolId', '==', schoolId)
+      .where('classId', '==', classId)
+      .orderBy('dueDate', 'asc')
+      .get();
+    
+    const homeworks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any }));
+
+    for (const h of homeworks) {
+      h.subject = await this.firestore.findOne(this.subjectsCollection, h.subjectId);
+      h.teacher = await this.firestore.findOne(this.usersCollection, h.teacherId);
+    }
+
+    return homeworks;
   }
 
-  findByTeacher(teacherId: string) {
-    return this.prisma.homework.findMany({
-      where: { teacherId },
-      include: {
-        class: { select: { id: true, name: true } },
-        subject: { select: { id: true, name: true } },
-      },
-      orderBy: { dueDate: 'asc' },
-    });
+  async findByTeacher(teacherId: string) {
+    const db = this.firestore.getDb();
+    const snapshot = await db.collection(this.collection)
+      .where('teacherId', '==', teacherId)
+      .orderBy('dueDate', 'asc')
+      .get();
+    
+    const homeworks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any }));
+
+    for (const h of homeworks) {
+      h.class = await this.firestore.findOne(this.classesCollection, h.classId);
+      h.subject = await this.firestore.findOne(this.subjectsCollection, h.subjectId);
+    }
+
+    return homeworks;
   }
 
-  remove(id: string) {
-    return this.prisma.homework.delete({ where: { id } });
+  async remove(id: string) {
+    await this.firestore.delete(this.collection, id);
+    return { id };
   }
 }
+

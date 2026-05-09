@@ -1,15 +1,17 @@
 import { Injectable, ForbiddenException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { FirestoreService } from '../firebase/firestore.service';
 
 @Injectable()
 export class PaymentsService {
-    constructor(private prisma: PrismaService) {}
+    constructor(private firestore: FirestoreService) {}
+
+    private readonly collection = 'payments';
+    private readonly usersCollection = 'users';
 
     async create(createPaymentDto: any, user: any) {
         const { studentId, amount, tranche } = createPaymentDto;
         
-        // Ensure the student belongs to the admin's school (if not super admin)
-        const student = await this.prisma.user.findUnique({ where: { id: studentId } });
+        const student = await this.firestore.findOne(this.usersCollection, studentId) as any;
         if (!student || (user.role !== 'SUPER_ADMIN' && student.schoolId !== user.schoolId)) {
             throw new ForbiddenException('Access denied');
         }
@@ -20,41 +22,50 @@ export class PaymentsService {
              throw new ForbiddenException('Student is not assigned to any school');
         }
 
-        return this.prisma.payment.create({
-            data: {
-                studentId,
-                amount,
-                tranche,
-                schoolId: student.schoolId,
-                receiptNumber
-            }
+        return this.firestore.create(this.collection, {
+            studentId,
+            amount,
+            tranche,
+            schoolId: student.schoolId,
+            receiptNumber
         });
     }
 
     async findAll(user: any) {
-        if (user.role === 'SUPER_ADMIN') {
-            return this.prisma.payment.findMany({ include: { student: true } });
+        const db = this.firestore.getDb();
+        let query = db.collection(this.collection);
+
+        if (user.role !== 'SUPER_ADMIN') {
+            query = query.where('schoolId', '==', user.schoolId) as any;
         }
-        return this.prisma.payment.findMany({
-            where: { schoolId: user.schoolId },
-            include: { student: true }
-        });
+
+        const snapshot = await query.get();
+        const payments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any }));
+
+        // Manually join students
+        for (const p of payments) {
+          p.student = await this.firestore.findOne(this.usersCollection, p.studentId);
+        }
+
+        return payments;
     }
 
     async findByStudent(studentId: string, user: any) {
-        const student = await this.prisma.user.findUnique({ where: { id: studentId } });
+        const student = await this.firestore.findOne(this.usersCollection, studentId) as any;
         
         if (!student) {
              throw new ForbiddenException('Student not found');
         }
 
-        // Admins can see their school's students. Parents can see their children. Students can see themselves.
         if (user.role === 'ADMIN_ECOLE' && student.schoolId !== user.schoolId) throw new ForbiddenException();
         if (user.role === 'ELEVE' && user.id !== studentId) throw new ForbiddenException();
-        // PARENT logic would go here: check parentStudent relation.
 
-        return this.prisma.payment.findMany({
-            where: { studentId }
-        });
+        const db = this.firestore.getDb();
+        const snapshot = await db.collection(this.collection)
+            .where('studentId', '==', studentId)
+            .get();
+        
+        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     }
 }
+
