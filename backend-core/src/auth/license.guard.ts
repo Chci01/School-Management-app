@@ -1,9 +1,11 @@
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { FirestoreService } from '../firebase/firestore.service';
 
 @Injectable()
 export class LicenseGuard implements CanActivate {
-  constructor(private prisma: PrismaService) {}
+  constructor(private firestore: FirestoreService) {}
+
+  private readonly collection = 'schools';
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
@@ -18,10 +20,7 @@ export class LicenseGuard implements CanActivate {
        throw new ForbiddenException('Utilisateur non rattaché à une école.');
     }
 
-    const school = await this.prisma.school.findUnique({
-      where: { id: user.schoolId },
-      select: { isActive: true, licenseExpiresAt: true }
-    });
+    const school = await this.firestore.findOne(this.collection, user.schoolId) as any;
 
     if (!school) {
       throw new ForbiddenException('École introuvable.');
@@ -31,10 +30,13 @@ export class LicenseGuard implements CanActivate {
       throw new ForbiddenException('Le compte de cette école est inactif. Veuillez contacter le support.');
     }
 
-    if (school.licenseExpiresAt && new Date() > new Date(school.licenseExpiresAt)) {
+    const expiration = school.licenseExpiresAt?.toDate ? school.licenseExpiresAt.toDate() : new Date(school.licenseExpiresAt);
+
+    if (expiration && new Date() > expiration) {
       throw new ForbiddenException('La licence de cette école a expiré. Veuillez renouveler l\'abonnement.');
     }
 
     return true;
   }
 }
+

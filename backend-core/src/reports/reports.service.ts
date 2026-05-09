@@ -1,45 +1,43 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
+import { FirestoreService } from '../firebase/firestore.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class ReportsService {
   constructor(
-    private prisma: PrismaService,
+    private firestore: FirestoreService,
     private eventEmitter: EventEmitter2
   ) {}
 
+  private readonly publicationsCollection = 'term_publications';
+  private readonly usersCollection = 'users';
+  private readonly recordsCollection = 'academic_records';
+  private readonly gradesCollection = 'grades';
+  private readonly subjectsCollection = 'subjects';
+
   async publishTerm(schoolId: string, academicYearId: string, classId: string | null, term: number, isPublished: boolean) {
-    // Upsert the publication status
-    const publication = await this.prisma.termPublication.upsert({
-      where: {
-        schoolId_academicYearId_classId_term: {
-          schoolId,
-          academicYearId,
-          classId: classId || '', // Prisma might need a string if it's part of a compound unique, but wait, schema says classId is optional. If it's nullable in compound unique, it's problematic in some DBs. Let's findFirst and update or create.
-          term
-        }
-      },
-      update: { isPublished },
-      create: { schoolId, academicYearId, classId, term, isPublished }
-    }).catch(async () => {
-       // Manual fallback if upsert fails due to null classId
-       const existing = await this.prisma.termPublication.findFirst({
-         where: { schoolId, academicYearId, classId, term }
-       });
-       if (existing) {
-         return this.prisma.termPublication.update({ where: { id: existing.id }, data: { isPublished } });
-       }
-       return this.prisma.termPublication.create({ data: { schoolId, academicYearId, classId, term, isPublished }});
-    });
+    const db = this.firestore.getDb();
+    const snapshot = await db.collection(this.publicationsCollection)
+      .where('schoolId', '==', schoolId)
+      .where('academicYearId', '==', academicYearId)
+      .where('classId', '==', classId)
+      .where('term', '==', term)
+      .limit(1)
+      .get();
+
+    const data = { schoolId, academicYearId, classId, term, isPublished, updatedAt: new Date() };
+
+    let publication;
+    if (!snapshot.empty) {
+      const doc = snapshot.docs[0];
+      await this.firestore.update(this.publicationsCollection, doc.id, data);
+      publication = { id: doc.id, ...data };
+    } else {
+      publication = await this.firestore.create(this.publicationsCollection, { ...data, createdAt: new Date() });
+    }
 
     if (isPublished) {
-      this.eventEmitter.emit('bulletin.published', {
-        schoolId,
-        academicYearId,
-        classId,
-        term
-      });
+      this.eventEmitter.emit('bulletin.published', { schoolId, academicYearId, classId, term });
     }
 
     return publication;
@@ -47,75 +45,75 @@ export class ReportsService {
 
   async generateBulletin(schoolId: string, studentId: string, term: number, academicYearId: string, userRole: string = 'ELEVE') {
     // 1. Fetch Student Details
-    const student = await this.prisma.user.findUnique({
-      where: { id: studentId, schoolId },
-      select: { id: true, matricule: true, firstName: true, lastName: true }
-    });
-
-    if (!student) {
+    const student = await this.firestore.findOne(this.usersCollection, studentId) as any;
+    if (!student || student.schoolId !== schoolId) {
       throw new NotFoundException('Student not found');
     }
 
     // 2. Fetch Academic Record to get the Class
-    const record = await this.prisma.academicRecord.findFirst({
-      where: { studentId, schoolId, academicYearId },
-      include: { class: true, academicYear: true }
-    });
+    const db = this.firestore.getDb();
+    const recordSnapshot = await db.collection(this.recordsCollection)
+      .where('studentId', '==', studentId)
+      .where('schoolId', '==', schoolId)
+      .where('academicYearId', '==', academicYearId)
+      .limit(1)
+      .get();
 
-    if (!record) {
+    if (recordSnapshot.empty) {
       throw new NotFoundException("L'eleve n'est inscrit dans aucune classe pour cette annee academique.");
     }
+    const record = recordSnapshot.docs[0].data() as any;
 
     const isAdminOrTeacher = ['ADMIN_ECOLE', 'SUPER_ADMIN', 'ENSEIGNANT'].includes(userRole);
 
     if (!isAdminOrTeacher) {
-      const publication = await this.prisma.termPublication.findFirst({
-        where: {
-          schoolId,
-          academicYearId,
-          term: Number(term),
-          OR: [{ classId: null }, { classId: record.class.id }]
-        }
+      // Check if published
+      const pubSnapshot = await db.collection(this.publicationsCollection)
+        .where('schoolId', '==', schoolId)
+        .where('academicYearId', '==', academicYearId)
+        .where('term', '==', Number(term))
+        .where('isPublished', '==', true)
+        .get();
+
+      const isPublished = pubSnapshot.docs.some(doc => {
+        const data = doc.data();
+        return data.classId === null || data.classId === record.classId;
       });
 
-      if (!publication || !publication.isPublished) {
+      if (!isPublished) {
         throw new ForbiddenException('Le bulletin de ce trimestre n\'est pas encore publié par l\'administration.');
       }
     }
 
-    // 3. Fetch all grades for this student, term, and year
-    const grades = await this.prisma.grade.findMany({
-      where: {
-        studentId,
-        schoolId,
-        academicYearId,
-        term: Number(term),
-      },
-      include: {
-        subject: true
-      }
-    });
+    // 3. Fetch all grades
+    const gradesSnapshot = await db.collection(this.gradesCollection)
+      .where('studentId', '==', studentId)
+      .where('schoolId', '==', schoolId)
+      .where('academicYearId', '==', academicYearId)
+      .where('term', '==', Number(term))
+      .get();
 
-    // 4. Calculate Averages per Subject and Global
+    const grades = gradesSnapshot.docs.map(doc => doc.data() as any);
+
+    // 4. Calculate Averages
     const subjectAverages = {};
     let totalPoints = 0;
     let totalCoefficients = 0;
 
-    // Group grades by Subject
-    grades.forEach(g => {
+    for (const g of grades) {
        const subId = g.subjectId;
        if (!subjectAverages[subId]) {
+           const subject = await this.firestore.findOne(this.subjectsCollection, subId) as any;
            subjectAverages[subId] = {
-               subjectName: g.subject.name,
-               coefficient: g.subject.coefficient,
+               subjectName: subject?.name || 'Inconnue',
+               coefficient: subject?.coefficient || 1,
                grades: [],
                average: 0
            };
        }
        subjectAverages[subId].grades.push(g.value);
-    });
+    }
 
-    // Calculate individual subject averages
     const results = Object.values(subjectAverages).map((sub: any) => {
         const sum = sub.grades.reduce((a, b) => a + b, 0);
         const avg = sum / sub.grades.length;
@@ -130,9 +128,9 @@ export class ReportsService {
     const globalAverage = totalCoefficients > 0 ? (totalPoints / totalCoefficients) : 0;
 
     return {
-        student,
-        class: record.class,
-        academicYear: record.academicYear,
+        student: { id: studentId, matricule: student.matricule, firstName: student.firstName, lastName: student.lastName },
+        class: await this.firestore.findOne('classes', record.classId),
+        academicYear: await this.firestore.findOne('academic_years', academicYearId),
         term: Number(term),
         subjects: results,
         globalAverage: parseFloat(globalAverage.toFixed(2)),
@@ -142,3 +140,4 @@ export class ReportsService {
     };
   }
 }
+

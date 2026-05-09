@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
 import { RegistrationController } from './registration.controller';
 import { RegistrationService } from './registration.service';
-import { PrismaService } from '../prisma/prisma.service';
+import { FirebaseModule } from '../firebase/firebase.module';
 
 @Module({
+  imports: [FirebaseModule],
   controllers: [RegistrationController],
-  providers: [RegistrationService, PrismaService],
+  providers: [RegistrationService],
 })
 export class RegistrationModule {}
+

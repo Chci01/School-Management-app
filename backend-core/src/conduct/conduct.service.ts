@@ -1,87 +1,91 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { CreateConductDto, CalculateConductDto } from './dto/create-conduct.dto';
-import { PrismaService } from '../prisma/prisma.service';
+import { FirestoreService } from '../firebase/firestore.service';
 
 @Injectable()
 export class ConductService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private firestore: FirestoreService) {}
+
+  private readonly gradesCollection = 'conduct_grades';
+  private readonly globalCollection = 'global_conduct';
+  private readonly usersCollection = 'users';
 
   async submitTeacherConduct(createConductDto: CreateConductDto, user: any) {
     if (user.role !== 'ENSEIGNANT') throw new BadRequestException('Only teachers can submit this');
 
-    const existing = await this.prisma.conductGrade.findFirst({
-      where: {
-        studentId: createConductDto.studentId,
-        teacherId: user.id,
-        month: createConductDto.month,
-        year: createConductDto.year,
-      }
-    });
+    const db = this.firestore.getDb();
+    const snapshot = await db.collection(this.gradesCollection)
+      .where('studentId', '==', createConductDto.studentId)
+      .where('teacherId', '==', user.id)
+      .where('month', '==', createConductDto.month)
+      .where('year', '==', createConductDto.year)
+      .limit(1)
+      .get();
 
-    if (existing) {
-      return this.prisma.conductGrade.update({
-        where: { id: existing.id },
-        data: { grade: createConductDto.grade, appreciation: createConductDto.appreciation }
+    if (!snapshot.empty) {
+      const doc = snapshot.docs[0];
+      return this.firestore.update(this.gradesCollection, doc.id, {
+        grade: createConductDto.grade,
+        appreciation: createConductDto.appreciation
       });
     }
 
-    return this.prisma.conductGrade.create({
-      data: {
-        ...createConductDto,
-        teacherId: user.id,
-      }
+    return this.firestore.create(this.gradesCollection, {
+      ...createConductDto,
+      teacherId: user.id,
     });
   }
 
   async calculateGlobalConduct(dto: CalculateConductDto, user: any) {
-    // 1. Get all students in the school
-    const students = await this.prisma.user.findMany({
-      where: { schoolId: user.schoolId, role: 'ELEVE' }
-    });
+    const db = this.firestore.getDb();
+    const studentsSnapshot = await db.collection(this.usersCollection)
+      .where('schoolId', '==', user.schoolId)
+      .where('role', '==', 'ELEVE')
+      .get();
 
     let processedCount = 0;
 
-    // 2. For each student, find their teacher conduct grades for the month
-    for (const student of students) {
-      const grades = await this.prisma.conductGrade.findMany({
-        where: { studentId: student.id, month: dto.month, year: dto.year }
-      });
+    for (const studentDoc of studentsSnapshot.docs) {
+      const studentId = studentDoc.id;
+      const gradesSnapshot = await db.collection(this.gradesCollection)
+        .where('studentId', '==', studentId)
+        .where('month', '==', dto.month)
+        .where('year', '==', dto.year)
+        .get();
 
-      if (grades.length === 0) continue; // No teacher graded this student
+      if (gradesSnapshot.empty) continue;
 
-      // Calculate average
+      const grades = gradesSnapshot.docs.map(doc => doc.data() as any);
       const sum = grades.reduce((acc, curr) => acc + curr.grade, 0);
       const average = sum / grades.length;
 
-      // Auto appreciation
       let appreciation = 'Passable';
       if (average >= 16) appreciation = 'Félicitations';
       else if (average >= 14) appreciation = 'Très Bien';
       else if (average >= 12) appreciation = 'Assez Bien';
       else if (average < 10) appreciation = 'Avertissement Conduct';
 
-      // Upsert into GlobalConduct
-      await this.prisma.globalConduct.upsert({
-        where: {
-          studentId_month_year: {
-            studentId: student.id,
-            month: dto.month,
-            year: dto.year,
-          }
-        },
-        update: {
-          grade: average,
-          appreciation,
-        },
-        create: {
-          schoolId: user.schoolId,
-          studentId: student.id,
-          month: dto.month,
-          year: dto.year,
-          grade: average,
-          appreciation,
-        }
-      });
+      const globalSnapshot = await db.collection(this.globalCollection)
+        .where('studentId', '==', studentId)
+        .where('month', '==', dto.month)
+        .where('year', '==', dto.year)
+        .limit(1)
+        .get();
+
+      const globalData = {
+        schoolId: user.schoolId,
+        studentId,
+        month: dto.month,
+        year: dto.year,
+        grade: average,
+        appreciation,
+      };
+
+      if (!globalSnapshot.empty) {
+        await this.firestore.update(this.globalCollection, globalSnapshot.docs[0].id, globalData);
+      } else {
+        await this.firestore.create(this.globalCollection, globalData);
+      }
       processedCount++;
     }
 
@@ -89,14 +93,16 @@ export class ConductService {
   }
 
   async getGlobalConduct(studentId: string, month: number, year: number) {
-    return this.prisma.globalConduct.findUnique({
-      where: {
-        studentId_month_year: {
-          studentId,
-          month,
-          year,
-        }
-      }
-    });
+    const db = this.firestore.getDb();
+    const snapshot = await db.collection(this.globalCollection)
+      .where('studentId', '==', studentId)
+      .where('month', '==', month)
+      .where('year', '==', year)
+      .limit(1)
+      .get();
+
+    if (snapshot.empty) return null;
+    return { id: snapshot.docs[0].id, ...snapshot.docs[0].data() };
   }
 }
+
