@@ -6,7 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class ApiService {
   static String get baseUrl {
-    return 'https://us-central1-kalansira-mali.cloudfunctions.net/api';
+    return 'https://us-central1-kalansira-v1-app.cloudfunctions.net/api';
   }
 
   // Helper to get headers with JWT token
