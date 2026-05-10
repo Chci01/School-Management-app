@@ -38,7 +38,7 @@ const Reports = () => {
   useEffect(() => {
     if (reportData && isEditMode) {
       setManualGrades(reportData.subjects.map((s: any) => ({
-        subjectId: subjects.find(sub => sub.name === s.subjectName)?.id || '',
+        subjectId: subjects.find((sub: any) => sub.name === s.subjectName)?.id || '',
         subjectName: s.subjectName,
         coefficient: s.coefficient,
         value: s.average
@@ -67,7 +67,7 @@ const Reports = () => {
     
     // If selecting an existing subject, auto-fill coefficient
     if (field === 'subjectId' && val) {
-      const sub = subjects.find(s => s.id === val);
+      const sub = subjects.find((s: any) => s.id === val);
       if (sub) {
         newGrades[index].subjectName = sub.name;
         newGrades[index].coefficient = sub.coefficient;
@@ -91,7 +91,7 @@ const Reports = () => {
           if (existingSub) {
             sid = existingSub.id;
           } else {
-            const newSub = await createSubject(row.subjectName, row.coefficient);
+            const newSub = await createSubject({ name: row.subjectName, coefficient: row.coefficient, schoolId: currentSchoolId! });
             sid = newSub.id;
           }
         }
@@ -255,7 +255,7 @@ const Reports = () => {
                             onChange={e => updateManualRow(idx, 'subjectId', e.target.value)}
                           >
                              <option value="">-- Autre / Nouveau --</option>
-                             {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                             {subjects.map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}
                           </select>
                           {!row.subjectId && (
                             <input 

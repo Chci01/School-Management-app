@@ -48,7 +48,7 @@ export class SchoolsController {
   }
 
   @Get(':id')
-  @UseGuards(JwtAuthGuard, LicenseGuard, RolesGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.SUPER_ADMIN, Role.ADMIN_ECOLE)
   findOne(@Param('id') id: string) {
     return this.schoolsService.findOne(id);
@@ -84,4 +84,12 @@ export class SchoolsController {
       return { success: false, message: e.message };
     }
   }
+
+  @Post(':id/request-license')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN_ECOLE)
+  async requestLicense(@Param('id') id: string, @Request() req: any) {
+    return this.schoolsService.requestLicense(id, req.user.id);
+  }
 }
+

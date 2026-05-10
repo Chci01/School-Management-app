@@ -41,11 +41,21 @@ export const useAnnouncements = (schoolId?: string) => {
     },
   });
 
+  const deleteAnnouncementMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return id; // Simulation
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['announcements'] });
+    },
+  });
+
   return {
     announcements: data || [],
     isLoading,
     error,
     createAnnouncement: createAnnouncementMutation.mutate,
     isCreating: createAnnouncementMutation.isPending,
+    deleteAnnouncement: deleteAnnouncementMutation.mutate,
   };
 };

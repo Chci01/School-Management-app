@@ -26,15 +26,17 @@ import { NewsModule } from './news/news.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { RegistrationModule } from './registration/registration.module';
 import { FirebaseModule } from './firebase/firebase.module';
-
+import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
   imports: [
+    PrismaModule,
     FirebaseModule,
 
     AuthModule,
     UsersModule,
     SchoolsModule,
+    SeedModule,
     AcademicYearsModule,
     AnnouncementsModule,
     GradesModule,
