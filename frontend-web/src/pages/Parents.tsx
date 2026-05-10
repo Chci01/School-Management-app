@@ -2,17 +2,42 @@
 import { useState } from 'react';
 import { useUsers } from '../hooks/useUsers';
 import { useAuth } from '../hooks/useAuth';
-import { Users, Plus, Search, Trash2, Edit } from 'lucide-react';
+import { Users, Plus, Search, Trash2, Edit, X, UserPlus, Phone, Mail } from 'lucide-react';
 
 const Parents = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { currentSchoolId } = useAuth();
-  const { users, isLoading, error, deleteUser } = useUsers(currentSchoolId!, 'PARENT');
+  const { users, isLoading, error, deleteUser, createUser } = useUsers(currentSchoolId!, 'PARENT');
+
+  // Form state
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    matricule: '',
+    email: '',
+    phone: '',
+    password: 'password123',
+  });
+
+  const handleCreate = (e: React.FormEvent) => {
+    e.preventDefault();
+    createUser({
+      ...formData,
+      role: 'PARENT',
+      schoolId: currentSchoolId,
+    }, {
+      onSuccess: () => {
+        setIsModalOpen(false);
+        setFormData({ firstName: '', lastName: '', matricule: '', email: '', phone: '', password: 'password123' });
+      }
+    });
+  };
 
   if (isLoading) {
     return (
       <div className="dashboard-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-        <div className="spinner" style={{ color: '#3B82F6' }}>Chargement...</div>
+        <div className="spinner" style={{ color: 'var(--primary)' }}>Chargement des parents...</div>
       </div>
     );
   }
@@ -23,74 +48,147 @@ const Parents = () => {
   );
 
   return (
-    <div className="dashboard-container">
-      <div className="card-header" style={{ marginBottom: '24px' }}>
+    <div className="dashboard-container" style={{ padding: '24px' }}>
+      <div className="card-header" style={{ marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <div>
-          <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Users size={28} color="#3B82F6" />
+          <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ padding: '10px', background: 'rgba(245, 158, 11, 0.1)', borderRadius: '12px', color: '#f59e0b' }}>
+              <Users size={28} />
+            </div>
             Gestion des Parents
           </h2>
-          <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>Consultez, ajoutez ou modifiez les profils des parents.</p>
+          <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>Gérez les comptes parents et le lien avec les élèves.</p>
         </div>
-        <button className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#3B82F6', color: 'var(--text)', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>
-          <Plus size={18} /> Ajouter un parent
+        <button 
+          className="btn-primary" 
+          onClick={() => setIsModalOpen(true)}
+          style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px', borderRadius: '12px', fontWeight: 700, background: '#f59e0b' }}
+        >
+          <Plus size={20} /> Ajouter un parent
         </button>
       </div>
 
-      <div className="dash-card">
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', background: 'var(--surface)', padding: '8px 16px', borderRadius: '8px', width: '300px' }}>
-            <Search size={18} color="#94A3B8" />
+      <div className="dash-card glass-panel" style={{ padding: '24px', borderRadius: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', background: 'var(--surface)', padding: '12px 20px', borderRadius: '12px', width: '400px', border: '1px solid var(--border)' }}>
+            <Search size={20} color="var(--text-muted)" />
             <input 
               type="text" 
-              placeholder="Rechercher..." 
+              placeholder="Rechercher par nom..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ border: 'none', background: 'transparent', outline: 'none', marginLeft: '8px', width: '100%', color: 'var(--text)' }} 
+              style={{ border: 'none', background: 'transparent', outline: 'none', marginLeft: '12px', width: '100%', color: 'var(--text)', fontSize: '0.95rem' }} 
             />
           </div>
         </div>
 
-        {error && <div style={{ color: '#EF4444', marginBottom: '16px' }}>Erreur de chargement.</div>}
+        {error && (
+          <div style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '16px', borderRadius: '12px', marginBottom: '24px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
+            Erreur de chargement.
+          </div>
+        )}
 
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-          <thead>
-            <tr style={{ borderBottom: '2px solid var(--border)', color: 'var(--text-secondary)' }}>
-              <th style={{ padding: '12px 16px', fontWeight: 600 }}>Photo</th>
-              <th style={{ padding: '12px 16px', fontWeight: 600 }}>Matricule</th>
-              <th style={{ padding: '12px 16px', fontWeight: 600 }}>Nom Complet</th>
-              <th style={{ padding: '12px 16px', fontWeight: 600 }}>Contact</th>
-              <th style={{ padding: '12px 16px', fontWeight: 600, textAlign: 'right' }}>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {displayedUsers.map((user: any) => (
-              <tr key={user.id} style={{ borderBottom: '1px solid var(--border)' }}>
-                <td style={{ padding: '12px 16px' }}>
-                  <img src={user.photo || 'https://via.placeholder.com/40'} alt={user.firstName} style={{ width: '40px', height: '40px', borderRadius: '50%', objectFit: 'cover' }} />
-                </td>
-                <td style={{ padding: '12px 16px', fontFamily: 'monospace', color: 'var(--text-secondary)' }}>{user.matricule}</td>
-                <td style={{ padding: '12px 16px', fontWeight: 500, color: 'var(--text)' }}>{user.firstName} {user.lastName}</td>
-                <td style={{ padding: '12px 16px', color: 'var(--text-secondary)' }}>
-                  <div>{user.phone || 'Non renseigné'}</div>
-                  <div style={{ fontSize: '0.75rem' }}>{user.email || ''}</div>
-                </td>
-                <td style={{ padding: '12px 16px', textAlign: 'right' }}>
-                  <button style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#3B82F6', marginRight: '12px' }}><Edit size={18} /></button>
-                  <button onClick={() => { if(window.confirm('Supprimer ?')) deleteUser(user.id) }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#EF4444' }}><Trash2 size={18} /></button>
-                </td>
+        <div className="table-responsive" style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 8px', textAlign: 'left' }}>
+            <thead>
+              <tr style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 600 }}>
+                <th style={{ padding: '12px 20px' }}>Profil</th>
+                <th style={{ padding: '12px 20px' }}>Nom Complet</th>
+                <th style={{ padding: '12px 20px' }}>Contact</th>
+                <th style={{ padding: '12px 20px' }}>Enfants liés</th>
+                <th style={{ padding: '12px 20px', textAlign: 'right' }}>Actions</th>
               </tr>
-            ))}
-            {displayedUsers.length === 0 && (
-              <tr>
-                <td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-secondary)' }}>Aucun résultat trouvé.</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {displayedUsers.map((user: any) => (
+                <tr key={user.id} className="table-row-hover" style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '12px' }}>
+                  <td style={{ padding: '12px 20px', borderTopLeftRadius: '12px', borderBottomLeftRadius: '12px' }}>
+                    <img src={user.photo || `https://ui-avatars.com/api/?name=${user.firstName}+${user.lastName}&background=f59e0b&color=fff`} alt={user.firstName} style={{ width: '48px', height: '48px', borderRadius: '14px', objectFit: 'cover', border: '2px solid var(--border)' }} />
+                  </td>
+                  <td style={{ padding: '12px 20px' }}>
+                    <div style={{ fontWeight: 700, fontSize: '1rem' }}>{user.firstName} {user.lastName}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>Parent d'élève</div>
+                  </td>
+                  <td style={{ padding: '12px 20px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
+                      <Phone size={14} color="#f59e0b" /> {user.phone || 'Non renseigné'}
+                    </div>
+                    {user.email && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                        <Mail size={14} /> {user.email}
+                      </div>
+                    )}
+                  </td>
+                  <td style={{ padding: '12px 20px' }}>
+                    <div style={{ display: 'flex', gap: '4px' }}>
+                       <span style={{ padding: '4px 8px', background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 700 }}>{user.childrenCount || 0} enfant(s)</span>
+                    </div>
+                  </td>
+                  <td style={{ padding: '12px 20px', textAlign: 'right', borderTopRightRadius: '12px', borderBottomRightRadius: '12px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                      <button className="btn-secondary" style={{ padding: '8px' }}><Edit size={16} /></button>
+                      <button onClick={() => { if(window.confirm('Supprimer ce parent ?')) deleteUser(user.id) }} className="btn-secondary" style={{ padding: '8px', color: '#ef4444' }}><Trash2 size={16} /></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {displayedUsers.length === 0 && (
+                <tr>
+                  <td colSpan={5} style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>Aucun parent trouvé.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
+
+      {/* ADD PARENT MODAL */}
+      {isModalOpen && (
+        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
+          <div className="modal-content glass-panel" style={{ width: '600px', maxWidth: '95%', padding: '32px', borderRadius: '24px', border: '1px solid var(--glass-border)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{ padding: '10px', background: 'rgba(245, 158, 11, 0.1)', borderRadius: '12px', color: '#f59e0b' }}>
+                  <UserPlus size={24} />
+                </div>
+                <h3 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 800 }}>Nouveau Parent</h3>
+              </div>
+              <button onClick={() => setIsModalOpen(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '8px' }}>
+                <X size={24} />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreate}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
+                <div className="input-group">
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '0.9rem' }}>Prénom</label>
+                  <input required type="text" value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value})} style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }} />
+                </div>
+                <div className="input-group">
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '0.9rem' }}>Nom</label>
+                  <input required type="text" value={formData.lastName} onChange={e => setFormData({...formData, lastName: e.target.value})} style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }} />
+                </div>
+                <div className="input-group">
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '0.9rem' }}>Téléphone</label>
+                  <input required type="text" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }} />
+                </div>
+                <div className="input-group">
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '0.9rem' }}>Email</label>
+                  <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }} />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '16px' }}>
+                <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)} style={{ flex: 1, padding: '14px', borderRadius: '12px' }}>Annuler</button>
+                <button type="submit" className="btn-primary" style={{ flex: 2, padding: '14px', borderRadius: '12px', fontWeight: 700, background: '#f59e0b' }}>Enregistrer le parent</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
 export default Parents;
+

@@ -123,11 +123,22 @@ export class SchoolsService {
 
       transaction.update(schoolRef, {
         licenseExpiresAt: admin.firestore.Timestamp.fromDate(newExpiration),
+        isActive: true
       });
 
       return { success: true, newExpiration };
     });
   }
+
+  async requestLicense(schoolId: string, userId: string) {
+    return this.firestore.create('license_requests', {
+      schoolId,
+      requestedBy: userId,
+      status: 'PENDING',
+      timestamp: admin.firestore.FieldValue.serverTimestamp()
+    });
+  }
 }
+
 
 

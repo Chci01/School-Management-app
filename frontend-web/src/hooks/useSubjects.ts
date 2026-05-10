@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '../services/api';
 
 export interface Subject {
@@ -9,56 +9,42 @@ export interface Subject {
 }
 
 export const useSubjects = (schoolId?: string, academicYearId?: string) => {
-  const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
+  const queryClient = useQueryClient();
 
-  const fetchSubjects = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
+  const { data: subjects, isLoading, error } = useQuery({
+    queryKey: ['subjects', schoolId, academicYearId],
+    queryFn: async () => {
+      if (!schoolId) return [];
       const { data } = await api.get('/subjects', { params: { schoolId, academicYearId } });
-      setSubjects(data);
-    } catch (err: any) {
-      setError(err);
-    } finally {
-      setIsLoading(false);
-    }
-  }, [schoolId, academicYearId]);
-
-  const createSubject = useCallback(async (name: string, coefficient: number) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const { data } = await api.post('/subjects', { name, coefficient, schoolId });
-      setSubjects(prev => [...prev, data]);
       return data;
-    } catch (err: any) {
-      setError(err);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  }, [schoolId]);
+    },
+    enabled: !!schoolId,
+  });
 
-  const deleteSubject = useCallback(async (id: string) => {
-    setIsLoading(true);
-    setError(null);
-    try {
+  const createSubjectMutation = useMutation({
+    mutationFn: async (newSubject: { name: string; coefficient: number; schoolId: string }) => {
+      const { data } = await api.post('/subjects', newSubject);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['subjects'] });
+    },
+  });
+
+  const deleteSubjectMutation = useMutation({
+    mutationFn: async (id: string) => {
       await api.delete(`/subjects/${id}`);
-      setSubjects(prev => prev.filter(s => s.id !== id));
-    } catch (err: any) {
-      setError(err);
-      throw err;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['subjects'] });
+    },
+  });
 
-  useEffect(() => {
-    fetchSubjects();
-  }, [fetchSubjects]);
-
-  return { subjects, isLoading, error, fetchSubjects, createSubject, deleteSubject };
+  return { 
+    subjects, 
+    isLoading, 
+    error, 
+    createSubject: createSubjectMutation.mutateAsync, 
+    deleteSubject: deleteSubjectMutation.mutateAsync 
+  };
 };
-
