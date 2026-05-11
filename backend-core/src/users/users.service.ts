@@ -1,12 +1,14 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
+import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   async findByMatricule(schoolId: string | null, identifier: string): Promise<any | null> {
+    // Si schoolId est fourni, on cherche dans l'école, sinon on cherche globalement (pour le login mobile)
     return this.prisma.user.findFirst({
       where: {
         schoolId: schoolId || undefined,
@@ -15,12 +17,14 @@ export class UsersService {
           { email: identifier },
         ],
       },
+      include: { school: true }
     });
   }
 
   async findById(id: string): Promise<any | null> {
     return this.prisma.user.findUnique({
       where: { id },
+      include: { school: true }
     });
   }
 
@@ -37,11 +41,21 @@ export class UsersService {
   }
 
   async create(data: any): Promise<any> {
-    // Nettoyage des données pour éviter les erreurs Prisma si des champs sont en trop
     const { id, password, ...rest } = data;
-    const hashedPassword = await bcrypt.hash(password, 10);
     
-    // On ne garde que les champs définis dans le modèle Prisma
+    // 1. Gestion du Mot de passe (défini par l'école ou par défaut)
+    const rawPassword = password || 'kalan123';
+    const hashedPassword = await bcrypt.hash(rawPassword, 10);
+    
+    // 2. Génération automatique du Matricule s'il n'existe pas
+    if (!rest.matricule) {
+      const prefix = rest.role ? rest.role.substring(0, 3).toUpperCase() : 'USR';
+      const year = new Date().getFullYear();
+      const random = Math.floor(1000 + Math.random() * 9000);
+      rest.matricule = `KS-${prefix}-${year}-${random}`;
+    }
+    
+    // 3. Nettoyage des données
     const validFields = [
       'schoolId', 'matricule', 'email', 'firstName', 'lastName', 'role', 
       'phone', 'address', 'gender', 'dateOfBirth', 'placeOfBirth', 'photo',
