@@ -18,11 +18,17 @@ export class FirestoreService {
             take
           });
           return {
-            docs: results.map((r: any) => ({
-              id: r.id,
-              data: () => r,
-              ref: { id: r.id }
-            })),
+            docs: results.map((r: any) => {
+              // Translate roles for mobile compatibility
+              if (r.role === 'TEACHER') r.role = 'ENSEIGNANT';
+              if (r.role === 'STUDENT') r.role = 'ELEVE';
+              
+              return {
+                id: r.id,
+                data: () => r,
+                ref: { id: r.id }
+              };
+            }),
             empty: results.length === 0,
             size: results.length
           };
@@ -45,6 +51,9 @@ export class FirestoreService {
       doc: (id?: string) => ({
         get: async () => {
           const data = await prismaModel.findUnique({ where: { id } });
+          if (data && data.role === 'TEACHER') data.role = 'ENSEIGNANT';
+          if (data && data.role === 'STUDENT') data.role = 'ELEVE';
+          
           return {
             exists: !!data,
             id: id,
