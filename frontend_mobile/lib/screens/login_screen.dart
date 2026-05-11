@@ -20,46 +20,27 @@ class _LoginScreenState extends State<LoginScreen> {
   final _matriculeController = TextEditingController();
   final _passwordController = TextEditingController();
 
-  String? _selectedSchoolId;
-  List<dynamic> _schools = [];
-  bool _isLoadingSchools = true;
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchSchools();
-  }
-
-  Future<void> _fetchSchools() async {
-    try {
-      final data = await _apiService.getSchools();
-      setState(() {
-        _schools = data;
-        _isLoadingSchools = false;
-      });
-    } catch (e) {
-      print('FAILED TO FETCH SCHOOLS: $e');
-      setState(() => _isLoadingSchools = false);
-    }
-  }
-
   void _handleLogin() async {
-    if (_selectedSchoolId == null) {
+    final matricule = _matriculeController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (matricule.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Veuillez sélectionner un établissement')),
+        SnackBar(content: Text('Veuillez remplir tous les champs')),
       );
       return;
     }
 
     final auth = Provider.of<AuthProvider>(context, listen: false);
     try {
+      // Login direct sans schoolId (le backend trouvera l'école via le matricule)
       await auth.login(
-        _matriculeController.text,
-        _passwordController.text,
-        _selectedSchoolId!,
+        matricule,
+        password,
+        '', // schoolId vide
       );
       
-      Widget nextScreen = (auth.user?['role'] == 'ENSEIGNANT') 
+      Widget nextScreen = (auth.user?['role'] == 'ENSEIGNANT' || auth.user?['role'] == 'TEACHER') 
           ? TeacherDashboardScreen() 
           : DashboardScreen();
 
@@ -162,13 +143,11 @@ class _LoginScreenState extends State<LoginScreen> {
                           children: [
                                 _buildTextField(
                                   controller: _matriculeController,
-                                  icon: Icons.person_outline,
-                                  hint: AppTranslations.translate('login_hint_matricule', lang),
+                                  icon: Icons.badge_outlined,
+                                  hint: 'Matricule / Identifiant',
                                   obscure: false,
                                   capitalization: TextCapitalization.characters,
                                 ),
-                                SizedBox(height: 16),
-                                _buildSchoolDropdown(lang),
                                 SizedBox(height: 16),
                                 _buildTextField(
                                   controller: _passwordController,
@@ -247,41 +226,6 @@ class _LoginScreenState extends State<LoginScreen> {
           borderSide: BorderSide.none,
         ),
       ),
-    );
-  }
-
-  Widget _buildSchoolDropdown(String langCode) {
-    return DropdownButtonFormField<String>(
-      decoration: InputDecoration(
-        prefixIcon: Icon(
-          Icons.account_balance_outlined,
-          color: Colors.grey[400],
-        ),
-        filled: true,
-        fillColor: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.05),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
-        ),
-      ),
-      dropdownColor: Theme.of(context).scaffoldBackgroundColor,
-      style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color),
-      hint: Text(
-        _isLoadingSchools ? AppTranslations.translate('login_loading', langCode) : AppTranslations.translate('login_hint_school', langCode),
-        style: TextStyle(color: Colors.grey[500]),
-      ),
-      initialValue: _selectedSchoolId,
-      items: _schools.map((school) {
-        return DropdownMenuItem<String>(
-          value: school['id'],
-          child: Text(school['name'] ?? 'École inconnue'),
-        );
-      }).toList(),
-      onChanged: (val) {
-        setState(() {
-          _selectedSchoolId = val;
-        });
-      },
     );
   }
 }
