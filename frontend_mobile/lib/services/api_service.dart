@@ -70,8 +70,16 @@ class ApiService {
   }
 
   Future<Map<String, dynamic>?> getActiveAcademicYear() async {
+    final prefs = await SharedPreferences.getInstance();
+    final userDataString = prefs.getString('user_data');
+    String schoolId = '';
+    if (userDataString != null) {
+      final userData = jsonDecode(userDataString);
+      schoolId = userData['schoolId'] ?? '';
+    }
+
     final response = await http.get(
-      Uri.parse('$baseUrl/academic-years/active'),
+      Uri.parse('$baseUrl/academic-years/active?schoolId=$schoolId'),
       headers: await _getHeaders(),
     );
 

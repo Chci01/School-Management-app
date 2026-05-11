@@ -26,8 +26,9 @@ export class AcademicYearsController {
 
   @Get('active')
   @Roles(Role.ADMIN_ECOLE, Role.ENSEIGNANT, Role.ELEVE, Role.PARENT)
-  findActive(@Request() req) {
-    return this.academicYearsService.findActive(req.user.schoolId);
+  findActive(@Request() req, @Query('schoolId') schoolId?: string) {
+    const finalSchoolId = req.user.schoolId || schoolId;
+    return this.academicYearsService.findActive(finalSchoolId);
   }
 
   @Get(':id')

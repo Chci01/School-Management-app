@@ -12,7 +12,8 @@ export class AuthController {
     const { schoolId, matricule, password } = body;
     
     // Validate credentials
-    const user = await this.authService.validateUser(schoolId || null, matricule, password);
+    const finalSchoolId = (schoolId === '' || !schoolId) ? null : schoolId;
+    const user = await this.authService.validateUser(finalSchoolId, matricule, password);
     if (!user) {
       throw new UnauthorizedException('Identifiants invalides');
     }

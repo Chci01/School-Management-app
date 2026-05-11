@@ -159,16 +159,16 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  schedule['subject']['name'],
+                  schedule['subject']?['name'] ?? (lang == 'en' ? 'Unknown Subject' : 'Matière Inconnue'),
                   style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: 4),
                 Text(
-                  '${lang == 'en' ? 'Class' : 'Classe'}: ${schedule['class']['name']}',
+                  '${lang == 'en' ? 'Class' : 'Classe'}: ${schedule['class']?['name'] ?? 'N/A'}',
                   style: TextStyle(color: Colors.grey[400], fontSize: 13),
                 ),
                 Text(
-                  'Prof: ${schedule['teacher']['firstName']} ${schedule['teacher']['lastName']}',
+                  'Prof: ${schedule['teacher']?['firstName'] ?? ''} ${schedule['teacher']?['lastName'] ?? (lang == 'en' ? 'Unknown' : 'Inconnu')}',
                   style: TextStyle(color: Colors.grey[400], fontSize: 13),
                 ),
                 if (schedule['room'] != null)

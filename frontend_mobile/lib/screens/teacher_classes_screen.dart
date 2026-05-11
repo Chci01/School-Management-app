@@ -32,9 +32,14 @@ class _TeacherClassesScreenState extends State<TeacherClassesScreen> {
       final List<dynamic> uniqueClasses = [];
 
       for (var schedule in schedules) {
-        if (!classIds.contains(schedule['class']['id'])) {
-          classIds.add(schedule['class']['id']);
-          uniqueClasses.add(schedule['class']);
+        if (schedule != null && 
+            schedule['class'] != null && 
+            schedule['class']['id'] != null) {
+          final String classId = schedule['class']['id'];
+          if (!classIds.contains(classId)) {
+            classIds.add(classId);
+            uniqueClasses.add(schedule['class']);
+          }
         }
       }
 
