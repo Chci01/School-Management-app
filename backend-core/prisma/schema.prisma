@@ -40,15 +40,18 @@ model User {
   lastName  String
   role      String   // ADMIN_SYSTEM, ADMIN_ECOLE, TEACHER, STUDENT, PARENT
   
-  // Nouveaux champs pour la compatibilité complète
+  // Champs de Profil
   phone        String?
   address      String?
   gender       String?   // M, F
   dateOfBirth  DateTime?
   placeOfBirth String?
-  photo        String?
+  photo        String?   // URL de la photo d'identité
   
-  // Pour les élèves
+  // Spécifique aux Professeurs
+  expertise    String?   // Matières enseignées (ex: "Maths, Physique")
+  
+  // Spécifique aux élèves
   classId      String?
   parentName   String?
   parentPhone  String?

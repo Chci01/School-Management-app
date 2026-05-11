@@ -44,5 +44,14 @@ export const useUsers = (schoolId?: string, role?: string) => {
     isCreating: createUserMutation.isPending,
     deleteUser: deleteUserMutation.mutate,
     isDeleting: deleteUserMutation.isPending,
+    updateUser: useMutation({
+      mutationFn: async ({ id, data }: { id: string, data: any }) => {
+        const response = await api.post(`/users/${id}`, data);
+        return response.data;
+      },
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['users'] });
+      },
+    }).mutate,
   };
 };

@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, UnauthorizedException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
 
@@ -39,14 +39,10 @@ export class UsersService {
   }
 
   async create(data: any): Promise<any> {
-    // 1. Extraction et nettoyage
     const { id, password, createdAt, updatedAt, ...rest } = data;
-    
-    // 2. Mot de passe
     const rawPassword = password || 'kalan123';
     const hashedPassword = await bcrypt.hash(rawPassword, 10);
     
-    // 3. Matricule automatique
     if (!rest.matricule) {
       const prefix = rest.role ? rest.role.substring(0, 3).toUpperCase() : 'USR';
       const year = new Date().getFullYear();
@@ -54,10 +50,9 @@ export class UsersService {
       rest.matricule = `KS-${prefix}-${year}-${random}`;
     }
     
-    // 4. Liste stricte des champs autorisés dans Prisma
     const validFields = [
       'schoolId', 'matricule', 'email', 'firstName', 'lastName', 'role', 
-      'phone', 'address', 'gender', 'placeOfBirth', 'photo',
+      'phone', 'address', 'gender', 'placeOfBirth', 'photo', 'expertise',
       'classId', 'parentName', 'parentPhone', 'isActive'
     ];
 
@@ -68,13 +63,8 @@ export class UsersService {
       }
     });
 
-    // 5. Gestion spéciale de la date de naissance (conversion string -> Date)
     if (rest.dateOfBirth) {
-      try {
-        cleanData.dateOfBirth = new Date(rest.dateOfBirth);
-      } catch (e) {
-        console.error('Format de date invalide:', rest.dateOfBirth);
-      }
+      try { cleanData.dateOfBirth = new Date(rest.dateOfBirth); } catch (e) {}
     }
 
     return this.prisma.user.create({
@@ -82,6 +72,36 @@ export class UsersService {
         ...cleanData,
         password: hashedPassword,
       },
+    });
+  }
+
+  async update(id: string, data: any): Promise<any> {
+    const { password, createdAt, updatedAt, id: _, schoolId, ...rest } = data;
+    
+    const validFields = [
+      'matricule', 'email', 'firstName', 'lastName', 'role', 
+      'phone', 'address', 'gender', 'placeOfBirth', 'photo', 'expertise',
+      'classId', 'parentName', 'parentPhone', 'isActive'
+    ];
+
+    const cleanData: any = {};
+    validFields.forEach(field => {
+      if (rest[field] !== undefined) {
+        cleanData[field] = rest[field];
+      }
+    });
+
+    if (password && password !== '') {
+      cleanData.password = await bcrypt.hash(password, 10);
+    }
+
+    if (rest.dateOfBirth) {
+      try { cleanData.dateOfBirth = new Date(rest.dateOfBirth); } catch (e) {}
+    }
+
+    return this.prisma.user.update({
+      where: { id },
+      data: cleanData,
     });
   }
 
