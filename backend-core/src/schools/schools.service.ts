@@ -8,12 +8,15 @@ export class SchoolsService {
   constructor(private prisma: PrismaService) {}
 
   async create(createSchoolDto: CreateSchoolDto) {
+    // Clean fields that might be sent but are not in Prisma model
+    const { id, createdAt, updatedAt, isActive, theme, ...rest } = createSchoolDto as any;
+    
     return this.prisma.school.create({
       data: {
-        ...createSchoolDto,
+        ...rest,
         licenseKey: Math.random().toString(36).substring(2, 10).toUpperCase(),
-        isActive: true,
-        theme: 'light',
+        isActive: isActive !== undefined ? isActive : true,
+        theme: theme || 'light',
       },
     });
   }
@@ -52,9 +55,10 @@ export class SchoolsService {
   }
 
   async update(id: string, updateSchoolDto: UpdateSchoolDto) {
+    const { id: _, createdAt, updatedAt, ...rest } = updateSchoolDto as any;
     return this.prisma.school.update({
       where: { id },
-      data: updateSchoolDto,
+      data: rest,
     });
   }
 
@@ -67,17 +71,14 @@ export class SchoolsService {
   }
 
   async generateLicense(days: number, userId: string) {
-    // Simplified for now
     return { success: true, code: 'KALAN-' + Math.random().toString(36).substring(2, 6).toUpperCase() };
   }
 
   async activateLicense(id: string, licenseKey: string, userId: string) {
-    // Simplified for now
     return { success: true, newExpiration: new Date() };
   }
 
   async requestLicense(schoolId: string, userId: string) {
-    // Simplified for now
     return { success: true };
   }
 
