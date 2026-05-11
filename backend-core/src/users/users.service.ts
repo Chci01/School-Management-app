@@ -1,14 +1,12 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import * as bcrypt from 'bcrypt';
-import { v4 as uuidv4 } from 'uuid';
 
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   async findByMatricule(schoolId: string | null, identifier: string): Promise<any | null> {
-    // Si schoolId est fourni, on cherche dans l'école, sinon on cherche globalement (pour le login mobile)
     return this.prisma.user.findFirst({
       where: {
         schoolId: schoolId || undefined,
@@ -41,13 +39,14 @@ export class UsersService {
   }
 
   async create(data: any): Promise<any> {
-    const { id, password, ...rest } = data;
+    // 1. Extraction et nettoyage
+    const { id, password, createdAt, updatedAt, ...rest } = data;
     
-    // 1. Gestion du Mot de passe (défini par l'école ou par défaut)
+    // 2. Mot de passe
     const rawPassword = password || 'kalan123';
     const hashedPassword = await bcrypt.hash(rawPassword, 10);
     
-    // 2. Génération automatique du Matricule s'il n'existe pas
+    // 3. Matricule automatique
     if (!rest.matricule) {
       const prefix = rest.role ? rest.role.substring(0, 3).toUpperCase() : 'USR';
       const year = new Date().getFullYear();
@@ -55,17 +54,28 @@ export class UsersService {
       rest.matricule = `KS-${prefix}-${year}-${random}`;
     }
     
-    // 3. Nettoyage des données
+    // 4. Liste stricte des champs autorisés dans Prisma
     const validFields = [
       'schoolId', 'matricule', 'email', 'firstName', 'lastName', 'role', 
-      'phone', 'address', 'gender', 'dateOfBirth', 'placeOfBirth', 'photo',
+      'phone', 'address', 'gender', 'placeOfBirth', 'photo',
       'classId', 'parentName', 'parentPhone', 'isActive'
     ];
 
     const cleanData: any = {};
     validFields.forEach(field => {
-      if (rest[field] !== undefined) cleanData[field] = rest[field];
+      if (rest[field] !== undefined && rest[field] !== '') {
+        cleanData[field] = rest[field];
+      }
     });
+
+    // 5. Gestion spéciale de la date de naissance (conversion string -> Date)
+    if (rest.dateOfBirth) {
+      try {
+        cleanData.dateOfBirth = new Date(rest.dateOfBirth);
+      } catch (e) {
+        console.error('Format de date invalide:', rest.dateOfBirth);
+      }
+    }
 
     return this.prisma.user.create({
       data: {
