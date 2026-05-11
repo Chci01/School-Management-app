@@ -39,6 +39,20 @@ model User {
   firstName String
   lastName  String
   role      String   // ADMIN_SYSTEM, ADMIN_ECOLE, TEACHER, STUDENT, PARENT
+  
+  // Nouveaux champs pour la compatibilité complète
+  phone        String?
+  address      String?
+  gender       String?   // M, F
+  dateOfBirth  DateTime?
+  placeOfBirth String?
+  photo        String?
+  
+  // Pour les élèves
+  classId      String?
+  parentName   String?
+  parentPhone  String?
+
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
