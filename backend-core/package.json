@@ -4,7 +4,7 @@
   "description": "",
   "author": "",
   "private": true,
-  "main": "dist/firebase-main.js",
+  "main": "dist/main.js",
   "scripts": {
     "postinstall": "prisma generate",
     "build": "nest build",
