@@ -27,6 +27,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { RegistrationModule } from './registration/registration.module';
 import { FirebaseModule } from './firebase/firebase.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { TeacherAssignmentsModule } from './teacher-assignments/teacher-assignments.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { PrismaModule } from './prisma/prisma.module';
     AiAgentModule,
     NewsModule,
     EventEmitterModule.forRoot(),
+    TeacherAssignmentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

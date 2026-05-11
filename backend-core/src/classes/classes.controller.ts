@@ -1,7 +1,5 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, Query } from '@nestjs/common';
 import { ClassesService } from './classes.service';
-import { CreateClassDto } from './dto/create-class.dto';
-import { UpdateClassDto } from './dto/update-class.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { LicenseGuard } from '../auth/license.guard';
 import { RolesGuard } from '../auth/roles/roles.guard';
@@ -13,32 +11,40 @@ export class ClassesController {
   constructor(private readonly classesService: ClassesService) {}
 
   @Post()
-  @Roles(Role.ADMIN_ECOLE)
-  create(@Request() req, @Body() createClassDto: CreateClassDto) {
-    return this.classesService.create(req.user.schoolId, createClassDto);
+  @Roles(Role.ADMIN_ECOLE, Role.SUPER_ADMIN)
+  create(@Request() req, @Body() data: any) {
+    const schoolId = req.user.schoolId || data.schoolId;
+    return this.classesService.create(schoolId, data);
   }
 
   @Get()
-  @Roles(Role.ADMIN_ECOLE, Role.ENSEIGNANT)
-  findAll(@Request() req, @Query('academicYearId') academicYearId?: string) {
-    return this.classesService.findAll(req.user.schoolId, academicYearId);
+  @Roles(Role.ADMIN_ECOLE, Role.ENSEIGNANT, Role.SUPER_ADMIN)
+  findAll(@Request() req) {
+    const schoolId = req.user.schoolId;
+    return this.classesService.findAll(schoolId);
   }
 
   @Get(':id')
-  @Roles(Role.ADMIN_ECOLE, Role.ENSEIGNANT)
-  findOne(@Request() req, @Param('id') id: string) {
-    return this.classesService.findOne(req.user.schoolId, id);
+  @Roles(Role.ADMIN_ECOLE, Role.ENSEIGNANT, Role.SUPER_ADMIN)
+  findOne(@Param('id') id: string) {
+    return this.classesService.findOne(id);
   }
 
   @Patch(':id')
-  @Roles(Role.ADMIN_ECOLE)
-  update(@Request() req, @Param('id') id: string, @Body() updateClassDto: UpdateClassDto) {
-    return this.classesService.update(req.user.schoolId, id, updateClassDto);
+  @Roles(Role.ADMIN_ECOLE, Role.SUPER_ADMIN)
+  update(@Param('id') id: string, @Body() data: any) {
+    return this.classesService.update(id, data);
+  }
+
+  @Post(':id') // Fallback POST for update
+  @Roles(Role.ADMIN_ECOLE, Role.SUPER_ADMIN)
+  updatePost(@Param('id') id: string, @Body() data: any) {
+    return this.classesService.update(id, data);
   }
 
   @Delete(':id')
-  @Roles(Role.ADMIN_ECOLE)
-  remove(@Request() req, @Param('id') id: string) {
-    return this.classesService.remove(req.user.schoolId, id);
+  @Roles(Role.ADMIN_ECOLE, Role.SUPER_ADMIN)
+  remove(@Param('id') id: string) {
+    return this.classesService.remove(id);
   }
 }

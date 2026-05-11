@@ -1,7 +1,5 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, Query } from '@nestjs/common';
 import { GradesService } from './grades.service';
-import { CreateGradeDto } from './dto/create-grade.dto';
-import { UpdateGradeDto } from './dto/update-grade.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { LicenseGuard } from '../auth/license.guard';
 import { RolesGuard } from '../auth/roles/roles.guard';
@@ -13,35 +11,37 @@ export class GradesController {
   constructor(private readonly gradesService: GradesService) {}
 
   @Post()
-  @Roles(Role.ADMIN_ECOLE, Role.ENSEIGNANT)
-  create(@Request() req, @Body() createGradeDto: CreateGradeDto) {
-    return this.gradesService.create(req.user.schoolId, createGradeDto);
-  }
-
-  @Post('bulk')
-  @Roles(Role.ADMIN_ECOLE, Role.ENSEIGNANT)
-  upsertBulk(@Request() req, @Body() grades: CreateGradeDto[]) {
-    return this.gradesService.upsertBulk(req.user.schoolId, grades);
+  @Roles(Role.ADMIN_ECOLE, Role.ENSEIGNANT, Role.SUPER_ADMIN)
+  create(@Body() data: any) {
+    return this.gradesService.create(data);
   }
 
   @Get('student/:studentId')
-  @Roles(Role.ADMIN_ECOLE, Role.ENSEIGNANT, Role.ELEVE, Role.PARENT)
-  findAllByStudent(
-    @Request() req, 
-    @Param('studentId') studentId: string,
-    @Query('academicYearId') academicYearId?: string
-  ) {
-    return this.gradesService.findAllByStudent(req.user.schoolId, studentId, academicYearId);
+  @Roles(Role.ADMIN_ECOLE, Role.ENSEIGNANT, Role.ELEVE, Role.PARENT, Role.SUPER_ADMIN)
+  findByStudent(@Param('studentId') studentId: string, @Query('academicYearId') academicYearId: string) {
+    return this.gradesService.findByStudent(studentId, academicYearId);
   }
 
-  @Get('student/:studentId/average')
-  @Roles(Role.ADMIN_ECOLE, Role.ENSEIGNANT, Role.ELEVE, Role.PARENT)
-  getStudentAverage(
-    @Request() req, 
-    @Param('studentId') studentId: string,
-    @Query('academicYearId') academicYearId: string
+  @Get('class/:classId')
+  @Roles(Role.ADMIN_ECOLE, Role.ENSEIGNANT, Role.SUPER_ADMIN)
+  findByClass(
+    @Param('classId') classId: string, 
+    @Query('subjectId') subjectId: string, 
+    @Query('academicYearId') academicYearId: string,
+    @Query('term') term: number
   ) {
-    if (!academicYearId) throw new Error('academicYearId is required to calculate average');
-    return this.gradesService.calculateStudentAverage(req.user.schoolId, studentId, academicYearId);
+    return this.gradesService.findByClass(classId, subjectId, academicYearId, term);
+  }
+
+  @Patch(':id')
+  @Roles(Role.ADMIN_ECOLE, Role.ENSEIGNANT, Role.SUPER_ADMIN)
+  update(@Param('id') id: string, @Body() data: any) {
+    return this.gradesService.update(id, data);
+  }
+
+  @Delete(':id')
+  @Roles(Role.ADMIN_ECOLE, Role.SUPER_ADMIN)
+  remove(@Param('id') id: string) {
+    return this.gradesService.remove(id);
   }
 }

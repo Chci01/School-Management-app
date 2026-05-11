@@ -4,7 +4,8 @@ import { useAuth } from '../hooks/useAuth';
 import { useClasses } from '../hooks/useClasses';
 import { useSubjects } from '../hooks/useSubjects';
 import { useUsers } from '../hooks/useUsers';
-import { ClipboardList, Plus, Edit, Save, Filter, CheckCircle, AlertCircle, User, Book } from 'lucide-react';
+import { useAcademic } from '../hooks/useAcademic';
+import { ClipboardList, Plus, Edit, Save, Trash2, X } from 'lucide-react';
 
 const Grades = () => {
   const { currentSchoolId } = useAuth();
@@ -12,18 +13,31 @@ const Grades = () => {
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedSubject, setSelectedSubject] = useState('');
   const [selectedType, setSelectedType] = useState('DEVOIR');
+  const [selectedTerm, setSelectedTerm] = useState(1);
 
   const { classes } = useClasses(currentSchoolId!);
   const { subjects } = useSubjects(currentSchoolId!);
   const { users: students } = useUsers(currentSchoolId!, 'ELEVE');
-  const { grades, isLoading, error, saveBulkGrades, isSaving } = useGrades(currentSchoolId!, selectedClass || undefined, selectedSubject || undefined);
+  const { academicYears } = useAcademic(currentSchoolId!);
+  
+  const activeYear = academicYears.find((y:any) => y.isActive);
+
+  const { grades, isLoading, saveBulkGrades, updateGrade, deleteGrade, isSaving } = useGrades(
+    currentSchoolId!, 
+    selectedClass || undefined, 
+    selectedSubject || undefined
+  );
+
+  // Edit states
+  const [editingGrade, setEditingGrade] = useState<any>(null);
+  const [editValue, setEditValue] = useState<number>(0);
 
   // For bulk entry
   const [bulkGrades, setBulkGrades] = useState<{[key: string]: number}>({});
 
   const handleBulkSave = async () => {
-    if (!selectedClass || !selectedSubject) {
-      alert("Veuillez sélectionner une classe et une matière.");
+    if (!selectedClass || !selectedSubject || !activeYear) {
+      alert("Sélectionnez une classe, une matière et assurez-vous qu'une année est active.");
       return;
     }
 
@@ -31,10 +45,10 @@ const Grades = () => {
       studentId,
       classId: selectedClass,
       subjectId: selectedSubject,
-      schoolId: currentSchoolId,
+      academicYearId: activeYear.id,
+      term: selectedTerm,
       type: selectedType,
       value: Number(value),
-      date: new Date().toISOString()
     }));
 
     if (gradesToSave.length === 0) return;
@@ -43,16 +57,27 @@ const Grades = () => {
       await saveBulkGrades(gradesToSave);
       setIsBulkMode(false);
       setBulkGrades({});
-      alert("Notes enregistrées avec succès !");
     } catch (e) {
       alert("Erreur lors de l'enregistrement.");
     }
   };
 
+  const handleUpdate = () => {
+    if (!editingGrade) return;
+    updateGrade({ id: editingGrade.id, data: { value: editValue } }, {
+      onSuccess: () => setEditingGrade(null)
+    });
+  };
+
+  const openEdit = (grade: any) => {
+    setEditingGrade(grade);
+    setEditValue(grade.value);
+  };
+
   if (isLoading && (!classes || !subjects)) {
     return (
-      <div className="dashboard-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-        <div className="spinner" style={{ color: 'var(--primary)' }}>Chargement du module de notes...</div>
+      <div className="page-container flex justify-center items-center h-full">
+        <div className="spinner text-primary">Chargement...</div>
       </div>
     );
   }
@@ -64,205 +89,144 @@ const Grades = () => {
   const displayedGrades = Array.isArray(grades) ? grades : [];
 
   return (
-    <div className="dashboard-container" style={{ padding: '24px' }}>
-      <div className="card-header" style={{ marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div className="page-container p-6">
+      <header className="page-header flex justify-between items-center mb-8">
         <div>
-          <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ padding: '10px', background: 'rgba(139, 92, 246, 0.1)', borderRadius: '12px', color: '#8B5CF6' }}>
-              <ClipboardList size={28} />
-            </div>
+          <h2 className="text-3xl font-extrabold flex items-center gap-3">
+            <div className="p-3 bg-purple-500/10 rounded-xl text-purple-400"><ClipboardList size={28} /></div>
             Gestion des Évaluations
           </h2>
-          <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>Saisissez les notes et suivez la progression des élèves.</p>
+          <p className="text-gray-400">Saisissez les notes et gérez les corrections.</p>
         </div>
-        {!isBulkMode ? (
-          <button 
-            className="btn-primary" 
-            onClick={() => setIsBulkMode(true)}
-            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px', borderRadius: '12px', fontWeight: 700, background: '#8B5CF6', border: 'none', cursor: 'pointer', color: '#fff' }}
-          >
-            <Plus size={20} /> Saisie Multiple
-          </button>
-        ) : (
-          <div style={{ display: 'flex', gap: '12px' }}>
-             <button className="btn-secondary" onClick={() => setIsBulkMode(false)} style={{ padding: '12px 24px', borderRadius: '12px', cursor: 'pointer' }}>Annuler</button>
-             <button 
-               className="btn-primary" 
-               onClick={handleBulkSave} 
-               disabled={isSaving}
-               style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px', borderRadius: '12px', fontWeight: 700, background: '#10B981', border: 'none', cursor: 'pointer', color: '#fff' }}
-             >
-               <Save size={20} /> {isSaving ? 'Enregistrement...' : 'Enregistrer les notes'}
-             </button>
-          </div>
-        )}
-      </div>
+        <div className="flex gap-3">
+          {!isBulkMode ? (
+            <button className="btn-primary flex items-center gap-2 bg-purple-600 border-none" onClick={() => setIsBulkMode(true)}>
+              <Plus size={20} /> Saisie Multiple
+            </button>
+          ) : (
+            <>
+              <button className="btn-secondary" onClick={() => setIsBulkMode(false)}>Annuler</button>
+              <button className="btn-primary bg-green-600 border-none flex items-center gap-2" onClick={handleBulkSave} disabled={isSaving}>
+                <Save size={20} /> {isSaving ? 'Enregistrement...' : 'Valider'}
+              </button>
+            </>
+          )}
+        </div>
+      </header>
 
-      <div className="dash-card glass-panel" style={{ padding: '24px', borderRadius: '24px' }}>
+      <div className="glass-panel p-6 rounded-3xl">
         {/* Filters */}
-        <div style={{ display: 'flex', gap: '16px', marginBottom: '32px', flexWrap: 'wrap', background: 'rgba(255,255,255,0.02)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border)' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <Filter size={14} /> CLASSE
-            </label>
-            <select 
-              value={selectedClass} 
-              onChange={(e) => setSelectedClass(e.target.value)}
-              style={{ padding: '10px 16px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '10px', color: 'var(--text)', minWidth: '220px' }}
-            >
-              <option value="">Sélectionner une classe</option>
-              {Array.isArray(classes) && classes.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8 p-4 bg-white/5 rounded-2xl border border-white/5">
+          <div>
+            <label className="block text-[10px] font-bold text-gray-500 mb-1">CLASSE</label>
+            <select value={selectedClass} onChange={(e) => setSelectedClass(e.target.value)} className="w-full bg-surface border border-white/10 rounded-lg p-2 text-sm text-white">
+              <option value="">Toutes les classes</option>
+              {classes.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <Book size={14} /> MATIÈRE
-            </label>
-            <select 
-              value={selectedSubject} 
-              onChange={(e) => setSelectedSubject(e.target.value)}
-              style={{ padding: '10px 16px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '10px', color: 'var(--text)', minWidth: '220px' }}
-            >
-              <option value="">Sélectionner une matière</option>
-              {Array.isArray(subjects) && subjects.map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}
+          <div>
+            <label className="block text-[10px] font-bold text-gray-500 mb-1">MATIÈRE</label>
+            <select value={selectedSubject} onChange={(e) => setSelectedSubject(e.target.value)} className="w-full bg-surface border border-white/10 rounded-lg p-2 text-sm text-white">
+              <option value="">Toutes les matières</option>
+              {subjects.map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
           </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <label style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-muted)' }}>TYPE D'ÉVALUATION</label>
-            <select 
-              value={selectedType} 
-              onChange={(e) => setSelectedType(e.target.value)}
-              style={{ padding: '10px 16px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '10px', color: 'var(--text)', minWidth: '180px' }}
-            >
+          <div>
+            <label className="block text-[10px] font-bold text-gray-500 mb-1">TRIMESTRE</label>
+            <select value={selectedTerm} onChange={(e) => setSelectedTerm(Number(e.target.value))} className="w-full bg-surface border border-white/10 rounded-lg p-2 text-sm text-white">
+              <option value={1}>Trimestre 1</option>
+              <option value={2}>Trimestre 2</option>
+              <option value={3}>Trimestre 3</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-[10px] font-bold text-gray-500 mb-1">TYPE</label>
+            <select value={selectedType} onChange={(e) => setSelectedType(e.target.value)} className="w-full bg-surface border border-white/10 rounded-lg p-2 text-sm text-white">
               <option value="DEVOIR">Devoir</option>
               <option value="COMPOSITION">Composition</option>
-              <option value="EXAMEN">Examen</option>
             </select>
           </div>
         </div>
 
-        {error && (
-          <div style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '16px', borderRadius: '12px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <AlertCircle size={20} /> Erreur de chargement des données.
-          </div>
-        )}
-
-        {/* View Mode */}
+        {/* View/Bulk Content */}
         {!isBulkMode ? (
-          <div className="table-responsive">
-            <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 8px', textAlign: 'left' }}>
-              <thead>
-                <tr style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 600 }}>
-                  <th style={{ padding: '12px 20px' }}>Élève</th>
-                  <th style={{ padding: '12px 20px' }}>Classe</th>
-                  <th style={{ padding: '12px 20px' }}>Matière</th>
-                  <th style={{ padding: '12px 20px' }}>Type</th>
-                  <th style={{ padding: '12px 20px' }}>Note (/20)</th>
-                  <th style={{ padding: '12px 20px', textAlign: 'right' }}>Actions</th>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left">
+              <thead className="text-gray-500 text-xs uppercase border-b border-white/5">
+                <tr>
+                  <th className="p-4">Élève</th>
+                  <th className="p-4">Matière</th>
+                  <th className="p-4">Note</th>
+                  <th className="p-4">Trimestre</th>
+                  <th className="p-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-white/5">
                 {displayedGrades.map((g: any) => (
-                  <tr key={g.id} className="table-row-hover" style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '12px' }}>
-                    <td style={{ padding: '16px 20px', borderTopLeftRadius: '12px', borderBottomLeftRadius: '12px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                        <div style={{ padding: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '8px' }}>
-                           <User size={16} />
-                        </div>
-                        <span style={{ fontWeight: 600 }}>{g.student ? `${g.student.firstName} ${g.student.lastName}` : 'Chargement...'}</span>
+                  <tr key={g.id} className="hover:bg-white/5">
+                    <td className="p-4 font-bold text-white">
+                      {g.student ? `${g.student.firstName} ${g.student.lastName}` : 'ID: ' + g.studentId}
+                    </td>
+                    <td className="p-4 text-gray-400">{g.subject?.name || 'Matière'}</td>
+                    <td className="p-4">
+                      <span className={`text-lg font-black ${g.value >= 10 ? 'text-green-400' : 'text-red-400'}`}>{g.value}</span>
+                    </td>
+                    <td className="p-4 text-gray-500">{g.term}</td>
+                    <td className="p-4 text-right">
+                      <div className="flex justify-end gap-2">
+                        <button onClick={() => openEdit(g)} className="p-2 bg-blue-500/10 text-blue-400 rounded-lg hover:bg-blue-500/20"><Edit size={16}/></button>
+                        <button onClick={() => { if(window.confirm('Supprimer cette note ?')) deleteGrade(g.id) }} className="p-2 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20"><Trash2 size={16}/></button>
                       </div>
-                    </td>
-                    <td style={{ padding: '16px 20px', color: 'var(--text-muted)' }}>{g.class?.name || '-'}</td>
-                    <td style={{ padding: '16px 20px', color: 'var(--text-muted)' }}>{g.subject?.name || '-'}</td>
-                    <td style={{ padding: '16px 20px' }}>
-                      <span style={{ fontSize: '0.75rem', fontWeight: 800, padding: '4px 8px', borderRadius: '6px', background: 'rgba(255,255,255,0.05)' }}>{g.type}</span>
-                    </td>
-                    <td style={{ padding: '16px 20px' }}>
-                      <span style={{ 
-                        fontSize: '1.1rem', 
-                        fontWeight: 900, 
-                        color: g.value >= 12 ? '#10B981' : g.value >= 10 ? '#F59E0B' : '#EF4444',
-                        background: 'rgba(255,255,255,0.03)',
-                        padding: '6px 12px',
-                        borderRadius: '8px'
-                      }}>
-                        {g.value.toFixed(1)}
-                      </span>
-                    </td>
-                    <td style={{ padding: '16px 20px', textAlign: 'right', borderTopRightRadius: '12px', borderBottomRightRadius: '12px' }}>
-                      <button className="btn-secondary" style={{ padding: '8px', cursor: 'pointer' }}><Edit size={16} /></button>
                     </td>
                   </tr>
                 ))}
-                {displayedGrades.length === 0 && !isLoading && (
-                  <tr>
-                    <td colSpan={6} style={{ padding: '64px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                       <ClipboardList size={48} style={{ margin: '0 auto 16px', opacity: 0.1 }} />
-                       <p>Sélectionnez une classe et une matière pour voir les notes.</p>
-                    </td>
-                  </tr>
-                )}
               </tbody>
             </table>
           </div>
         ) : (
-          /* Bulk Entry Mode */
-          <div style={{ marginTop: '20px' }}>
-            <div style={{ background: 'rgba(139, 92, 246, 0.05)', padding: '20px', borderRadius: '16px', marginBottom: '24px', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
-               <h4 style={{ margin: 0, color: '#8B5CF6', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                 <CheckCircle size={18} /> Mode Saisie Rapide
-               </h4>
-               <p style={{ margin: '8px 0 0 0', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-                 Saisissez les notes de tous les élèves de la classe sélectionnée ci-dessous. Les notes non renseignées ne seront pas modifiées.
-               </p>
-            </div>
-
-            {!selectedClass || !selectedSubject ? (
-               <div style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
-                 Veuillez d'abord sélectionner une <strong>Classe</strong> et une <strong>Matière</strong> dans les filtres ci-dessus.
+          <div className="space-y-4">
+             {filteredStudents.map((s: any) => (
+               <div key={s.id} className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-purple-500/20 flex items-center justify-center text-purple-400 font-bold uppercase">{s.firstName[0]}{s.lastName[0]}</div>
+                    <div>
+                      <div className="font-bold text-white">{s.firstName} {s.lastName}</div>
+                      <div className="text-[10px] text-gray-500 font-mono">{s.matricule}</div>
+                    </div>
+                  </div>
+                  <input type="number" step="0.25" placeholder="Note" value={bulkGrades[s.id] || ''} onChange={e => setBulkGrades({...bulkGrades, [s.id]: Number(e.target.value)})} className="w-24 bg-surface border border-white/10 rounded-lg p-3 text-center font-black text-white focus:ring-2 focus:ring-primary outline-none" />
                </div>
-            ) : (
-              <div className="table-responsive">
-                <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 8px', textAlign: 'left' }}>
-                  <thead>
-                    <tr style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 600 }}>
-                      <th style={{ padding: '12px 20px' }}>Matricule</th>
-                      <th style={{ padding: '12px 20px' }}>Élève</th>
-                      <th style={{ padding: '12px 20px', width: '150px' }}>Note (/20)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredStudents.map((student: any) => (
-                      <tr key={student.id} style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '12px' }}>
-                        <td style={{ padding: '16px 20px', borderTopLeftRadius: '12px', borderBottomLeftRadius: '12px' }}>
-                           <code style={{ background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: '6px' }}>{student.matricule}</code>
-                        </td>
-                        <td style={{ padding: '16px 20px' }}>
-                          <div style={{ fontWeight: 600 }}>{student.firstName} {student.lastName}</div>
-                        </td>
-                        <td style={{ padding: '16px 20px', borderTopRightRadius: '12px', borderBottomRightRadius: '12px' }}>
-                          <input 
-                            type="number" 
-                            step="0.25" 
-                            min="0" 
-                            max="20"
-                            placeholder="--"
-                            value={bulkGrades[student.id] || ''}
-                            onChange={(e) => setBulkGrades({...bulkGrades, [student.id]: Number(e.target.value)})}
-                            style={{ width: '100%', padding: '10px', background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px', color: 'var(--text)', textAlign: 'center', fontWeight: 800, fontSize: '1.1rem' }}
-                          />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+             ))}
           </div>
         )}
       </div>
+
+      {/* EDIT MODAL */}
+      {editingGrade && (
+        <div className="modal-overlay fixed inset-0 bg-black/80 backdrop-blur-md flex justify-center items-center z-50 p-4">
+          <div className="modal-content glass-panel w-full max-w-md p-8 rounded-3xl border border-white/10">
+            <div className="flex justify-between items-center mb-8">
+              <h3 className="text-2xl font-bold">Modifier la Note</h3>
+              <button onClick={() => setEditingGrade(null)} className="text-gray-400 hover:text-white"><X size={24} /></button>
+            </div>
+            <div className="space-y-6">
+              <div className="text-center p-6 bg-white/5 rounded-2xl">
+                <p className="text-gray-400 text-sm mb-1">Élève</p>
+                <p className="text-xl font-bold text-white">{editingGrade.student?.firstName} {editingGrade.student?.lastName}</p>
+                <p className="text-primary text-xs mt-2">{editingGrade.subject?.name} - Trimestre {editingGrade.term}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">Nouvelle Valeur (/20)</label>
+                <input type="number" step="0.25" min="0" max="20" value={editValue} onChange={e => setEditValue(Number(e.target.value))} className="w-full bg-surface border border-white/10 rounded-xl p-5 text-center text-3xl font-black text-white focus:ring-2 focus:ring-primary outline-none" />
+              </div>
+              <div className="flex gap-4 pt-4">
+                <button className="flex-1 btn-secondary py-4 rounded-xl" onClick={() => setEditingGrade(null)}>Annuler</button>
+                <button className="flex-1 btn-primary py-4 rounded-xl font-bold" onClick={handleUpdate}><Save size={20} className="inline mr-2"/> Enregistrer</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

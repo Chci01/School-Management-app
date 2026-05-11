@@ -40,27 +40,34 @@ model User {
   lastName  String
   role      String   // ADMIN_SYSTEM, ADMIN_ECOLE, TEACHER, STUDENT, PARENT
   
-  // Champs de Profil
+  // Profil
   phone        String?
   address      String?
-  gender       String?   // M, F
+  gender       String?
   dateOfBirth  DateTime?
   placeOfBirth String?
-  photo        String?   // URL de la photo d'identité
+  photo        String?
   
-  // Spécifique aux Professeurs
-  expertise    String?   // Matières enseignées (ex: "Maths, Physique")
-  
-  // Spécifique aux élèves
+  // Relations Élève
   classId      String?
-  parentName   String?
-  parentPhone  String?
+  parentId     String?   // Lien vers le compte PARENT
+  parentName   String?   // Fallback texte
+  parentPhone  String?   // Fallback texte
+  
+  // Relations Prof
+  expertise    String?   // Texte libre pour l'expertise globale
 
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   school    School   @relation(fields: [schoolId], references: [id])
+  
+  // Auto-relation pour les parents/enfants
+  parent    User?    @relation("ParentToChildren", fields: [parentId], references: [id])
+  children  User[]   @relation("ParentToChildren")
+  
+  assignments TeacherAssignment[]
 }
 
 model AcademicYear {
@@ -82,11 +89,51 @@ model Class {
   schoolId       String
   academicYearId String?
   name           String
-  level          String   // e.g., "6ème", "9ème", "Terminale"
+  level          String
   capacity       Int      @default(0)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   school         School        @relation(fields: [schoolId], references: [id])
   academicYear   AcademicYear? @relation(fields: [academicYearId], references: [id])
+  assignments    TeacherAssignment[]
+}
+
+model Subject {
+  id          String   @id @default(uuid())
+  schoolId    String
+  name        String
+  code        String?
+  coefficient Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  assignments TeacherAssignment[]
+}
+
+model TeacherAssignment {
+  id        String   @id @default(uuid())
+  teacherId String
+  classId   String
+  subjectId String
+  createdAt DateTime @default(now())
+
+  teacher   User     @relation(fields: [teacherId], references: [id])
+  class     Class    @relation(fields: [classId], references: [id])
+  subject   Subject  @relation(fields: [subjectId], references: [id])
+
+  @@unique([teacherId, classId, subjectId])
+}
+
+model Grade {
+  id             String   @id @default(uuid())
+  studentId      String
+  subjectId      String
+  classId        String
+  academicYearId String
+  term           Int      // 1, 2, 3
+  value          Float
+  type           String   // DEVOIR, COMPOSITION
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }

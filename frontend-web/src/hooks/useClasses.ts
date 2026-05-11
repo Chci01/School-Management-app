@@ -10,11 +10,20 @@ export const useClasses = (schoolId?: string, academicYearId?: string) => {
       const response = await api.get('/classes', { params: { schoolId, academicYearId } });
       return response.data;
     },
+    enabled: !!schoolId,
   });
 
   const createMutation = useMutation({
     mutationFn: async (data: any) => {
       const response = await api.post('/classes', data);
+      return response.data;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['classes'] }),
+  });
+
+  const updateMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string, data: any }) => {
+      const response = await api.patch(`/classes/${id}`, data);
       return response.data;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['classes'] }),
@@ -33,6 +42,7 @@ export const useClasses = (schoolId?: string, academicYearId?: string) => {
     isLoading,
     error,
     createClass: createMutation.mutate,
+    updateClass: updateMutation.mutate,
     isCreating: createMutation.isPending,
     deleteClass: deleteMutation.mutate,
   };

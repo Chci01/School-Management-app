@@ -1,47 +1,46 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateSubjectDto } from './dto/create-subject.dto';
-import { UpdateSubjectDto } from './dto/update-subject.dto';
-import { FirestoreService } from '../firebase/firestore.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class SubjectsService {
-  constructor(private firestore: FirestoreService) {}
+  constructor(private prisma: PrismaService) {}
 
-  private readonly collection = 'subjects';
-
-  async create(schoolId: string, createSubjectDto: CreateSubjectDto) {
-    return this.firestore.create(this.collection, {
-      ...createSubjectDto,
-      schoolId,
+  async create(schoolId: string, data: any) {
+    const { id, createdAt, updatedAt, ...rest } = data;
+    return this.prisma.subject.create({
+      data: {
+        ...rest,
+        schoolId,
+        coefficient: rest.coefficient ? parseInt(rest.coefficient.toString()) : 1,
+      },
     });
   }
 
   async findAll(schoolId: string) {
-    const db = this.firestore.getDb();
-    const snapshot = await db.collection(this.collection)
-      .where('schoolId', '==', schoolId)
-      .orderBy('name', 'asc')
-      .get();
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return this.prisma.subject.findMany({
+      where: { schoolId },
+      orderBy: { name: 'asc' },
+    });
   }
 
-  async findOne(schoolId: string, id: string) {
-    const subject = await this.firestore.findOne(this.collection, id) as any;
-    if (!subject || subject.schoolId !== schoolId) {
-      throw new NotFoundException('Matière non trouvée');
-    }
+  async findOne(id: string) {
+    const subject = await this.prisma.subject.findUnique({ where: { id } });
+    if (!subject) throw new NotFoundException('Matière non trouvée');
     return subject;
   }
 
-  async update(schoolId: string, id: string, updateSubjectDto: UpdateSubjectDto) {
-    await this.findOne(schoolId, id);
-    return this.firestore.update(this.collection, id, updateSubjectDto);
+  async update(id: string, data: any) {
+    const { id: _, createdAt, updatedAt, schoolId, ...rest } = data;
+    const cleanData = { ...rest };
+    if (rest.coefficient) cleanData.coefficient = parseInt(rest.coefficient.toString());
+
+    return this.prisma.subject.update({
+      where: { id },
+      data: cleanData,
+    });
   }
 
-  async remove(schoolId: string, id: string) {
-    await this.findOne(schoolId, id);
-    await this.firestore.delete(this.collection, id);
-    return { id };
+  async remove(id: string) {
+    return this.prisma.subject.delete({ where: { id } });
   }
 }
-

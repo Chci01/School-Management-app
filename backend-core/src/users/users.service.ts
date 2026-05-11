@@ -15,14 +15,18 @@ export class UsersService {
           { email: identifier },
         ],
       },
-      include: { school: true }
+      include: { 
+        school: true,
+        children: true, // For parents to see their kids
+        parent: true    // For students to see their parent
+      }
     });
   }
 
   async findById(id: string): Promise<any | null> {
     return this.prisma.user.findUnique({
       where: { id },
-      include: { school: true }
+      include: { school: true, children: true, parent: true }
     });
   }
 
@@ -34,6 +38,7 @@ export class UsersService {
         schoolId: finalSchoolId || undefined,
         role: role || undefined,
       },
+      include: { parent: true },
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -53,7 +58,7 @@ export class UsersService {
     const validFields = [
       'schoolId', 'matricule', 'email', 'firstName', 'lastName', 'role', 
       'phone', 'address', 'gender', 'placeOfBirth', 'photo', 'expertise',
-      'classId', 'parentName', 'parentPhone', 'isActive'
+      'classId', 'parentId', 'parentName', 'parentPhone', 'isActive'
     ];
 
     const cleanData: any = {};
@@ -81,7 +86,7 @@ export class UsersService {
     const validFields = [
       'matricule', 'email', 'firstName', 'lastName', 'role', 
       'phone', 'address', 'gender', 'placeOfBirth', 'photo', 'expertise',
-      'classId', 'parentName', 'parentPhone', 'isActive'
+      'classId', 'parentId', 'parentName', 'parentPhone', 'isActive'
     ];
 
     const cleanData: any = {};

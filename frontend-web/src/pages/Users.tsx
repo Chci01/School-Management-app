@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useUsers } from '../hooks/useUsers';
 import { useAuth } from '../hooks/useAuth';
 import { useClasses } from '../hooks/useClasses';
@@ -8,7 +8,7 @@ import { Camera, Edit, Trash2, UserPlus, Save, X } from 'lucide-react';
 const Users = () => {
   const { currentSchoolId } = useAuth();
   const [roleFilter, setRoleFilter] = useState('');
-  const { users, isLoading, error, deleteUser, createUser, updateUser, isCreating } = useUsers(currentSchoolId!, roleFilter);
+  const { users, isLoading, deleteUser, createUser, updateUser, isCreating } = useUsers(currentSchoolId!, roleFilter);
   const { classes } = useClasses(currentSchoolId!);
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -31,6 +31,7 @@ const Users = () => {
     gender: 'M',
     expertise: '',
     classId: '',
+    parentId: '',
     parentName: '',
     parentPhone: '',
     dateOfBirth: '',
@@ -49,6 +50,7 @@ const Users = () => {
       gender: 'M',
       expertise: '',
       classId: '',
+      parentId: '',
       parentName: '',
       parentPhone: '',
       dateOfBirth: '',
@@ -72,6 +74,7 @@ const Users = () => {
       gender: user.gender || 'M',
       expertise: user.expertise || '',
       classId: user.classId || '',
+      parentId: user.parentId || '',
       parentName: user.parentName || '',
       parentPhone: user.parentPhone || '',
       dateOfBirth: user.dateOfBirth ? new Date(user.dateOfBirth).toISOString().split('T')[0] : '',
@@ -228,7 +231,20 @@ const Users = () => {
                                     </select>
                                   </div>
                                   <div><label className="block text-xs text-gray-500 mb-1">Date de Naissance</label><input type="date" className="w-full bg-surface border border-white/10 rounded-lg p-2" value={formData.dateOfBirth} onChange={(e) => setFormData({...formData, dateOfBirth: e.target.value})} /></div>
-                                  <div><label className="block text-xs text-gray-500 mb-1">Nom du Parent</label><input type="text" className="w-full bg-surface border border-white/10 rounded-lg p-2" value={formData.parentName} onChange={(e) => setFormData({...formData, parentName: e.target.value})} /></div>
+                                  <div>
+                                    <label className="block text-xs text-gray-500 mb-1">Parent (Rechercher un parent existant)</label>
+                                    <select 
+                                      value={formData.parentId || ''} 
+                                      onChange={(e) => setFormData({...formData, parentId: e.target.value})} 
+                                      className="w-full bg-surface border border-white/10 rounded-lg p-2"
+                                    >
+                                        <option value="">Lier à un parent enregistré</option>
+                                        {users.filter((u:any) => u.role === 'PARENT').map((p:any) => (
+                                          <option key={p.id} value={p.id}>{p.firstName} {p.lastName} ({p.matricule})</option>
+                                        ))}
+                                    </select>
+                                  </div>
+                                  <div><label className="block text-xs text-gray-500 mb-1">Nom du Parent (Libre)</label><input type="text" className="w-full bg-surface border border-white/10 rounded-lg p-2" value={formData.parentName} onChange={(e) => setFormData({...formData, parentName: e.target.value})} /></div>
                                   <div><label className="block text-xs text-gray-500 mb-1">Téléphone Parent</label><input type="text" className="w-full bg-surface border border-white/10 rounded-lg p-2" value={formData.parentPhone} onChange={(e) => setFormData({...formData, parentPhone: e.target.value})} /></div>
                               </div>
                           </div>
