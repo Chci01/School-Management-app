@@ -55,13 +55,21 @@ class _TeacherGradingScreenState extends State<TeacherGradingScreen> {
       final List<dynamic> uniqueSubjects = [];
 
       for (var schedule in schedules) {
-        if (!classIds.contains(schedule['class']['id'])) {
-          classIds.add(schedule['class']['id']);
-          uniqueClasses.add(schedule['class']);
-        }
-        if (!subjectIds.contains(schedule['subject']['id'])) {
-          subjectIds.add(schedule['subject']['id']);
-          uniqueSubjects.add(schedule['subject']);
+        if (schedule != null) {
+          if (schedule['class'] != null && schedule['class']['id'] != null) {
+            final String classId = schedule['class']['id'];
+            if (!classIds.contains(classId)) {
+              classIds.add(classId);
+              uniqueClasses.add(schedule['class']);
+            }
+          }
+          if (schedule['subject'] != null && schedule['subject']['id'] != null) {
+            final String subjectId = schedule['subject']['id'];
+            if (!subjectIds.contains(subjectId)) {
+              subjectIds.add(subjectId);
+              uniqueSubjects.add(schedule['subject']);
+            }
+          }
         }
       }
 
@@ -83,7 +91,10 @@ class _TeacherGradingScreenState extends State<TeacherGradingScreen> {
         _activeYearId ?? 'CURRENT_YEAR_ID_PLACEHOLDER',
       );
       setState(() {
-        _students = students.map((r) => r['student']).toList();
+        _students = students
+            .where((r) => r != null && r['student'] != null)
+            .map((r) => r['student'])
+            .toList();
         _selectedStudentId = null;
         _isLoading = false;
       });

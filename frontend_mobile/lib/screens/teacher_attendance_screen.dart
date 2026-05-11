@@ -44,11 +44,14 @@ class _TeacherAttendanceScreenState extends State<TeacherAttendanceScreen> {
       final List<dynamic> uniqueClasses = [];
 
       for (var schedule in schedules) {
-        if (!classIds.contains(schedule['class']['id'])) {
-          classIds.add(schedule['class']['id']);
-          uniqueClasses.add(schedule['class']);
-          // Also snatch the academicYearId from the first record found to be easy, or we can fetch active year.
-          // For simplicity, we assume academicYearId is available or we bypass it if the API allows.
+        if (schedule != null && 
+            schedule['class'] != null && 
+            schedule['class']['id'] != null) {
+          final String classId = schedule['class']['id'];
+          if (!classIds.contains(classId)) {
+            classIds.add(classId);
+            uniqueClasses.add(schedule['class']);
+          }
         }
       }
 
@@ -73,7 +76,10 @@ class _TeacherAttendanceScreenState extends State<TeacherAttendanceScreen> {
       final students = await ApiService().getStudentsByClass(classId, _activeYearId ?? 'CURRENT_YEAR_ID_PLACEHOLDER');
       if (!mounted) return;
       setState(() {
-        _students = students.map((r) => r['student']).toList();
+        _students = students
+            .where((r) => r != null && r['student'] != null)
+            .map((r) => r['student'])
+            .toList();
         _attendanceMap = { for (var s in _students) s['id']: 'PRESENT' };
         _isLoading = false;
       });
