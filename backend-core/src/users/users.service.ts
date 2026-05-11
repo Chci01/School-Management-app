@@ -33,25 +33,29 @@ export class UsersService {
         role: role || undefined,
       },
       orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        schoolId: true,
-        matricule: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        role: true,
-        isActive: true,
-        createdAt: true,
-      },
     });
   }
 
   async create(data: any): Promise<any> {
-    const hashedPassword = await bcrypt.hash(data.password, 10);
+    // Nettoyage des données pour éviter les erreurs Prisma si des champs sont en trop
+    const { id, password, ...rest } = data;
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    // On ne garde que les champs définis dans le modèle Prisma
+    const validFields = [
+      'schoolId', 'matricule', 'email', 'firstName', 'lastName', 'role', 
+      'phone', 'address', 'gender', 'dateOfBirth', 'placeOfBirth', 'photo',
+      'classId', 'parentName', 'parentPhone', 'isActive'
+    ];
+
+    const cleanData: any = {};
+    validFields.forEach(field => {
+      if (rest[field] !== undefined) cleanData[field] = rest[field];
+    });
+
     return this.prisma.user.create({
       data: {
-        ...data,
+        ...cleanData,
         password: hashedPassword,
       },
     });
