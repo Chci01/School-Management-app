@@ -30,4 +30,10 @@ export class UsersController {
     const schoolId = req.user.schoolId;
     return this.usersService.remove(schoolId, id);
   }
+
+  @Post(':id') // Some frontends use POST for updates, but PATCH is better
+  @Roles(Role.ADMIN_ECOLE, Role.SUPER_ADMIN)
+  update(@Param('id') id: string, @Body() updateUserDto: any) {
+    return this.usersService.update(id, updateUserDto);
+  }
 }
