@@ -7,20 +7,39 @@ export class UsersService {
   constructor(private prisma: PrismaService) {}
 
   async findByMatricule(schoolId: string | null, identifier: string): Promise<any | null> {
-    return this.prisma.user.findFirst({
-      where: {
-        schoolId: schoolId || undefined,
-        OR: [
-          { matricule: identifier },
-          { email: identifier },
-        ],
-      },
+    console.log(`[AUTH] findByMatricule called - schoolId: "${schoolId}", identifier: "${identifier}"`);
+    
+    if (!identifier || identifier.trim() === '') {
+      console.log('[AUTH] Empty identifier, returning null');
+      return null;
+    }
+
+    const trimmedId = identifier.trim();
+
+    // Build where clause - search by matricule OR email, case-insensitive
+    const whereClause: any = {
+      OR: [
+        { matricule: { equals: trimmedId, mode: 'insensitive' } },
+        { email: { equals: trimmedId, mode: 'insensitive' } },
+      ],
+    };
+
+    // Only filter by schoolId if explicitly provided
+    if (schoolId) {
+      whereClause.schoolId = schoolId;
+    }
+
+    const user = await this.prisma.user.findFirst({
+      where: whereClause,
       include: { 
         school: true,
-        children: true, // For parents to see their kids
-        parent: true    // For students to see their parent
+        children: true,
+        parent: true
       }
     });
+
+    console.log(`[AUTH] findByMatricule result: ${user ? `Found user ${user.id} (${user.firstName} ${user.lastName}, role: ${user.role})` : 'NOT FOUND'}`);
+    return user;
   }
 
   async findById(id: string): Promise<any | null> {
