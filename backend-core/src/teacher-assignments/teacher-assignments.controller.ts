@@ -8,7 +8,7 @@ import { Role, Roles } from '../auth/roles/roles.decorator';
 @Controller('teacher-assignments')
 @UseGuards(JwtAuthGuard, LicenseGuard, RolesGuard)
 export class TeacherAssignmentsController {
-  constructor(private readonly assignmentsService: TeacherAssignmentsService) {}
+  constructor(private readonly assignmentsService: TeacherAssignmentsService) { }
 
   @Post()
   @Roles(Role.ADMIN_ECOLE, Role.SUPER_ADMIN)

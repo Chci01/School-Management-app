@@ -27,4 +27,16 @@ export class PaymentsController {
   findByStudent(@Param('id') studentId: string, @Request() req) {
     return this.paymentsService.findByStudent(studentId, req.user);
   }
+
+  @Post('ligdicash/initiate')
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN_ECOLE, Role.PARENT, Role.ELEVE)
+  initiateLigdiCash(@Body() createPaymentDto: any, @Request() req) {
+    return this.paymentsService.initiateLigdiCashPayment(createPaymentDto, req.user);
+  }
+
+  @Get('ligdicash/confirm/:token')
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN_ECOLE, Role.PARENT, Role.ELEVE)
+  confirmLigdiCash(@Param('token') token: string, @Request() req) {
+    return this.paymentsService.confirmLigdiCashPayment(token, req.user);
+  }
 }

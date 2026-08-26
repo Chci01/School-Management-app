@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  # 1. Base de données PostgreSQL
+  postgres:
+    image: postgres:16-alpine
+    container_name: school_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-school_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-school_secure_pass_2026}
+      POSTGRES_DB: ${POSTGRES_DB:-school_management}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # 2. Backend NestJS
+  backend:
+    build:
+      context: ./backend-core
+      dockerfile: Dockerfile
+    container_name: school_backend
+    restart: always
+    depends_on:
+      - postgres
+    environment:
+      PORT: 3000
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-school_user}:${POSTGRES_PASSWORD:-school_secure_pass_2026}@postgres:5432/${POSTGRES_DB:-school_management}?schema=public
+      JWT_SECRET: ${JWT_SECRET:-super_secret_jwt_key_2026}
+      LIGDICASH_API_KEY: ${LIGDICASH_API_KEY}
+      LIGDICASH_API_TOKEN: ${LIGDICASH_API_TOKEN}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost,http://YOUR_VPS_IP}
+    ports:
+      - "3000:3000"
+
+  # 3. Frontend Web (React + Nginx)
+  frontend:
+    build:
+      context: ./frontend-web
+      dockerfile: Dockerfile
+    container_name: school_frontend
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+
+volumes:
+  postgres_data:

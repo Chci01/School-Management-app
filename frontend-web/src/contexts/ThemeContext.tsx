@@ -1,39 +1,41 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-type Theme = 'light' | 'dark';
+export type Theme = 'light' | 'dark' | 'ocean' | 'nature';
 
 interface ThemeContextType {
   theme: Theme;
-  toggleTheme: () => void;
+  setTheme: (theme: Theme) => void;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setTheme] = useState<Theme>(() => {
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'light' || savedTheme === 'dark') {
+  const [theme, setThemeState] = useState<Theme>(() => {
+    const savedTheme = localStorage.getItem('theme') as Theme;
+    if (['light', 'dark', 'ocean', 'nature'].includes(savedTheme)) {
       return savedTheme;
     }
-    // Default to light mode as requested by user
+    // Default to dark mode as it was the original design, or light if requested
     return 'light';
   });
 
   useEffect(() => {
     localStorage.setItem('theme', theme);
-    if (theme === 'light') {
-      document.documentElement.setAttribute('data-theme', 'light');
-    } else {
-      document.documentElement.removeAttribute('data-theme');
+    // Remove all theme attributes first
+    document.documentElement.removeAttribute('data-theme');
+    
+    // Set the specific theme
+    if (theme !== 'dark') {
+      document.documentElement.setAttribute('data-theme', theme);
     }
   }, [theme]);
 
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
+  const setTheme = (newTheme: Theme) => {
+    setThemeState(newTheme);
   };
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme, setTheme }}>
       {children}
     </ThemeContext.Provider>
   );

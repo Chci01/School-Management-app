@@ -1,42 +1,43 @@
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
-import { FirestoreService } from '../firebase/firestore.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class LicenseGuard implements CanActivate {
-  constructor(private firestore: FirestoreService) {}
-
-  private readonly collection = 'schools';
+  constructor(private prisma: PrismaService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const user = request.user;
 
-    // If no user (e.g., public route like login) or user is SUPER_ADMIN
-    if (!user || user.role === 'SUPER_ADMIN') {
+    // Public routes (no user) or SUPER_ADMIN always pass
+    if (!user || user.role === 'SUPER_ADMIN' || user.role === 'ADMIN_SYSTEM') {
       return true;
     }
 
     if (!user.schoolId) {
-       throw new ForbiddenException('Utilisateur non rattaché à une école.');
+      throw new ForbiddenException('Utilisateur non rattaché à une école.');
     }
 
-    const school = await this.firestore.findOne(this.collection, user.schoolId) as any;
+    const school = await this.prisma.school.findUnique({
+      where: { id: user.schoolId }
+    });
 
     if (!school) {
       throw new ForbiddenException('École introuvable.');
     }
 
     if (!school.isActive) {
-      throw new ForbiddenException('Le compte de cette école est inactif. Veuillez contacter le support.');
+      throw new ForbiddenException('Le compte de cette école est inactif. Contactez le support.');
     }
 
-    const expiration = school.licenseExpiresAt?.toDate ? school.licenseExpiresAt.toDate() : new Date(school.licenseExpiresAt);
-
-    if (expiration && new Date() > expiration) {
-      throw new ForbiddenException('La licence de cette école a expiré. Veuillez renouveler l\'abonnement.');
+    // Check license expiration if set
+    if (school.licenseExpiresAt) {
+      const expiration = new Date(school.licenseExpiresAt);
+      if (new Date() > expiration) {
+        throw new ForbiddenException('La licence a expiré. Veuillez renouveler votre abonnement.');
+      }
     }
 
     return true;
   }
 }
-

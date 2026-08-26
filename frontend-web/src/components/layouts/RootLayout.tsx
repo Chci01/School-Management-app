@@ -39,7 +39,7 @@ const RootLayout = () => {
     const currentPageName = routeNames[location.pathname] || 'Tableau de bord';
     const schoolName = "Lycée KalanSira"; // Could be dynamically fetched
 
-    const isMobileRole = ['TEACHER', 'PROFESSOR', 'PARENT', 'STUDENT'].includes(user?.role?.toUpperCase() || '');
+    const isMobileRole = ['TEACHER', 'PROFESSOR', 'PARENT', 'STUDENT', 'ENSEIGNANT', 'ELEVE'].includes(user?.role?.toUpperCase() || '');
 
     if (isMobileRole) {
         return (

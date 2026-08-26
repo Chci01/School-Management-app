@@ -31,6 +31,7 @@ import Exams from '../pages/Exams';
 import Messages from '../pages/Messages';
 import Library from '../pages/Library';
 import Settings from '../pages/Settings';
+import { ProtectedRoute } from '../components/common/ProtectedRoute';
 
 export const router = createHashRouter([
   {
@@ -55,7 +56,11 @@ export const router = createHashRouter([
   },
   {
     path: '/',
-    element: <RootLayout />,
+    element: (
+      <ProtectedRoute>
+        <RootLayout />
+      </ProtectedRoute>
+    ),
     children: [
       {
         index: true,
@@ -63,15 +68,27 @@ export const router = createHashRouter([
       },
       {
         path: 'schools',
-        element: <Schools />,
+        element: (
+          <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'ADMIN_SYSTEM']}>
+            <Schools />
+          </ProtectedRoute>
+        ),
       },
       {
         path: 'users',
-        element: <Users />,
+        element: (
+          <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'ADMIN_SYSTEM', 'ADMIN_ECOLE']}>
+            <Users />
+          </ProtectedRoute>
+        ),
       },
       {
         path: 'academic',
-        element: <Academic />,
+        element: (
+          <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'ADMIN_SYSTEM', 'ADMIN_ECOLE']}>
+            <Academic />
+          </ProtectedRoute>
+        ),
       },
       {
         path: 'reports',
@@ -111,27 +128,51 @@ export const router = createHashRouter([
       },
       {
         path: 'subscription',
-        element: <Subscription />,
+        element: (
+          <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'ADMIN_SYSTEM', 'ADMIN_ECOLE']}>
+            <Subscription />
+          </ProtectedRoute>
+        ),
       },
       {
         path: 'students',
-        element: <Students />,
+        element: (
+          <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'ADMIN_SYSTEM', 'ADMIN_ECOLE']}>
+            <Students />
+          </ProtectedRoute>
+        ),
       },
       {
         path: 'parents',
-        element: <Parents />,
+        element: (
+          <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'ADMIN_SYSTEM', 'ADMIN_ECOLE']}>
+            <Parents />
+          </ProtectedRoute>
+        ),
       },
       {
         path: 'teachers',
-        element: <Teachers />,
+        element: (
+          <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'ADMIN_SYSTEM', 'ADMIN_ECOLE']}>
+            <Teachers />
+          </ProtectedRoute>
+        ),
       },
       {
         path: 'classes',
-        element: <Classes />,
+        element: (
+          <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'ADMIN_SYSTEM', 'ADMIN_ECOLE']}>
+            <Classes />
+          </ProtectedRoute>
+        ),
       },
       {
         path: 'subjects',
-        element: <Subjects />,
+        element: (
+          <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'ADMIN_SYSTEM', 'ADMIN_ECOLE']}>
+            <Subjects />
+          </ProtectedRoute>
+        ),
       },
       {
         path: 'grades',
@@ -159,7 +200,11 @@ export const router = createHashRouter([
       },
       {
         path: 'settings',
-        element: <Settings />,
+        element: (
+          <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'ADMIN_SYSTEM', 'ADMIN_ECOLE']}>
+            <Settings />
+          </ProtectedRoute>
+        ),
       },
       {
         path: '*',
@@ -168,3 +213,4 @@ export const router = createHashRouter([
     ],
   },
 ]);
+

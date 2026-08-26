@@ -35,48 +35,73 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Widget build(BuildContext context) {
     final settings = Provider.of<SettingsProvider>(context);
     final lang = settings.languageCode;
+    final auth = Provider.of<AuthProvider>(context);
+    final role = auth.user?['role'];
+    
+    // Determine theme color based on role
+    Color themeColor = const Color(0xFF8B5CF6); // Default Purple for Student
+    if (role == 'PARENT') {
+      themeColor = const Color(0xFF10B981); // Green for Parent
+    }
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: const Color(0xFFF5F7FA),
       body: _screens[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
-        selectedItemColor: settings.themeColor,
-        unselectedItemColor: Colors.grey,
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard_outlined),
-            activeIcon: Icon(Icons.dashboard),
-            label: AppTranslations.translate('dashboard_home', lang),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today_outlined),
-            activeIcon: Icon(Icons.calendar_today),
-            label: AppTranslations.translate('dashboard_schedule', lang),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.campaign_outlined),
-            activeIcon: Icon(Icons.campaign),
-            label: AppTranslations.translate('dashboard_announcements', lang),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.school_outlined),
-            activeIcon: Icon(Icons.school),
-            label: AppTranslations.translate('dashboard_bulletin', lang),
-          ),
-        ],
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: BottomNavigationBar(
+          backgroundColor: Colors.white,
+          selectedItemColor: themeColor,
+          unselectedItemColor: Colors.grey[400],
+          currentIndex: _currentIndex,
+          type: BottomNavigationBarType.fixed,
+          elevation: 0,
+          onTap: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+          },
+          items: [
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.home_outlined),
+              activeIcon: const Icon(Icons.home),
+              label: AppTranslations.translate('dashboard_home', lang),
+            ),
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.calendar_today_outlined),
+              activeIcon: const Icon(Icons.calendar_today),
+              label: AppTranslations.translate('dashboard_schedule', lang),
+            ),
+            BottomNavigationBarItem(
+              icon: const Icon(Icons.book_outlined),
+              activeIcon: const Icon(Icons.book),
+              label: 'Notes', // Mockup shows 'Notes' or 'Devoirs'
+            ),
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.chat_bubble_outline),
+              activeIcon: Icon(Icons.chat_bubble),
+              label: 'Messages',
+            ),
+            const BottomNavigationBarItem(
+              icon: Icon(Icons.more_horiz),
+              label: 'Plus',
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
-// Sub-Tab for the Home Dashboard
 class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
 
@@ -115,191 +140,376 @@ class _HomeTabState extends State<HomeTab> {
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
-    final settings = Provider.of<SettingsProvider>(context);
-    final lang = settings.languageCode;
     final user = auth.user;
+    final isParent = user?['role'] == 'PARENT';
+    final themeColor = isParent ? const Color(0xFF10B981) : const Color(0xFF8B5CF6);
 
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          // Curved Header
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.only(top: 60, left: 24, right: 24, bottom: 60),
+            decoration: BoxDecoration(
+              color: themeColor,
+              borderRadius: const BorderRadius.only(
+                bottomLeft: Radius.circular(40),
+                bottomRight: Radius.circular(40),
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      user?['role'] == 'PARENT' 
-                          ? 'Bonjour cher Parent'
-                          : 'Bonjour cher',
-                      style: TextStyle(color: Colors.grey[400], fontSize: 16),
-                    ),
-                    Text(
-                      user?['role'] == 'PARENT' 
-                          ? '[${user?['matricule'] ?? ''}] Élève: ${user?['firstName'] ?? ''} ${user?['lastName'] ?? ''}'
-                          : '[${user?['matricule'] ?? ''}] ${user?['firstName'] ?? ''} ${user?['lastName'] ?? ''}',
-                      style: TextStyle(
-                        color: Theme.of(context).textTheme.bodyMedium?.color,
-                        fontSize: user?['role'] == 'PARENT' ? 18 : 22,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
                 Row(
                   children: [
-                    IconButton(
-                      icon: Icon(Icons.settings, color: Colors.grey[400]),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => SettingsScreen()),
-                        );
-                      },
+                    CircleAvatar(
+                      radius: 24,
+                      backgroundColor: Colors.white.withOpacity(0.2),
+                      backgroundImage: user?['photo'] != null ? NetworkImage(user!['photo']) : null,
+                      child: user?['photo'] == null 
+                          ? const Icon(Icons.person, color: Colors.white, size: 28) 
+                          : null,
                     ),
-                    IconButton(
-                      icon: Icon(Icons.logout, color: Colors.redAccent),
-                      onPressed: () async {
-                        await auth.logout();
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(builder: (context) => LoginScreen()),
-                        );
-                      },
+                    const SizedBox(width: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Bonjour,',
+                          style: TextStyle(color: Colors.white70, fontSize: 14),
+                        ),
+                        Row(
+                          children: [
+                            Text(
+                              isParent ? 'M/Mme ${user?['lastName'] ?? ''}' : '${user?['firstName'] ?? ''}',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Text('👋', style: TextStyle(fontSize: 20)),
+                          ],
+                        ),
+                      ],
                     ),
                   ],
-                )
+                ),
+                Stack(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.notifications_outlined, color: Colors.white, size: 28),
+                      onPressed: () {},
+                    ),
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Text(
+                          '1',
+                          style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    )
+                  ],
+                ),
               ],
             ),
-            SizedBox(height: 32),
-            
-            // Quick Stats Card
-            Container(
-              padding: EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Colors.blueAccent, Colors.purpleAccent],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+          ),
+          
+          // Overlapping Card (Main Stats)
+          Transform.translate(
+            offset: const Offset(0, -40),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
                 ),
-                borderRadius: BorderRadius.circular(24),
+                child: isParent ? _buildParentStats(themeColor) : _buildStudentStats(themeColor),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            ),
+          ),
+
+          // Shortcuts / Modules Grid
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Modules',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF333333)),
+                ),
+                const SizedBox(height: 16),
+                GridView.count(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 16,
+                  mainAxisSpacing: 16,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  children: [
+                    _buildShortcutCard(Icons.payment, 'Paiements', const Color(0xFF3B82F6), () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => StudentPaymentsScreen()));
+                    }),
+                    _buildShortcutCard(Icons.medical_services, 'Infirmerie', const Color(0xFFEF4444), () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => StudentHealthScreen()));
+                    }),
+                    _buildShortcutCard(Icons.shopping_bag, 'Fournitures', const Color(0xFFF59E0B), () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => StudentSuppliesScreen()));
+                    }),
+                    _buildShortcutCard(Icons.campaign, 'Actualités', const Color(0xFF8B5CF6), () {
+                      Navigator.push(context, MaterialPageRoute(builder: (_) => NewsScreen()));
+                    }),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                // Settings & Logout Area
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Column(
                     children: [
-                      Text(
-                        AppTranslations.translate('dashboard_matricule', lang),
-                        style: TextStyle(color: Colors.white70, fontSize: 14),
+                      ListTile(
+                        leading: const Icon(Icons.settings, color: Colors.grey),
+                        title: const Text('Paramètres'),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => SettingsScreen())),
                       ),
-                      SizedBox(height: 4),
-                      Text(
-                        '${user?['matricule'] ?? 'N/A'}',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
+                      const Divider(),
+                      ListTile(
+                        leading: const Icon(Icons.logout, color: Colors.red),
+                        title: const Text('Déconnexion', style: TextStyle(color: Colors.red)),
+                        onTap: () async {
+                          final auth = Provider.of<AuthProvider>(context, listen: false);
+                          await auth.logout();
+                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => LoginScreen()));
+                        },
                       ),
                     ],
                   ),
-                  Icon(Icons.badge, color: Colors.white, size: 40),
-                ],
-              ),
-            ),
-            
-            // Conduct Widget
-            if (_monthlyConduct != null) ...[
-              SizedBox(height: 16),
-              Container(
-                padding: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.amber.withOpacity(0.1),
-                  border: Border.all(color: Colors.amber.withOpacity(0.3)),
-                  borderRadius: BorderRadius.circular(16),
                 ),
-                child: Row(
+                const SizedBox(height: 32),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStudentStats(Color themeColor) {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Moyenne générale', style: TextStyle(color: Colors.grey, fontSize: 14)),
+                const SizedBox(height: 4),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.baseline,
+                  textBaseline: TextBaseline.alphabetic,
                   children: [
-                    Icon(Icons.star, color: Colors.amber, size: 32),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    Text(
+                      '14,6',
+                      style: TextStyle(color: themeColor, fontSize: 32, fontWeight: FontWeight.bold),
+                    ),
+                    const Text(
+                      '/20',
+                      style: TextStyle(color: Colors.grey, fontSize: 16),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                const Text('Classement', style: TextStyle(color: Colors.grey, fontSize: 14)),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Text('8', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    const Text('/28', style: TextStyle(color: Colors.grey)),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.green.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Row(
                         children: [
-                          Text(
-                            'Conduite du Mois',
-                            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-                          ),
-                          SizedBox(height: 4),
-                          Text(
-                            '${_monthlyConduct['grade']}/20 - ${_monthlyConduct['appreciation'] ?? ''}',
-                            style: TextStyle(color: Colors.amber, fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
+                          Icon(Icons.arrow_upward, size: 12, color: Colors.green),
+                          Text('2', style: TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ),
                   ],
                 ),
-              ),
-            ],
-            
-            SizedBox(height: 32),
-            Text(
-              AppTranslations.translate('dashboard_shortcuts', lang),
-              style: TextStyle(color: Theme.of(context).textTheme.bodyMedium?.color, fontSize: 18, fontWeight: FontWeight.bold),
+              ],
             ),
-            SizedBox(height: 16),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildShortcutButton(Icons.payment, 'Paiements', Colors.green, () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => StudentPaymentsScreen()));
-                  }),
-                  _buildShortcutButton(Icons.medical_services, 'Infirmerie', Colors.red, () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => StudentHealthScreen()));
-                  }),
-                  _buildShortcutButton(Icons.shopping_bag, 'Fournitures', Colors.blue, () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => StudentSuppliesScreen()));
-                  }),
-                  _buildShortcutButton(Icons.campaign, 'Actualités', Colors.purple, () {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => NewsScreen()));
-                  }),
-                ],
-            )
           ],
         ),
-      ),
+        const SizedBox(height: 16),
+        Container(
+          height: 8,
+          width: double.infinity,
+          decoration: BoxDecoration(
+            color: Colors.grey[200],
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: FractionallySizedBox(
+            alignment: Alignment.centerLeft,
+            widthFactor: 14.6 / 20,
+            child: Container(
+              decoration: BoxDecoration(
+                color: themeColor,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
-  Widget _buildShortcutButton(IconData icon, String label, Color color, VoidCallback onTap) {
+  Widget _buildParentStats(Color themeColor) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text('Mes enfants', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            Icon(Icons.add, color: Colors.grey[400]),
+          ],
+        ),
+        const SizedBox(height: 16),
+        // Mock children
+        Row(
+          children: [
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey[200]!),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  children: [
+                    const CircleAvatar(radius: 20, backgroundColor: Colors.blueAccent),
+                    const SizedBox(height: 8),
+                    const Text('Emma', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text('4ème B', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: themeColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text('Moy: 14,2/20', style: TextStyle(color: themeColor, fontSize: 10, fontWeight: FontWeight.bold)),
+                    )
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey[200]!),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  children: [
+                    const CircleAvatar(radius: 20, backgroundColor: Colors.orangeAccent),
+                    const SizedBox(height: 8),
+                    const Text('Lucas', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const Text('2nde A', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: themeColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text('Moy: 12,8/20', style: TextStyle(color: themeColor, fontSize: 10, fontWeight: FontWeight.bold)),
+                    )
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildShortcutCard(IconData icon, String label, Color color, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Column(
-        children: [
-          Container(
-            padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.grey[100]!),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
-            child: Icon(icon, color: color, size: 32),
-          ),
-          SizedBox(height: 8),
-          Text(
-            label,
-            style: TextStyle(
-              color: Theme.of(context).textTheme.bodyMedium?.color,
-              fontWeight: FontWeight.bold,
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: color, size: 28),
             ),
-          ),
-        ],
+            const SizedBox(height: 12),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Color(0xFF333333),
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
