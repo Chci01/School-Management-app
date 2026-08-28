@@ -62,7 +62,7 @@ const RootLayout = () => {
                         <img src="logo.png" alt="App Logo" style={{ height: '32px', objectFit: 'contain' }} />
                         <div>
                             <h3 style={{ fontSize: '1.1rem', margin: 0 }}>KalanSira Mali</h3>
-                            <p style={{ fontSize: '0.75rem', margin: 0, color: 'rgba(255,255,255,0.6)' }}>{schoolName}</p>
+                            <p style={{ fontSize: '0.75rem', margin: 0, color: 'var(--text-muted)' }}>{schoolName}</p>
                         </div>
                     </div>
                     <button className="sidebar-close-btn" onClick={closeSidebar}>
@@ -71,7 +71,7 @@ const RootLayout = () => {
                 </div>
                  <nav className="sidebar-nav">
                      <ul style={{ paddingBottom: '64px' }}>
-                         <li className="nav-group-title" style={{ padding: '12px 16px', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: 'rgba(255,255,255,0.4)', fontWeight: 600 }}>Principal</li>
+                         <li className="nav-group-title" style={{ padding: '12px 16px', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-muted)', fontWeight: 600 }}>Principal</li>
                          <li><NavLink to="/" end onClick={closeSidebar}><LayoutDashboard size={20} /> Tableau de bord</NavLink></li>
                          <li><NavLink to="/students" onClick={closeSidebar}><Users size={20} /> Élèves</NavLink></li>
                          <li><NavLink to="/parents" onClick={closeSidebar}><UserCheck size={20} /> Parents</NavLink></li>
@@ -79,7 +79,7 @@ const RootLayout = () => {
                          <li><NavLink to="/classes" onClick={closeSidebar}><Layers size={20} /> Classes</NavLink></li>
                          <li><NavLink to="/subjects" onClick={closeSidebar}><BookOpen size={20} /> Matières</NavLink></li>
                          
-                         <li className="nav-group-title" style={{ padding: '12px 16px', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: 'rgba(255,255,255,0.4)', fontWeight: 600, marginTop: '8px' }}>Scolarité & Pédagogie</li>
+                         <li className="nav-group-title" style={{ padding: '12px 16px', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-muted)', fontWeight: 600, marginTop: '8px' }}>Scolarité & Pédagogie</li>
                          <li><NavLink to="/grades" onClick={closeSidebar}><ClipboardList size={20} /> Notes</NavLink></li>
                          <li><NavLink to="/reports" onClick={closeSidebar}><BarChart size={20} /> Bulletins</NavLink></li>
                          <li><NavLink to="/absences" onClick={closeSidebar}><CalendarX size={20} /> Absences</NavLink></li>
@@ -87,13 +87,13 @@ const RootLayout = () => {
                          <li><NavLink to="/exams" onClick={closeSidebar}><FileText size={20} /> Examens</NavLink></li>
                          <li><NavLink to="/academic" onClick={closeSidebar}><GraduationCap size={20} /> Années Scolaires</NavLink></li>
                          
-                         <li className="nav-group-title" style={{ padding: '12px 16px', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: 'rgba(255,255,255,0.4)', fontWeight: 600, marginTop: '8px' }}>Communication & Vie</li>
+                         <li className="nav-group-title" style={{ padding: '12px 16px', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-muted)', fontWeight: 600, marginTop: '8px' }}>Communication & Vie</li>
                          <li><NavLink to="/messages" onClick={closeSidebar}><MessageSquare size={20} /> Messages</NavLink></li>
                          <li><NavLink to="/news" onClick={closeSidebar}><Newspaper size={20} /> Actualités</NavLink></li>
                          <li><NavLink to="/conduct" onClick={closeSidebar}><Activity size={20} /> Conduite</NavLink></li>
                          <li><NavLink to="/badges" onClick={closeSidebar}><Award size={20} /> Badges</NavLink></li>
                          
-                         <li className="nav-group-title" style={{ padding: '12px 16px', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: 'rgba(255,255,255,0.4)', fontWeight: 600, marginTop: '8px' }}>Administration</li>
+                         <li className="nav-group-title" style={{ padding: '12px 16px', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-muted)', fontWeight: 600, marginTop: '8px' }}>Administration</li>
                          <li><NavLink to="/payments" onClick={closeSidebar}><CreditCard size={20} /> Frais scolaires</NavLink></li>
                          <li><NavLink to="/library" onClick={closeSidebar}><Library size={20} /> Bibliothèque</NavLink></li>
                          <li><NavLink to="/documents" onClick={closeSidebar}><FolderOpen size={20} /> Documents</NavLink></li>
@@ -103,8 +103,8 @@ const RootLayout = () => {
                      </ul>
                  </nav>
                  
-                 <div className="sidebar-footer" style={{ padding: '16px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
-                    <button onClick={logout} className="logout-btn" style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', background: 'transparent', border: 'none', color: 'rgba(255,255,255,0.75)', cursor: 'pointer', borderRadius: '12px', fontSize: '14px', fontWeight: 500, transition: 'all 0.2s ease' }}>
+                 <div className="sidebar-footer" style={{ padding: '16px', borderTop: '1px solid var(--border)' }}>
+                    <button onClick={logout} className="logout-btn" style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', borderRadius: '12px', fontSize: '14px', fontWeight: 500, transition: 'all 0.2s ease' }}>
                         <LogOut size={20} /> Déconnexion
                     </button>
                  </div>

@@ -1,22 +1,30 @@
 
-import { Bell, Calendar, FileText, AlertCircle, Clock, Plus } from 'lucide-react';
+import { Bell, Calendar, FileText, AlertCircle, Clock, Plus, LogOut } from 'lucide-react';
 import '../MobileAesthetics.css';
 import BottomNav from '../components/BottomNav';
+import { useAuth } from '../hooks/useAuth';
 
 const ParentDashboard = () => {
+  const { logout, user } = useAuth();
+
   return (
     <div className="mobile-dashboard parent">
       <header className="mobile-header parent">
         <div className="profile-section">
-          <img src="https://i.pravatar.cc/150?img=32" alt="Profile" className="profile-pic" />
+          <img src={user?.photo || "https://i.pravatar.cc/150?img=32"} alt="Profile" className="profile-pic" />
           <div className="welcome-text">
             <h2>Bonjour,</h2>
-            <p>Mme Martin 👋</p>
+            <p>M/Mme {user?.lastName || 'Martin'} 👋</p>
           </div>
         </div>
-        <div className="notif-bell">
-          <Bell size={24} />
-          <span className="notif-badge">2</span>
+        <div className="notif-bell" style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+          <div style={{ position: 'relative' }}>
+            <Bell size={24} />
+            <span className="notif-badge">2</span>
+          </div>
+          <button onClick={logout} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', display: 'flex' }}>
+            <LogOut size={24} />
+          </button>
         </div>
       </header>
 
