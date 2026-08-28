@@ -1,44 +1,51 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { FirestoreService } from '../firebase/firestore.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class BadgesService {
-  constructor(private firestore: FirestoreService) {}
+  constructor(private prisma: PrismaService) {}
 
-  private readonly templatesCollection = 'badge_templates';
-  private readonly usersCollection = 'users';
-  private readonly schoolsCollection = 'schools';
-
-  // Fetch or create the default template for the school
+  // Since we don't have a dedicated BadgeTemplate model yet, we can use the School model's theme/logo 
+  // or return a mock template object that the frontend expects.
   async getTemplate(user: any) {
-    const db = this.firestore.getDb();
-    const snapshot = await db.collection(this.templatesCollection)
-        .where('schoolId', '==', user.schoolId)
-        .limit(1)
-        .get();
+    const school = await this.prisma.school.findUnique({
+      where: { id: user.schoolId }
+    });
 
-    if (snapshot.empty) {
-        return this.firestore.create(this.templatesCollection, { schoolId: user.schoolId });
-    }
-    const doc = snapshot.docs[0];
-    return { id: doc.id, ...doc.data() };
+    return {
+      id: school?.id,
+      schoolId: school?.id,
+      primaryColor: school?.primaryColor || '#000000',
+      logo: school?.logo,
+      theme: school?.theme || 'light'
+    };
   }
 
   async updateTemplate(updateDto: any, user: any) {
-    const template = await this.getTemplate(user) as any;
-    await this.firestore.update(this.templatesCollection, template.id, updateDto);
-    return { ...template, ...updateDto };
+    // Optional: we can save some template data back into the School model
+    return this.prisma.school.update({
+      where: { id: user.schoolId },
+      data: {
+        primaryColor: updateDto.primaryColor,
+        theme: updateDto.theme
+      }
+    });
   }
 
   // Generate badge data for a given user belonging to this school
   async generateBadgeForUser(targetUserId: string, user: any) {
-     const targetUser = await this.firestore.findOne(this.usersCollection, targetUserId) as any;
+     const targetUser = await this.prisma.user.findUnique({
+       where: { id: targetUserId }
+     });
 
      if (!targetUser || targetUser.schoolId !== user.schoolId) {
          throw new NotFoundException('Utilisateur introuvable dans cette école');
      }
 
-     const school = await this.firestore.findOne(this.schoolsCollection, targetUser.schoolId) as any;
+     const school = await this.prisma.school.findUnique({
+       where: { id: targetUser.schoolId }
+     });
+
      const template = await this.getTemplate(user);
 
      return {

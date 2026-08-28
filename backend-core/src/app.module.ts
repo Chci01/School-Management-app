@@ -25,7 +25,7 @@ import { AiAgentModule } from './ai-agent/ai-agent.module';
 import { NewsModule } from './news/news.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { RegistrationModule } from './registration/registration.module';
-import { FirebaseModule } from './firebase/firebase.module';
+
 import { PrismaModule } from './prisma/prisma.module';
 import { TeacherAssignmentsModule } from './teacher-assignments/teacher-assignments.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
@@ -34,7 +34,7 @@ import { APP_GUARD } from '@nestjs/core';
 @Module({
   imports: [
     PrismaModule,
-    FirebaseModule,
+
 
     // Rate Limiting protection: 120 requests per minute per IP
     ThrottlerModule.forRoot([{

@@ -1,34 +1,27 @@
 import { Injectable } from '@nestjs/common';
 import { CreateAttendanceDto } from './dto/create-attendance.dto';
-import { FirestoreService } from '../firebase/firestore.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class AttendanceService {
-  constructor(private firestore: FirestoreService) {}
-
-  private readonly collection = 'attendances';
-  private readonly usersCollection = 'users';
+  constructor(private prisma: PrismaService) {}
 
   async createBatch(createAttendanceDto: CreateAttendanceDto) {
-    const { schoolId, classId, date, records } = createAttendanceDto;
-    const db = this.firestore.getDb();
-    const batch = db.batch();
+    const { classId, date, records } = createAttendanceDto;
 
-    records.forEach((record) => {
-      const docRef = db.collection(this.collection).doc();
-      batch.set(docRef, {
-        schoolId,
-        classId,
-        studentId: record.studentId,
-        date: new Date(date),
-        status: record.status,
-        reason: record.reason,
-        createdAt: new Date(),
-      });
+    const dataToCreate = records.map((record) => ({
+      classId,
+      studentId: record.studentId,
+      date: new Date(date),
+      status: record.status,
+      reason: record.reason,
+    }));
+
+    const result = await this.prisma.attendance.createMany({
+      data: dataToCreate,
     });
 
-    await batch.commit();
-    return { count: records.length };
+    return { count: result.count };
   }
 
   async findByClassAndDate(schoolId: string, classId: string, date: string) {
@@ -37,31 +30,36 @@ export class AttendanceService {
     const nextDate = new Date(searchDate);
     nextDate.setDate(nextDate.getDate() + 1);
 
-    const db = this.firestore.getDb();
-    const snapshot = await db.collection(this.collection)
-      .where('schoolId', '==', schoolId)
-      .where('classId', '==', classId)
-      .where('date', '>=', searchDate)
-      .where('date', '<', nextDate)
-      .get();
-    
-    const attendances = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any }));
-
-    for (const a of attendances) {
-      a.student = await this.firestore.findOne(this.usersCollection, a.studentId);
-    }
-
-    return attendances;
+    // Prisma doesn't directly have schoolId on Attendance, but it can be filtered through class: { schoolId }
+    return this.prisma.attendance.findMany({
+      where: {
+        classId,
+        date: {
+          gte: searchDate,
+          lt: nextDate,
+        },
+        class: {
+          schoolId: schoolId,
+        },
+      },
+      include: {
+        student: {
+          select: { id: true, firstName: true, lastName: true, matricule: true, photo: true }
+        }
+      }
+    });
   }
 
   async findByStudent(studentId: string) {
-    const db = this.firestore.getDb();
-    const snapshot = await db.collection(this.collection)
-      .where('studentId', '==', studentId)
-      .orderBy('date', 'desc')
-      .get();
-    
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return this.prisma.attendance.findMany({
+      where: { studentId },
+      orderBy: { date: 'desc' },
+      include: {
+        class: {
+          select: { id: true, name: true }
+        }
+      }
+    });
   }
 }
 

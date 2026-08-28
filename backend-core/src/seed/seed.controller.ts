@@ -1,12 +1,9 @@
 import { Controller, Post, Headers, ForbiddenException } from '@nestjs/common';
 import { SeedService } from './seed.service';
-import { FirestoreSeedService } from './firestore-seed.service';
-
 @Controller('seed')
 export class SeedController {
   constructor(
     private readonly seedService: SeedService,
-    private readonly firestoreSeedService: FirestoreSeedService
   ) {}
 
   private validateToken(headers: any) {
@@ -27,9 +24,4 @@ export class SeedController {
     return this.seedService.seedSuperAdmin();
   }
 
-  @Post('firestore')
-  seedFirestore(@Headers() headers: any) {
-    this.validateToken(headers);
-    return this.firestoreSeedService.seedAll();
-  }
 }

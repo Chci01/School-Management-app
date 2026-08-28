@@ -1,17 +1,14 @@
 import { Injectable, ForbiddenException } from '@nestjs/common';
-import { FirestoreService } from '../firebase/firestore.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class PaymentsService {
-    constructor(private firestore: FirestoreService) {}
-
-    private readonly collection = 'payments';
-    private readonly usersCollection = 'users';
+    constructor(private prisma: PrismaService) {}
 
     async create(createPaymentDto: any, user: any) {
         const { studentId, amount, tranche } = createPaymentDto;
         
-        const student = await this.firestore.findOne(this.usersCollection, studentId) as any;
+        const student = await this.prisma.user.findUnique({ where: { id: studentId } });
         if (!student || (user.role !== 'SUPER_ADMIN' && student.schoolId !== user.schoolId)) {
             throw new ForbiddenException('Access denied');
         }
@@ -22,56 +19,57 @@ export class PaymentsService {
              throw new ForbiddenException('Student is not assigned to any school');
         }
 
-        return this.firestore.create(this.collection, {
-            studentId,
-            amount,
-            tranche,
-            schoolId: student.schoolId,
-            receiptNumber
+        return this.prisma.payment.create({
+            data: {
+                studentId,
+                amount: parseFloat(amount),
+                type: 'TUITION',
+                status: 'COMPLETED',
+                method: 'CASH', // default fallback, LigdiCash handles its own creation
+                schoolId: student.schoolId,
+                reference: `${receiptNumber} - ${tranche || 'Tranche'}`,
+            }
         });
     }
 
     async findAll(user: any) {
-        const db = this.firestore.getDb();
-        let query = db.collection(this.collection);
+        const whereClause: any = {};
 
         if (user.role !== 'SUPER_ADMIN') {
-            query = query.where('schoolId', '==', user.schoolId) as any;
+            whereClause.schoolId = user.schoolId;
         }
 
-        const snapshot = await query.get();
-        const payments = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any }));
-
-        // Manually join students
-        for (const p of payments) {
-          p.student = await this.firestore.findOne(this.usersCollection, p.studentId);
-        }
-
-        return payments;
+        return this.prisma.payment.findMany({
+            where: whereClause,
+            include: {
+                student: {
+                    select: { id: true, firstName: true, lastName: true, matricule: true }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
     }
 
     async findByStudent(studentId: string, user: any) {
-        const student = await this.firestore.findOne(this.usersCollection, studentId) as any;
+        const student = await this.prisma.user.findUnique({ where: { id: studentId } });
         
         if (!student) {
              throw new ForbiddenException('Student not found');
         }
 
         if (user.role === 'ADMIN_ECOLE' && student.schoolId !== user.schoolId) throw new ForbiddenException();
-        if (user.role === 'ELEVE' && user.id !== studentId) throw new ForbiddenException();
+        if (user.role === 'ELEVE' && user.userId !== studentId) throw new ForbiddenException();
 
-        const db = this.firestore.getDb();
-        const snapshot = await db.collection(this.collection)
-            .where('studentId', '==', studentId)
-            .get();
-        
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        return this.prisma.payment.findMany({
+            where: { studentId },
+            orderBy: { createdAt: 'desc' }
+        });
     }
 
     async initiateLigdiCashPayment(createPaymentDto: any, user: any) {
         const { studentId, amount, tranche, description, return_url, cancel_url, callback_url } = createPaymentDto;
         
-        const student = await this.firestore.findOne(this.usersCollection, studentId) as any;
+        const student = await this.prisma.user.findUnique({ where: { id: studentId } });
         if (!student || (user.role !== 'SUPER_ADMIN' && student.schoolId !== user.schoolId)) {
             throw new ForbiddenException('Access denied');
         }
@@ -176,13 +174,18 @@ export class PaymentsService {
                 const amount = customData.amount || data.invoice?.total_amount;
 
                 if (studentId && amount) {
-                    // Create the final payment in our Firebase DB
-                    const paymentDto = { 
-                        studentId, 
-                        amount, 
-                        tranche 
-                    };
-                    const createdPayment = await this.create(paymentDto, user);
+                    // Create the final payment in our PostgreSQL DB via Prisma
+                    const createdPayment = await this.prisma.payment.create({
+                        data: {
+                            studentId,
+                            amount: parseFloat(amount),
+                            status: 'COMPLETED',
+                            method: 'LIGDICASH',
+                            schoolId: user.schoolId, // Note: For a webhook, `user.schoolId` might be unavailable depending on how user is fed. Fallback logic may be needed.
+                            reference: tranche.toString(),
+                            token: token
+                        }
+                    });
                     return { success: true, status: 'completed', payment: createdPayment, raw: data };
                 }
 
