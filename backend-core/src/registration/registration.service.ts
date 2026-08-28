@@ -36,7 +36,7 @@ export class RegistrationService {
       await tx.user.create({
         data: {
           schoolId: school.id,
-          matricule: 'ADMIN-01',
+          matricule: 'ADMIN-' + school.id.substring(0, 5).toUpperCase() + Math.floor(Math.random() * 1000).toString(),
           email: email,
           password: hashedPassword,
           firstName: 'Admin',
@@ -48,7 +48,7 @@ export class RegistrationService {
       return {
         message: 'Compte créé avec succès. Votre essai gratuit de 7 jours commence maintenant !',
         schoolId: school.id,
-        adminMatricule: 'ADMIN-01',
+        adminMatricule: 'ADMIN-' + school.id.substring(0, 5).toUpperCase(),
         trialExpiresAt: trialExpiration,
       };
     });
