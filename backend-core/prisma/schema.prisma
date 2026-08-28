@@ -3,44 +3,46 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
 model School {
-  id               String   @id @default(uuid())
+  id               String    @id @default(uuid())
   name             String
-  email            String?  @unique
-  isActive         Boolean  @default(true)
+  email            String?   @unique
+  isActive         Boolean   @default(true)
   licenseKey       String?
   licenseExpiresAt DateTime?
-  theme            String   @default("light")
+  theme            String    @default("light")
   logo             String?
   slogan           String?
   address          String?
   phone            String?
   website          String?
   primaryColor     String?
-  defaultLanguage  String?  @default("fr")
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  defaultLanguage  String?   @default("fr")
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
-  users            User[]
-  academicYears    AcademicYear[]
-  classes          Class[]
+  users          User[]
+  academicYears  AcademicYear[]
+  classes        Class[]
+  payments       Payment[]
+  communications Communication[]
 }
 
 model User {
-  id        String   @id @default(uuid())
+  id        String  @id @default(uuid())
   schoolId  String
-  matricule String   @unique
-  email     String?  @unique
+  matricule String  @unique
+  email     String? @unique
   password  String
   firstName String
   lastName  String
-  role      String   // ADMIN_SYSTEM, ADMIN_ECOLE, TEACHER, STUDENT, PARENT
-  
+  role      String // ADMIN_SYSTEM, ADMIN_ECOLE, TEACHER, STUDENT, PARENT
+
   // Profil
   phone        String?
   address      String?
@@ -48,41 +50,50 @@ model User {
   dateOfBirth  DateTime?
   placeOfBirth String?
   photo        String?
-  
+
   // Relations Élève
-  classId      String?
-  parentId     String?   // Lien vers le compte PARENT
-  parentName   String?   // Fallback texte
-  parentPhone  String?   // Fallback texte
-  
+  classId     String?
+  parentId    String? // Lien vers le compte PARENT
+  parentName  String? // Fallback texte
+  parentPhone String? // Fallback texte
+
   // Relations Prof
-  expertise    String?   // Texte libre pour l'expertise globale
+  expertise String? // Texte libre pour l'expertise globale
 
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  school    School   @relation(fields: [schoolId], references: [id])
-  
+  school School @relation(fields: [schoolId], references: [id])
+
   // Auto-relation pour les parents/enfants
-  parent    User?    @relation("ParentToChildren", fields: [parentId], references: [id])
-  children  User[]   @relation("ParentToChildren")
-  
-  assignments TeacherAssignment[]
+  parent   User?  @relation("ParentToChildren", fields: [parentId], references: [id])
+  children User[] @relation("ParentToChildren")
+
+  assignments    TeacherAssignment[]
+  gradesReceived Grade[]              @relation("StudentGrades")
+  gradesGiven    Grade[]              @relation("TeacherGrades")
+  attendances    Attendance[]         @relation("StudentAttendance")
+  homeworksGiven Homework[]           @relation("TeacherHomeworks")
+  payments       Payment[]            @relation("StudentPayments")
+  messagesSent   Communication[]      @relation("SentCommunications")
+  messagesRcvd   Communication[]      @relation("ReceivedCommunications")
+  medicalRecords MedicalRecord[]      @relation("StudentMedical")
+  conductRecords DisciplinaryRecord[] @relation("StudentConduct")
 }
 
 model AcademicYear {
   id        String   @id @default(uuid())
   schoolId  String
-  name      String   // e.g., "2025-2026"
+  name      String // e.g., "2025-2026"
   startDate DateTime
   endDate   DateTime
   isActive  Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  school    School   @relation(fields: [schoolId], references: [id])
-  classes   Class[]
+  school  School  @relation(fields: [schoolId], references: [id])
+  classes Class[]
 }
 
 model Class {
@@ -95,9 +106,12 @@ model Class {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  school         School        @relation(fields: [schoolId], references: [id])
-  academicYear   AcademicYear? @relation(fields: [academicYearId], references: [id])
-  assignments    TeacherAssignment[]
+  school       School              @relation(fields: [schoolId], references: [id])
+  academicYear AcademicYear?       @relation(fields: [academicYearId], references: [id])
+  assignments  TeacherAssignment[]
+  grades       Grade[]
+  attendances  Attendance[]
+  homeworks    Homework[]
 }
 
 model Subject {
@@ -110,6 +124,8 @@ model Subject {
   updatedAt   DateTime @updatedAt
 
   assignments TeacherAssignment[]
+  grades      Grade[]
+  homeworks   Homework[]
 }
 
 model TeacherAssignment {
@@ -119,9 +135,9 @@ model TeacherAssignment {
   subjectId String
   createdAt DateTime @default(now())
 
-  teacher   User     @relation(fields: [teacherId], references: [id])
-  class     Class    @relation(fields: [classId], references: [id])
-  subject   Subject  @relation(fields: [subjectId], references: [id])
+  teacher User    @relation(fields: [teacherId], references: [id])
+  class   Class   @relation(fields: [classId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id])
 
   @@unique([teacherId, classId, subjectId])
 }
@@ -132,9 +148,107 @@ model Grade {
   subjectId      String
   classId        String
   academicYearId String
-  term           Int      // 1, 2, 3
+  term           Int // 1, 2, 3
   value          Float
-  type           String   // DEVOIR, COMPOSITION
+  type           String // DEVOIR, COMPOSITION
+  teacherId      String?
+  comments       String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+
+  student User    @relation("StudentGrades", fields: [studentId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id])
+  class   Class   @relation(fields: [classId], references: [id])
+  teacher User?   @relation("TeacherGrades", fields: [teacherId], references: [id])
+}
+
+model Attendance {
+  id        String   @id @default(uuid())
+  studentId String
+  classId   String
+  date      DateTime
+  status    String // ABSENT, LATE, EXCUSED
+  reason    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student User  @relation("StudentAttendance", fields: [studentId], references: [id])
+  class   Class @relation(fields: [classId], references: [id])
+}
+
+model Homework {
+  id          String   @id @default(uuid())
+  classId     String
+  subjectId   String
+  teacherId   String
+  title       String
+  description String?
+  dueDate     DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  class   Class   @relation(fields: [classId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id])
+  teacher User    @relation("TeacherHomeworks", fields: [teacherId], references: [id])
+}
+
+model Payment {
+  id        String   @id @default(uuid())
+  schoolId  String
+  studentId String?
+  amount    Float
+  currency  String   @default("XOF")
+  status    String // PENDING, COMPLETED, FAILED
+  method    String // LIGDICASH, CASH, BANK
+  reference String?
+  token     String?
+  type      String   @default("TUITION") // SUBSCRIPTION, TUITION
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  school  School @relation(fields: [schoolId], references: [id])
+  student User?  @relation("StudentPayments", fields: [studentId], references: [id])
+}
+
+model Communication {
+  id          String   @id @default(uuid())
+  schoolId    String
+  senderId    String
+  receiverId  String?
+  type        String // NEWS, ANNOUNCEMENT, MESSAGE
+  title       String?
+  content     String
+  attachments String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  school   School @relation(fields: [schoolId], references: [id])
+  sender   User   @relation("SentCommunications", fields: [senderId], references: [id])
+  receiver User?  @relation("ReceivedCommunications", fields: [receiverId], references: [id])
+}
+
+model MedicalRecord {
+  id        String   @id @default(uuid())
+  studentId String
+  date      DateTime
+  reason    String
+  treatment String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student User @relation("StudentMedical", fields: [studentId], references: [id])
+}
+
+model DisciplinaryRecord {
+  id          String   @id @default(uuid())
+  studentId   String
+  date        DateTime
+  type        String // OBSERVATION, WARNING, EXCLUSION
+  reason      String
+  actionTaken String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  student User @relation("StudentConduct", fields: [studentId], references: [id])
 }
