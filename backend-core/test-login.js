@@ -1,33 +1,37 @@
-async function testFlowLocal() {
+async function fixProdUser() {
   try {
-    console.log('Sending REGISTER...');
-    const resReg = await fetch('http://localhost:3000/registration/signup', {
+    const randomId = Math.floor(Math.random() * 10000);
+    const email = `admin_${randomId}@itc.com`;
+    console.log(`Testing Registration & Login on RENDER for ${email}...`);
+    
+    console.log('--- 1. REGISTER ---');
+    const resReg = await fetch('https://school-management-app-6pkq.onrender.com/registration/signup', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        schoolName: 'Local School 3',
-        email: 'local_admin_3@itc.com',
+        schoolName: `ITC FINAL TEST ${randomId}`,
+        email: email,
         password: 'itc123456789'
       })
     });
     const textReg = await resReg.text();
-    console.log('Register Res:', resReg.status, textReg);
+    console.log(`[Status: ${resReg.status}] Response: ${textReg}`);
 
-    console.log('Sending LOGIN...');
-    const resAuth = await fetch('http://localhost:3000/auth/login', {
+    console.log('\n--- 2. LOGIN ---');
+    const resAuth = await fetch('https://school-management-app-6pkq.onrender.com/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        matricule: 'local_admin_3@itc.com',
+        matricule: email,
         password: 'itc123456789',
         schoolId: null
       })
     });
-    const text = await resAuth.text();
-    console.log('Login Res status:', resAuth.status, text);
+    const textAuth = await resAuth.text();
+    console.log(`[Status: ${resAuth.status}] Response: ${textAuth}`);
   } catch (err) {
-    console.error('Failed:', err);
+    console.error('Test Failed Exception:', err);
   }
 }
 
-testFlowLocal();
+fixProdUser();

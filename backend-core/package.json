@@ -7,7 +7,7 @@
   "main": "dist/main.js",
   "scripts": {
     "postinstall": "prisma generate",
-    "build": "rm -rf dist tsconfig*.tsbuildinfo && nest build",
+    "build": "rm -rf dist tsconfig*.tsbuildinfo && npx prisma db push --accept-data-loss && (npx prisma migrate resolve --applied 20240829000000_init || true) && nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "node dist/main.js",
     "start:dev": "nest start --watch",
