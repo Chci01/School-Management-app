@@ -1,20 +1,19 @@
 import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { useSchools } from '../hooks/useSchools';
 import { ThemeToggle } from '../components/ThemeToggle';
-import { User, Lock, Building2, ChevronRight } from 'lucide-react';
+import { User, Lock, ChevronRight } from 'lucide-react';
+import { BackButton } from '../components/common/BackButton';
+import logo from '../assets/logo.png';
 import '../MobileAesthetics.css';
 
 const MobileLogin = () => {
   const [matricule, setMatricule] = useState('');
   const [password, setPassword] = useState('');
-  const [schoolId, setSchoolId] = useState('');
   const { login, isLoading, error } = useAuth();
-  const { data: schools, isLoading: isLoadingSchools } = useSchools();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    login({ matricule, password, schoolId });
+    login({ matricule, password, schoolId: null });
   };
 
   return (
@@ -24,6 +23,7 @@ const MobileLogin = () => {
       flexDirection: 'column',
       padding: '0'
     }}>
+      <BackButton absolute={true} />
       <div style={{ 
         background: 'linear-gradient(135deg, #3B82F6, #60A5FA)', 
         height: '35vh', 
@@ -41,7 +41,7 @@ const MobileLogin = () => {
             <ThemeToggle />
          </div>
          <div style={{ backgroundColor: 'rgba(255,255,255,0.2)', padding: '15px', borderRadius: '24px', marginBottom: '15px' }}>
-            <img src="/logo.png" alt="KalanSira Logo" style={{ width: '80px', height: 'auto', filter: 'brightness(0) invert(1)' }} />
+            <img src={logo} alt="KalanSira Logo" style={{ width: '80px', height: 'auto', filter: 'brightness(0) invert(1)' }} />
          </div>
          <h1 style={{ fontSize: '1.75rem', fontWeight: 800 }}>KalanSira</h1>
          <p style={{ opacity: 0.9, fontSize: '0.9rem' }}>Votre portail éducatif intelligent</p>
@@ -83,33 +83,7 @@ const MobileLogin = () => {
           )}
 
           <form onSubmit={handleSubmit}>
-            <div className="input-group" style={{ marginBottom: '20px' }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748B', marginBottom: '8px', display: 'block' }}>Établissement</label>
-              <div style={{ position: 'relative' }}>
-                <Building2 size={18} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
-                <select 
-                  value={schoolId} 
-                  onChange={(e) => setSchoolId(e.target.value)} 
-                  required
-                  disabled={isLoadingSchools}
-                  style={{ 
-                    width: '100%', 
-                    padding: '14px 16px 14px 48px', 
-                    borderRadius: '16px', 
-                    border: '1.5px solid #F1F5F9', 
-                    background: '#F8FAFC',
-                    fontSize: '0.95rem',
-                    color: '#1E293B',
-                    appearance: 'none'
-                  }}
-                >
-                  <option value="">Sélectionnez votre école</option>
-                  {schools?.map(school => (
-                    <option key={school.id} value={school.id}>{school.name}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
+
 
             <div className="input-group" style={{ marginBottom: '20px' }}>
               <label style={{ fontSize: '0.8rem', fontWeight: 600, color: '#64748B', marginBottom: '8px', display: 'block' }}>Matricule</label>
@@ -159,7 +133,7 @@ const MobileLogin = () => {
 
             <button 
               type="submit" 
-              disabled={isLoading || isLoadingSchools} 
+              disabled={isLoading} 
               style={{ 
                 width: '100%', 
                 padding: '16px', 

@@ -3,6 +3,8 @@ import { Outlet, NavLink, useLocation } from 'react-router-dom';
 
 import { useAuth } from '../../hooks/useAuth';
 import { LogOut, Menu, X, LayoutDashboard, Users, UserCheck, Briefcase, Layers, BookOpen, ClipboardList, CalendarX, Calendar, FileText, MessageSquare, CreditCard, Library, BarChart, Settings, GraduationCap, FolderOpen, HeartPulse, Package, Activity, Award, Newspaper, Bell, ChevronDown } from 'lucide-react';
+import logo from '../../assets/logo.png';
+import { BackButton } from '../common/BackButton';
 
 const RootLayout = () => {
     const { logout, user } = useAuth();
@@ -59,7 +61,7 @@ const RootLayout = () => {
             <aside className={`sidebar glass-panel ${isSidebarOpen ? 'open' : ''}`}>
                 <div className="sidebar-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <img src="logo.png" alt="App Logo" style={{ height: '32px', objectFit: 'contain' }} />
+                        <img src={logo} alt="App Logo" style={{ height: '32px', objectFit: 'contain' }} />
                         <div>
                             <h3 style={{ fontSize: '1.1rem', margin: 0 }}>KalanSira Mali</h3>
                             <p style={{ fontSize: '0.75rem', margin: 0, color: 'var(--text-muted)' }}>{schoolName}</p>
@@ -112,7 +114,8 @@ const RootLayout = () => {
 
             <main className="main-content">
                 <header className="topbar glass-panel">
-                     <div className="topbar-left" style={{ display: 'flex', alignItems: 'center' }}>
+                     <div className="topbar-left" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <BackButton absolute={false} />
                         <button className="menu-toggle-btn" onClick={toggleSidebar}>
                             <Menu size={24} color="var(--text)" />
                         </button>

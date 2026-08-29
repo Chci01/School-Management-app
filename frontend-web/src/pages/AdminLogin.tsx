@@ -1,31 +1,29 @@
 import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
-import { useSchools } from '../hooks/useSchools';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { BackButton } from '../components/common/BackButton';
+import logo from '../assets/logo.png';
 
 const AdminLogin = () => {
   const [matricule, setMatricule] = useState('');
   const [password, setPassword] = useState('');
-  const [schoolId, setSchoolId] = useState('');
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const { login, isLoading, error } = useAuth();
-  const { data: schools, isLoading: isLoadingSchools } = useSchools();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // If super admin, schoolId is sent as null/undefined
-    login({ matricule, password, schoolId: isSuperAdmin ? null : schoolId });
+    login({ matricule, password, schoolId: null });
   };
 
   return (
     <div className="login-container">
+      <BackButton absolute={true} />
       <div className="glass-panel login-box admin-login-box" style={{ borderTop: '4px solid var(--primary)' }}>
         <div className="login-header" style={{ position: 'relative' }}>
            <div style={{ position: 'absolute', top: 0, right: 0 }}>
                <ThemeToggle />
            </div>
            <div className="logo-placeholder" style={{ backgroundColor: 'transparent', margin: '0 auto', width: '160px', height: 'auto', marginBottom: '10px' }}>
-               <img src="/logo.png" alt="KalanSira Logo" style={{ width: '100%', height: 'auto', objectFit: 'contain', borderRadius: '12px' }} />
+               <img src={logo} alt="KalanSira Logo" style={{ width: '100%', height: 'auto', objectFit: 'contain', borderRadius: '12px' }} />
            </div>
            <h2>Portail Administration</h2>
            <p>Gérez votre établissement</p>
@@ -38,40 +36,7 @@ const AdminLogin = () => {
         )}
 
         <form className="login-form" onSubmit={handleSubmit}>
-          <div className="login-actions" style={{ marginBottom: '15px', justifyContent: 'center' }}>
-             <label className="checkbox-container">
-               <input 
-                 type="checkbox" 
-                 checked={isSuperAdmin} 
-                 onChange={(e) => {
-                     setIsSuperAdmin(e.target.checked);
-                     if (e.target.checked) setSchoolId('');
-                 }} 
-               />
-               <span className="checkmark"></span>
-               Je suis un Super Administrateur (Global)
-             </label>
-          </div>
 
-          {!isSuperAdmin && (
-            <div className="input-group">
-              <label>Établissement à administrer</label>
-              <select 
-                 value={schoolId} 
-                 onChange={(e) => setSchoolId(e.target.value)} 
-                 required={!isSuperAdmin}
-                 disabled={isLoadingSchools}
-                 className="school-select"
-              >
-                <option value="" style={{ color: 'black' }}>Sélectionnez votre école...</option>
-                {schools?.map(school => (
-                  <option key={school.id} value={school.id} style={{ color: 'black' }}>
-                     {school.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
 
           <div className="input-group">
             <label>Identifiant (Email ou Matricule)</label>
@@ -95,7 +60,7 @@ const AdminLogin = () => {
             />
           </div>
 
-          <button type="submit" className="btn-primary" disabled={isLoading || (!isSuperAdmin && isLoadingSchools)}>
+          <button type="submit" className="btn-primary" disabled={isLoading}>
               {isLoading ? 'Authentification...' : 'Accéder au panneau'}
           </button>
 

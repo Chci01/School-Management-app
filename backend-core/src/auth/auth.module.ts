@@ -12,7 +12,7 @@ import { JwtStrategy } from './jwt.strategy';
     PassportModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'super-secret-key-change-in-production',
-      signOptions: { expiresIn: '1d' }, // token valable 1 jour
+      signOptions: { expiresIn: '1y' }, // token valable 1 an (persist login)
     }),
   ],
   controllers: [AuthController],
