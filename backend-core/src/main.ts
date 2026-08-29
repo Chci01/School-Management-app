@@ -27,6 +27,33 @@ async function bootstrap() {
     transform: true,
   }));
 
+  // --- TEMPORARY DB SCRIPT TO ENSURE ADMIN DATA ON RENDER ---
+  const prismaClient = new (require('@prisma/client').PrismaClient)();
+  try {
+    const bcrypt = require('bcrypt');
+    const adminUser = await prismaClient.user.findFirst({
+      where: { role: 'ADMIN_ECOLE' }
+    });
+    if (adminUser) {
+      const hashedPassword = await bcrypt.hash('admin1234', 10);
+      await prismaClient.user.update({
+        where: { id: adminUser.id },
+        data: { 
+          email: 'admin@itc.com',
+          password: hashedPassword 
+        }
+      });
+      console.log('Successfully updated ADMIN_ECOLE email to admin@itc.com and password to admin1234 on Render DB.');
+    } else {
+      console.log('No ADMIN_ECOLE user found to update.');
+    }
+  } catch (e) {
+    console.error('Error updating admin info:', e);
+  } finally {
+    await prismaClient.$disconnect();
+  }
+  // ----------------------------------------------------------
+
   await app.listen(process.env.PORT || 3000, '0.0.0.0');
 }
 bootstrap();
