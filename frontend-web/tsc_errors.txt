@@ -1,0 +1,2 @@
+src/components/ThemeToggle.tsx(5,18): error TS2339: Property 'toggleTheme' does not exist on type 'ThemeContextType'.
+src/contexts/LanguageContext.tsx(1,54): error TS6133: 'useEffect' is declared but its value is never read.

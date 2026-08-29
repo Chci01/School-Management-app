@@ -1,92 +1,75 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { CreateAcademicYearDto } from './dto/create-academic-year.dto';
-import { UpdateAcademicYearDto } from './dto/update-academic-year.dto';
-import { FirestoreService } from '../firebase/firestore.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class AcademicYearsService {
-  constructor(private firestore: FirestoreService) {}
+  constructor(private prisma: PrismaService) {}
 
-  private readonly collection = 'academic_years';
-
-  async create(schoolId: string, createAcademicYearDto: CreateAcademicYearDto) {
-    const db = this.firestore.getDb();
-    if (createAcademicYearDto.isActive) {
-      // Deactivate all others
-      const snapshot = await db.collection(this.collection)
-        .where('schoolId', '==', schoolId)
-        .where('isActive', '==', true)
-        .get();
-      
-      const batch = db.batch();
-      snapshot.docs.forEach(doc => {
-        batch.update(doc.ref, { isActive: false });
+  async create(schoolId: string, data: any) {
+    const { id, createdAt, updatedAt, ...rest } = data;
+    
+    if (rest.isActive) {
+      await this.prisma.academicYear.updateMany({
+        where: { schoolId, isActive: true },
+        data: { isActive: false },
       });
-      await batch.commit();
     }
 
-    return this.firestore.create(this.collection, {
-      ...createAcademicYearDto,
-      schoolId,
+    return this.prisma.academicYear.create({
+      data: {
+        ...rest,
+        schoolId,
+        startDate: new Date(rest.startDate),
+        endDate: new Date(rest.endDate),
+        isActive: rest.isActive === true || rest.isActive === 'true',
+      },
     });
   }
 
   async findAll(schoolId: string) {
-    const db = this.firestore.getDb();
-    const snapshot = await db.collection(this.collection)
-      .where('schoolId', '==', schoolId)
-      .orderBy('createdAt', 'desc')
-      .get();
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return this.prisma.academicYear.findMany({
+      where: { schoolId },
+      orderBy: { startDate: 'desc' },
+    });
   }
 
   async findActive(schoolId: string) {
-    const db = this.firestore.getDb();
-    const snapshot = await db.collection(this.collection)
-      .where('schoolId', '==', schoolId)
-      .where('isActive', '==', true)
-      .limit(1)
-      .get();
+    const year = await this.prisma.academicYear.findFirst({
+      where: { schoolId, isActive: true },
+    });
+    if (!year) throw new NotFoundException('Aucune année active');
+    return year;
+  }
+
+  async findOne(id: string) {
+    const year = await this.prisma.academicYear.findUnique({ where: { id } });
+    if (!year) throw new NotFoundException('Année non trouvée');
+    return year;
+  }
+
+  async update(id: string, data: any) {
+    const { id: _, createdAt, updatedAt, schoolId, ...rest } = data;
     
-    if (snapshot.empty) throw new NotFoundException('Aucune année académique active trouvée');
-    const doc = snapshot.docs[0];
-    return { id: doc.id, ...doc.data() };
-  }
-
-  async findOne(schoolId: string, id: string) {
-    const academicYear = await this.firestore.findOne(this.collection, id) as any;
-    if (!academicYear || academicYear.schoolId !== schoolId) {
-      throw new NotFoundException('Année académique non trouvée');
-    }
-    return academicYear;
-  }
-
-  async update(schoolId: string, id: string, updateAcademicYearDto: UpdateAcademicYearDto) {
-    await this.findOne(schoolId, id);
-    const db = this.firestore.getDb();
-
-    if (updateAcademicYearDto.isActive) {
-      const snapshot = await db.collection(this.collection)
-        .where('schoolId', '==', schoolId)
-        .where('isActive', '==', true)
-        .get();
-      
-      const batch = db.batch();
-      snapshot.docs.forEach(doc => {
-        if (doc.id !== id) {
-          batch.update(doc.ref, { isActive: false });
-        }
+    if (rest.isActive === true || rest.isActive === 'true') {
+      const year = await this.findOne(id);
+      await this.prisma.academicYear.updateMany({
+        where: { schoolId: year.schoolId, isActive: true },
+        data: { isActive: false },
       });
-      await batch.commit();
     }
 
-    return this.firestore.update(this.collection, id, updateAcademicYearDto);
+    const cleanData: any = { ...rest };
+    if (rest.startDate) cleanData.startDate = new Date(rest.startDate);
+    if (rest.endDate) cleanData.endDate = new Date(rest.endDate);
+    if (rest.isActive !== undefined) cleanData.isActive = (rest.isActive === true || rest.isActive === 'true');
+
+    return this.prisma.academicYear.update({
+      where: { id },
+      data: cleanData,
+    });
   }
 
-  async remove(schoolId: string, id: string) {
-    await this.findOne(schoolId, id);
-    await this.firestore.delete(this.collection, id);
-    return { id };
+  async remove(id: string) {
+    return this.prisma.academicYear.delete({ where: { id } });
   }
 }
-

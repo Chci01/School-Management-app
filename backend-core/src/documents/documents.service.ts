@@ -1,43 +1,40 @@
 import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
-import { FirestoreService } from '../firebase/firestore.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class DocumentsService {
-  constructor(private firestore: FirestoreService) {}
-
-  private readonly collection = 'document_requests';
-  private readonly usersCollection = 'users';
+  constructor(private prisma: PrismaService) {}
 
   async create(createDocumentDto: any, user: any) {
     const studentId = (user.role === 'SUPER_ADMIN' || user.role === 'ADMIN_ECOLE') 
       ? createDocumentDto.studentId 
-      : user.userId;
+      : user.userId || user.id;
 
-    return this.firestore.create(this.collection, {
-      type: createDocumentDto.type,
-      reason: createDocumentDto.reason,
-      studentId: studentId,
-      schoolId: user.schoolId || createDocumentDto.schoolId,
-      status: 'PENDING',
+    return this.prisma.documentRequest.create({
+      data: {
+        type: createDocumentDto.type,
+        reason: createDocumentDto.reason,
+        studentId: studentId,
+        schoolId: user.schoolId || createDocumentDto.schoolId,
+        status: 'PENDING',
+      }
     });
   }
 
   async findAll(user: any) {
-    const db = this.firestore.getDb();
-    let query = db.collection(this.collection).where('schoolId', '==', user.schoolId);
+    let whereClause: any = { schoolId: user.schoolId };
     
     if (user.role === 'ELEVE' || user.role === 'PARENT') {
-       query = query.where('studentId', '==', user.userId);
+       whereClause.studentId = user.userId || user.id;
     }
 
-    const snapshot = await query.orderBy('createdAt', 'desc').get();
-    const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any }));
-
-    for (const d of docs) {
-      d.student = await this.firestore.findOne(this.usersCollection, d.studentId);
-    }
-
-    return docs;
+    return this.prisma.documentRequest.findMany({
+      where: whereClause,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        student: { select: { id: true, firstName: true, lastName: true, matricule: true } }
+      }
+    });
   }
 
   async updateStatus(id: string, status: string, user: any) {
@@ -45,12 +42,15 @@ export class DocumentsService {
         throw new ForbiddenException('Only administrators can update document status');
     }
 
-    const doc = await this.firestore.findOne(this.collection, id) as any;
+    const doc = await this.prisma.documentRequest.findUnique({ where: { id } });
     if (!doc || doc.schoolId !== user.schoolId) {
         throw new NotFoundException('Document request not found');
     }
 
-    return this.firestore.update(this.collection, id, { status });
+    return this.prisma.documentRequest.update({
+      where: { id },
+      data: { status }
+    });
   }
 }
 

@@ -62,7 +62,7 @@ const Dashboard = () => {
     const { user } = useAuth();
     const role = user?.role?.toUpperCase();
 
-    if (role === 'TEACHER' || role === 'PROFESSOR') {
+    if (role === 'TEACHER' || role === 'PROFESSOR' || role === 'ENSEIGNANT') {
         return <ProfessorDashboard />;
     }
 
@@ -70,7 +70,7 @@ const Dashboard = () => {
         return <ParentDashboard />;
     }
 
-    if (role === 'STUDENT' || role === 'STUDENT') {
+    if (role === 'STUDENT' || role === 'ELEVE') {
         return <StudentDashboard />;
     }
 

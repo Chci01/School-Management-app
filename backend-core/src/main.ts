@@ -2,17 +2,31 @@ import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import helmet from 'helmet';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  // Activer CORS pour les différents frontends
-  app.enableCors();
-  // Activer la validation globale via class-validator
+  
+  // Activate Helmet middleware to secure HTTP headers
+  app.use(helmet());
+  
+  // Configure CORS securely (support credentials and allow specified origins)
+  const allowedOrigins = process.env.ALLOWED_ORIGINS
+    ? process.env.ALLOWED_ORIGINS.split(',')
+    : ['http://localhost:5173', 'http://localhost:3000', 'https://school-management-app-6pkq.onrender.com'];
+
+  app.enableCors({
+    origin: allowedOrigins,
+    credentials: true,
+  });
+
+  // Activate global ValidationPipe
   app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,       // Retire les attributs non inclus dans le DTO
-    forbidNonWhitelisted: true, // Lève une erreur si des attributs interdits sont présents
-    transform: true,       // Transforme automatiquements les payloads vers le type attendu
+    whitelist: true,
+    forbidNonWhitelisted: true,
+    transform: true,
   }));
-  await app.listen(process.env.PORT ?? 3000);
+
+  await app.listen(process.env.PORT || 3000, '0.0.0.0');
 }
 bootstrap();

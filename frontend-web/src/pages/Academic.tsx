@@ -2,178 +2,170 @@ import { useState } from 'react';
 import { useAcademic } from '../hooks/useAcademic';
 import { useClasses } from '../hooks/useClasses';
 import { useAuth } from '../hooks/useAuth';
-import { Plus, Trash2, Users as UsersIcon, Calendar, GraduationCap, LayoutGrid } from 'lucide-react';
+import { Plus, Trash2, Calendar, GraduationCap, LayoutGrid, Edit, Save, X, CheckCircle } from 'lucide-react';
 
 const Academic = () => {
   const { currentSchoolId } = useAuth();
-  const { academicYears, isLoading: academicLoading } = useAcademic(currentSchoolId || undefined);
-  const { classes, isLoading: classesLoading, createClass, deleteClass } = useClasses(currentSchoolId || undefined);
+  const { academicYears, isLoading: academicLoading, createAcademicYear, updateAcademicYear } = useAcademic(currentSchoolId || undefined);
+  const { classes, isLoading: classesLoading, createClass, deleteClass, updateClass } = useClasses(currentSchoolId || undefined);
   
   const [activeTab, setActiveTab] = useState<'classes' | 'years'>('classes');
+  
+  // Modals
   const [isClassModalOpen, setIsClassModalOpen] = useState(false);
-  const [newClassName, setNewClassName] = useState('');
-  const [newClassCapacity, setNewClassCapacity] = useState(50);
+  const [isYearModalOpen, setIsYearModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<any>(null);
+
+  // Form states
+  const [classForm, setClassForm] = useState({ name: '', capacity: 50, academicYearId: '' });
+  const [yearForm, setYearForm] = useState({ name: '', startDate: '', endDate: '', isActive: false });
 
   const isLoading = academicLoading || classesLoading;
 
-  const handleCreateClass = () => {
-    if (!newClassName) return;
-    createClass({
-      name: newClassName,
-      capacity: newClassCapacity,
-      schoolId: currentSchoolId,
-      currentEnrolled: 0
-    }, {
-      onSuccess: () => {
-        setIsClassModalOpen(false);
-        setNewClassName('');
-        setNewClassCapacity(50);
-      }
+  const handleSaveClass = () => {
+    if (!classForm.name) return;
+    if (editingItem) {
+      updateClass({ id: editingItem.id, data: classForm }, {
+        onSuccess: () => { setIsClassModalOpen(false); setEditingItem(null); }
+      });
+    } else {
+      createClass({ ...classForm, schoolId: currentSchoolId }, {
+        onSuccess: () => { setIsClassModalOpen(false); setClassForm({ name: '', capacity: 50, academicYearId: '' }); }
+      });
+    }
+  };
+
+  const handleSaveYear = () => {
+    if (!yearForm.name) return;
+    if (editingItem) {
+      updateAcademicYear({ id: editingItem.id, data: yearForm }, {
+        onSuccess: () => { setIsYearModalOpen(false); setEditingItem(null); }
+      });
+    } else {
+      createAcademicYear({ ...yearForm, schoolId: currentSchoolId }, {
+        onSuccess: () => { setIsYearModalOpen(false); setYearForm({ name: '', startDate: '', endDate: '', isActive: false }); }
+      });
+    }
+  };
+
+  const openClassEdit = (cls: any) => {
+    setEditingItem(cls);
+    setClassForm({ name: cls.name, capacity: cls.capacity, academicYearId: cls.academicYearId || '' });
+    setIsClassModalOpen(true);
+  };
+
+  const openYearEdit = (year: any) => {
+    setEditingItem(year);
+    setYearForm({ 
+      name: year.name, 
+      startDate: year.startDate ? new Date(year.startDate).toISOString().split('T')[0] : '', 
+      endDate: year.endDate ? new Date(year.endDate).toISOString().split('T')[0] : '', 
+      isActive: year.isActive 
     });
+    setIsYearModalOpen(true);
   };
 
   if (isLoading) {
       return (
-          <div className="page-container" style={{ padding: '24px', display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-              <div className="spinner" style={{ color: 'var(--primary)' }}>Chargement des données académiques...</div>
+          <div className="page-container flex justify-center items-center h-full">
+              <div className="spinner text-primary">Chargement...</div>
           </div>
       );
   }
 
   return (
-    <div className="page-container" style={{ padding: '24px' }}>
-      <header className="page-header" style={{ marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div className="page-container p-6">
+      <header className="page-header flex justify-between items-center mb-8">
         <div>
-          <h2 style={{ fontSize: '1.8rem', fontWeight: 800 }}>Scolarité & Structure</h2>
-          <p style={{ color: 'var(--text-secondary)' }}>Gérez les années académiques et l'organisation des classes.</p>
+          <h2 className="text-3xl font-extrabold text-white">Scolarité & Structure</h2>
+          <p className="text-gray-400">Gérez les années académiques et l'organisation des classes.</p>
         </div>
-        <button className="btn-primary" onClick={() => setIsClassModalOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-             <Plus size={20} /> Nouvelle Classe
-        </button>
+        <div className="flex gap-3">
+          <button className="btn-secondary flex items-center gap-2" onClick={() => { setEditingItem(null); setYearForm({ name: '', startDate: '', endDate: '', isActive: false }); setIsYearModalOpen(true); }}>
+            <Calendar size={20} /> Nouvelle Année
+          </button>
+          <button className="btn-primary flex items-center gap-2" onClick={() => { setEditingItem(null); setClassForm({ name: '', capacity: 50, academicYearId: '' }); setIsClassModalOpen(true); }}>
+            <Plus size={20} /> Nouvelle Classe
+          </button>
+        </div>
       </header>
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: '32px', marginBottom: '32px', borderBottom: '1px solid var(--border)' }}>
+      <div className="flex gap-8 mb-8 border-b border-white/10">
           <button 
              onClick={() => setActiveTab('classes')}
-             style={{ 
-               background: 'transparent', 
-               border: 'none', 
-               color: activeTab === 'classes' ? 'var(--primary)' : 'var(--text-muted)', 
-               fontWeight: 600, 
-               fontSize: '1rem',
-               borderBottom: activeTab === 'classes' ? '3px solid var(--primary)' : '3px solid transparent', 
-               paddingBottom: '12px', 
-               cursor: 'pointer',
-               transition: 'all 0.2s'
-             }}
+             className={`pb-4 px-2 font-bold transition-all border-b-2 ${activeTab === 'classes' ? 'text-primary border-primary' : 'text-gray-500 border-transparent hover:text-white'}`}
           >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <LayoutGrid size={18} /> Classes
-              </div>
+              <div className="flex items-center gap-2"><LayoutGrid size={18} /> Classes</div>
           </button>
           <button 
              onClick={() => setActiveTab('years')}
-             style={{ 
-               background: 'transparent', 
-               border: 'none', 
-               color: activeTab === 'years' ? 'var(--primary)' : 'var(--text-muted)', 
-               fontWeight: 600, 
-               fontSize: '1rem',
-               borderBottom: activeTab === 'years' ? '3px solid var(--primary)' : '3px solid transparent', 
-               paddingBottom: '12px', 
-               cursor: 'pointer',
-               transition: 'all 0.2s'
-             }}
+             className={`pb-4 px-2 font-bold transition-all border-b-2 ${activeTab === 'years' ? 'text-primary border-primary' : 'text-gray-500 border-transparent hover:text-white'}`}
           >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Calendar size={18} /> Années Académiques
-              </div>
+              <div className="flex items-center gap-2"><Calendar size={18} /> Années Académiques</div>
           </button>
       </div>
 
       {/* Classes View */}
       {activeTab === 'classes' && (
-          <div className="grid-responsive" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '24px' }}>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {classes.map((cls: any) => (
-                  <div key={cls.id} className="glass-panel" style={{ padding: '24px', borderRadius: '20px', position: 'relative', border: '1px solid var(--glass-border)', transition: 'transform 0.2s' }}>
-                      <div style={{ position: 'absolute', top: '16px', right: '16px' }}>
-                           <button 
-                             onClick={() => { if(window.confirm('Supprimer cette classe ?')) deleteClass(cls.id) }}
-                             style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '8px' }}
-                           >
-                             <Trash2 size={18} />
-                           </button>
+                  <div key={cls.id} className="glass-panel p-6 rounded-3xl relative group border border-white/5 hover:border-primary/30 transition-all">
+                      <div className="absolute top-4 right-4 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                           <button onClick={() => openClassEdit(cls)} className="p-2 bg-blue-500/10 text-blue-400 rounded-lg hover:bg-blue-500/20"><Edit size={16} /></button>
+                           <button onClick={() => { if(window.confirm('Supprimer cette classe ?')) deleteClass(cls.id) }} className="p-2 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20"><Trash2 size={16} /></button>
                       </div>
                       
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
-                        <div style={{ padding: '10px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '12px', color: 'var(--primary)' }}>
-                          <GraduationCap size={24} />
-                        </div>
-                        <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>{cls.name}</h3>
+                      <div className="flex items-center gap-4 mb-6">
+                        <div className="p-3 bg-primary/10 rounded-2xl text-primary"><GraduationCap size={28} /></div>
+                        <h3 className="text-xl font-bold text-white">{cls.name}</h3>
                       </div>
 
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px', fontSize: '0.9rem' }}>
-                           <span style={{ color: 'var(--text-secondary)' }}>Taux d'occupation</span>
-                           <span style={{ color: 'var(--text)', fontWeight: 700 }}>{cls.currentEnrolled || 0} / {cls.capacity}</span>
+                      <div className="flex justify-between mb-2 text-sm text-gray-400">
+                           <span>Occupation</span>
+                           <span className="font-bold text-white">{cls.currentEnrolled || 0} / {cls.capacity}</span>
                       </div>
-                      
-                      <div style={{ width: '100%', height: '10px', background: 'rgba(255,255,255,0.05)', borderRadius: '10px', overflow: 'hidden', marginBottom: '24px' }}>
-                           <div style={{ 
-                             width: `${Math.min(((cls.currentEnrolled || 0) / cls.capacity) * 100, 100)}%`, 
-                             height: '100%', 
-                             background: 'linear-gradient(90deg, var(--primary), #60a5fa)',
-                             borderRadius: '10px'
-                           }}></div>
+                      <div className="w-full h-2 bg-white/5 rounded-full overflow-hidden mb-6">
+                           <div className="h-full bg-gradient-to-r from-primary to-blue-400" style={{ width: `${Math.min(((cls.currentEnrolled || 0) / cls.capacity) * 100, 100)}%` }}></div>
                       </div>
 
-                      <div style={{ display: 'flex', gap: '12px' }}>
-                           <button className="btn-secondary" style={{ flex: 1, padding: '10px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                             <UsersIcon size={16} /> Élèves
-                           </button>
-                           <button className="btn-secondary" style={{ flex: 1, padding: '10px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                             <Calendar size={16} /> Emploi
-                           </button>
+                      <div className="flex gap-2">
+                           <button className="btn-secondary flex-1 text-xs py-2">Membres</button>
+                           <button className="btn-secondary flex-1 text-xs py-2">Emploi</button>
                       </div>
                   </div>
               ))}
-              {classes.length === 0 && (
-                <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '64px', background: 'rgba(255,255,255,0.02)', borderRadius: '24px', border: '1px dashed var(--border)' }}>
-                  <p style={{ color: 'var(--text-muted)' }}>Aucune classe configurée pour le moment.</p>
-                  <button className="btn-primary" onClick={() => setIsClassModalOpen(true)} style={{ marginTop: '16px' }}>Créer votre première classe</button>
-                </div>
-              )}
           </div>
       )}
 
       {/* Years View */}
       {activeTab === 'years' && (
-          <div className="table-container glass-panel" style={{ borderRadius: '20px', overflow: 'hidden', border: '1px solid var(--glass-border)' }}>
-              <table className="data-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <thead>
-                      <tr style={{ background: 'rgba(255,255,255,0.02)', textAlign: 'left', borderBottom: '1px solid var(--border)' }}>
-                          <th style={{ padding: '20px' }}>Année Académique</th>
-                          <th style={{ padding: '20px' }}>Statut</th>
-                          <th style={{ padding: '20px', textAlign: 'right' }}>Actions</th>
+          <div className="glass-panel rounded-3xl overflow-hidden border border-white/5">
+              <table className="w-full text-left">
+                  <thead className="bg-white/5 text-gray-400 text-sm uppercase">
+                      <tr>
+                          <th className="p-6">Dénomination</th>
+                          <th className="p-6">Période</th>
+                          <th className="p-6">Statut</th>
+                          <th className="p-6 text-right">Actions</th>
                       </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-white/5">
                       {academicYears.map((year: any) => (
-                          <tr key={year.id} style={{ borderBottom: '1px solid var(--border)', transition: 'background 0.2s' }}>
-                              <td style={{ padding: '20px' }}>
-                                <div style={{ fontWeight: 700, fontSize: '1.1rem' }}>{year.year}</div>
+                          <tr key={year.id} className="hover:bg-white/5 transition-colors">
+                              <td className="p-6 font-bold text-white text-lg">{year.name}</td>
+                              <td className="p-6 text-gray-400">
+                                {new Date(year.startDate).toLocaleDateString()} - {new Date(year.endDate).toLocaleDateString()}
                               </td>
-                              <td style={{ padding: '20px' }}>
+                              <td className="p-6">
                                   {year.isActive ? (
-                                      <span style={{ padding: '6px 14px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 700, background: 'rgba(34, 197, 94, 0.1)', color: '#4ade80', border: '1px solid rgba(34, 197, 94, 0.2)' }}>ANNÉE ACTIVE</span>
+                                      <span className="bg-green-500/10 text-green-400 px-3 py-1 rounded-full text-xs font-bold border border-green-500/20 flex items-center gap-1 w-fit"><CheckCircle size={12}/> ACTIVE</span>
                                   ) : (
-                                      <span style={{ padding: '6px 14px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 700, background: 'rgba(255,255,255,0.05)', color: 'var(--text-muted)', border: '1px solid var(--border)' }}>ARCHIVÉE</span>
+                                      <span className="bg-white/5 text-gray-500 px-3 py-1 rounded-full text-xs font-bold border border-white/10 w-fit block">ARCHIVÉE</span>
                                   )}
                               </td>
-                              <td style={{ padding: '20px', textAlign: 'right' }}>
-                                  <button className="btn-secondary" style={{ padding: '8px 16px', fontSize: '0.85rem' }} disabled={year.isActive}>
-                                      {year.isActive ? 'Gérer' : 'Consulter'}
-                                  </button>
+                              <td className="p-6 text-right">
+                                  <button onClick={() => openYearEdit(year)} className="btn-secondary text-xs px-4 py-2">Modifier</button>
                               </td>
                           </tr>
                       ))}
@@ -182,50 +174,76 @@ const Academic = () => {
           </div>
       )}
 
-      {/* Modal New Class */}
+      {/* Modal Class */}
       {isClassModalOpen && (
-          <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(8px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-              <div className="modal-content glass-panel" style={{ width: '450px', maxWidth: '95%', padding: '32px', borderRadius: '24px', border: '1px solid var(--glass-border)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                    <h3 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 800 }}>Nouvelle Classe</h3>
-                    <button onClick={() => setIsClassModalOpen(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
-                      <Plus size={24} style={{ transform: 'rotate(45deg)' }} />
-                    </button>
+          <div className="modal-overlay fixed inset-0 bg-black/80 backdrop-blur-md flex justify-center items-center z-50 p-4">
+              <div className="modal-content glass-panel w-full max-w-md p-8 rounded-3xl border border-white/10 shadow-2xl">
+                  <div className="flex justify-between items-center mb-8">
+                    <h3 className="text-2xl font-bold">{editingItem ? 'Modifier Classe' : 'Nouvelle Classe'}</h3>
+                    <button onClick={() => setIsClassModalOpen(false)} className="text-gray-500 hover:text-white"><X size={24} /></button>
                   </div>
-                  
-                  <div className="input-group" style={{ marginBottom: '20px' }}>
-                      <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '0.9rem' }}>Nom de la classe</label>
-                      <input 
-                        type="text" 
-                        placeholder="Ex: 10ème CG, Terminale LL..." 
-                        value={newClassName}
-                        onChange={(e) => setNewClassName(e.target.value)}
-                        style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }} 
-                      />
-                  </div>
-
-                  <div className="input-group" style={{ marginBottom: '32px' }}>
-                      <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '0.9rem' }}>Capacité (Élèves)</label>
-                      <input 
-                        type="number" 
-                        placeholder="Ex: 50" 
-                        value={newClassCapacity}
-                        onChange={(e) => setNewClassCapacity(parseInt(e.target.value))}
-                        style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }} 
-                      />
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '12px' }}>
-                      <button className="btn-secondary" onClick={() => setIsClassModalOpen(false)} style={{ flex: 1, padding: '14px', borderRadius: '12px' }}>Annuler</button>
-                      <button className="btn-primary" onClick={handleCreateClass} disabled={!newClassName} style={{ flex: 1, padding: '14px', borderRadius: '12px', fontWeight: 700 }}>Créer la classe</button>
+                  <div className="space-y-6">
+                      <div>
+                          <label className="block text-sm font-medium text-gray-400 mb-2">Nom de la classe</label>
+                          <input type="text" placeholder="Ex: 10ème CG" value={classForm.name} onChange={(e) => setClassForm({...classForm, name: e.target.value})} className="w-full bg-surface border border-white/10 rounded-xl p-4 text-white focus:ring-2 focus:ring-primary outline-none" />
+                      </div>
+                      <div>
+                          <label className="block text-sm font-medium text-gray-400 mb-2">Capacité max.</label>
+                          <input type="number" value={classForm.capacity} onChange={(e) => setClassForm({...classForm, capacity: parseInt(e.target.value)})} className="w-full bg-surface border border-white/10 rounded-xl p-4 text-white focus:ring-2 focus:ring-primary outline-none" />
+                      </div>
+                      <div>
+                          <label className="block text-sm font-medium text-gray-400 mb-2">Année Scolaire</label>
+                          <select value={classForm.academicYearId} onChange={(e) => setClassForm({...classForm, academicYearId: e.target.value})} className="w-full bg-surface border border-white/10 rounded-xl p-4 text-white focus:ring-2 focus:ring-primary outline-none">
+                              <option value="">Lier à une année scolaire</option>
+                              {academicYears.map((y:any) => <option key={y.id} value={y.id}>{y.name}</option>)}
+                          </select>
+                      </div>
+                      <div className="flex gap-4 pt-4">
+                          <button className="flex-1 btn-secondary py-4 rounded-xl font-bold" onClick={() => setIsClassModalOpen(false)}>Annuler</button>
+                          <button className="flex-1 btn-primary py-4 rounded-xl font-bold" onClick={handleSaveClass}><Save size={20} className="inline mr-2"/> Enregistrer</button>
+                      </div>
                   </div>
               </div>
           </div>
       )}
 
+      {/* Modal Year */}
+      {isYearModalOpen && (
+          <div className="modal-overlay fixed inset-0 bg-black/80 backdrop-blur-md flex justify-center items-center z-50 p-4">
+              <div className="modal-content glass-panel w-full max-w-md p-8 rounded-3xl border border-white/10 shadow-2xl">
+                  <div className="flex justify-between items-center mb-8">
+                    <h3 className="text-2xl font-bold">{editingItem ? 'Modifier Année' : 'Nouvelle Année Académique'}</h3>
+                    <button onClick={() => setIsYearModalOpen(false)} className="text-gray-500 hover:text-white"><X size={24} /></button>
+                  </div>
+                  <div className="space-y-6">
+                      <div>
+                          <label className="block text-sm font-medium text-gray-400 mb-2">Libellé (Ex: 2025-2026)</label>
+                          <input type="text" placeholder="2025-2026" value={yearForm.name} onChange={(e) => setYearForm({...yearForm, name: e.target.value})} className="w-full bg-surface border border-white/10 rounded-xl p-4 text-white focus:ring-2 focus:ring-primary outline-none" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-400 mb-2">Début</label>
+                            <input type="date" value={yearForm.startDate} onChange={(e) => setYearForm({...yearForm, startDate: e.target.value})} className="w-full bg-surface border border-white/10 rounded-xl p-4 text-white focus:ring-2 focus:ring-primary outline-none" />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-400 mb-2">Fin</label>
+                            <input type="date" value={yearForm.endDate} onChange={(e) => setYearForm({...yearForm, endDate: e.target.value})} className="w-full bg-surface border border-white/10 rounded-xl p-4 text-white focus:ring-2 focus:ring-primary outline-none" />
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                          <input type="checkbox" id="isActive" checked={yearForm.isActive} onChange={(e) => setYearForm({...yearForm, isActive: e.target.checked})} className="w-5 h-5 rounded border-white/10 bg-surface text-primary focus:ring-primary" />
+                          <label htmlFor="isActive" className="text-sm font-medium text-white">Définir comme année active</label>
+                      </div>
+                      <div className="flex gap-4 pt-4">
+                          <button className="flex-1 btn-secondary py-4 rounded-xl font-bold" onClick={() => setIsYearModalOpen(false)}>Annuler</button>
+                          <button className="flex-1 btn-primary py-4 rounded-xl font-bold" onClick={handleSaveYear}><Save size={20} className="inline mr-2"/> Enregistrer</button>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      )}
     </div>
   );
 };
 
 export default Academic;
-

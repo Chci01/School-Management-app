@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../services/api';
+import { useAuth } from '../hooks/useAuth';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { BackButton } from '../components/common/BackButton';
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -12,6 +14,7 @@ const Signup = () => {
   const [status, setStatus] = useState<'IDLE' | 'LOADING' | 'SUCCESS' | 'ERROR'>('IDLE');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,7 +42,7 @@ const Signup = () => {
              <p style={{ margin: 0, fontSize: '14px' }}>Vous avez un accès complet à toutes les fonctionnalités dès maintenant. Profitez-en pour configurer votre établissement.</p>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <button className="btn-primary" onClick={() => navigate('/admin/login')} style={{ width: '100%', padding: '15px', fontSize: '16px' }}>
+            <button className="btn-primary" onClick={() => login({ matricule: formData.email, password: formData.password, schoolId: null })} style={{ width: '100%', padding: '15px', fontSize: '16px' }}>
               Commencer mon Essai Gratuit
             </button>
             <button className="btn-secondary" onClick={() => navigate('/activate')} style={{ width: '100%', padding: '12px', opacity: 0.8 }}>
@@ -53,6 +56,7 @@ const Signup = () => {
 
   return (
     <div className="login-container">
+      <BackButton absolute={true} />
       <div className="glass-panel login-box" style={{ borderTop: '4px solid var(--primary)' }}>
         <div className="login-header">
            <div style={{ position: 'absolute', top: 20, right: 20 }}>

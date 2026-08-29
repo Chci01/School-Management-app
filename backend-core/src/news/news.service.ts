@@ -1,27 +1,44 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { FirestoreService } from '../firebase/firestore.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class NewsService {
   constructor(
-    private firestore: FirestoreService,
+    private prisma: PrismaService,
     private eventEmitter: EventEmitter2
   ) {}
 
-  private readonly collection = 'news_items';
+  async create(createNewsDto: any, user?: any) {
+    // If no user is passed in (like in original codebase), try to find an admin to be the sender
+    let senderId = user?.userId || user?.id;
 
-  async create(createNewsDto: any) {
-    const newsData = {
-      schoolId: createNewsDto.schoolId || null,
-      title: createNewsDto.title,
-      content: createNewsDto.content,
-      images: createNewsDto.images || [],
-      videos: createNewsDto.videos || [],
-      publishedAt: createNewsDto.publishedAt ? new Date(createNewsDto.publishedAt) : new Date(),
-    };
+    if (!senderId && createNewsDto.schoolId) {
+      const admin = await this.prisma.user.findFirst({
+        where: { schoolId: createNewsDto.schoolId, role: 'ADMIN_ECOLE' }
+      });
+      senderId = admin?.id;
+    }
 
-    const news = await this.firestore.create(this.collection, newsData);
+    if (!senderId) {
+       const systemAdmin = await this.prisma.user.findFirst();
+       senderId = systemAdmin?.id;
+    }
+
+    const news = await this.prisma.communication.create({
+      data: {
+        schoolId: createNewsDto.schoolId,
+        senderId: senderId,
+        type: 'NEWS',
+        title: createNewsDto.title,
+        content: createNewsDto.content,
+        attachments: JSON.stringify({
+          images: createNewsDto.images || [],
+          videos: createNewsDto.videos || []
+        }),
+        createdAt: createNewsDto.publishedAt ? new Date(createNewsDto.publishedAt) : new Date(),
+      }
+    });
 
     // Fire event for the AI Agent to process the announcement
     this.eventEmitter.emit('announcement.created', {
@@ -34,37 +51,38 @@ export class NewsService {
   }
 
   async findAll() {
-    const db = this.firestore.getDb();
-    const snapshot = await db.collection(this.collection)
-      .orderBy('publishedAt', 'desc')
-      .get();
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return this.prisma.communication.findMany({
+      where: { type: 'NEWS' },
+      orderBy: { createdAt: 'desc' }
+    });
   }
 
   async findBySchool(schoolId: string) {
-    const db = this.firestore.getDb();
-    const snapshot = await db.collection(this.collection)
-      .where('schoolId', '==', schoolId)
-      .orderBy('publishedAt', 'desc')
-      .get();
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    return this.prisma.communication.findMany({
+      where: { schoolId, type: 'NEWS' },
+      orderBy: { createdAt: 'desc' }
+    });
   }
 
   async findOne(id: string) {
-    const news = await this.firestore.findOne(this.collection, id);
-    if (!news) throw new NotFoundException('News Item not found');
+    const news = await this.prisma.communication.findUnique({ where: { id } });
+    if (!news || news.type !== 'NEWS') throw new NotFoundException('News Item not found');
     return news;
   }
 
   async update(id: string, updateNewsDto: any) {
-    const updateData: any = { ...updateNewsDto };
-    if (updateData.publishedAt) updateData.publishedAt = new Date(updateData.publishedAt);
-
-    return this.firestore.update(this.collection, id, updateData);
+    return this.prisma.communication.update({
+      where: { id },
+      data: {
+        title: updateNewsDto.title,
+        content: updateNewsDto.content,
+        createdAt: updateNewsDto.publishedAt ? new Date(updateNewsDto.publishedAt) : undefined
+      }
+    });
   }
 
   async remove(id: string) {
-    await this.firestore.delete(this.collection, id);
+    await this.prisma.communication.delete({ where: { id } });
     return { id };
   }
 }

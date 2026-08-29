@@ -1,22 +1,30 @@
 
-import { Bell, TrendingUp, BookOpen, Calendar } from 'lucide-react';
+import { Bell, TrendingUp, BookOpen, Calendar, LogOut } from 'lucide-react';
 import '../MobileAesthetics.css';
 import BottomNav from '../components/BottomNav';
+import { useAuth } from '../hooks/useAuth';
 
 const StudentDashboard = () => {
+  const { logout, user } = useAuth();
+
   return (
     <div className="mobile-dashboard student">
       <header className="mobile-header student">
         <div className="profile-section">
-          <img src="https://i.pravatar.cc/150?img=13" alt="Profile" className="profile-pic" />
+          <img src={user?.photo || "https://i.pravatar.cc/150?img=13"} alt="Profile" className="profile-pic" />
           <div className="welcome-text">
             <h2>Bonjour,</h2>
-            <p>Alexandre 👋</p>
+            <p>{user?.firstName || 'Élève'} 👋</p>
           </div>
         </div>
-        <div className="notif-bell">
-          <Bell size={24} />
-          <span className="notif-badge">1</span>
+        <div className="notif-bell" style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+          <div style={{ position: 'relative' }}>
+            <Bell size={24} />
+            <span className="notif-badge">1</span>
+          </div>
+          <button onClick={logout} style={{ background: 'transparent', border: 'none', color: 'white', cursor: 'pointer', display: 'flex' }}>
+            <LogOut size={24} />
+          </button>
         </div>
       </header>
 

@@ -1,48 +1,53 @@
 import { Injectable } from '@nestjs/common';
-import { FirestoreService } from '../firebase/firestore.service';
+import { PrismaService } from '../prisma/prisma.service';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class HealthService {
   constructor(
-    private firestore: FirestoreService,
+    private prisma: PrismaService,
     private eventEmitter: EventEmitter2
   ) {}
 
-  private readonly collection = 'health_records';
-  private readonly usersCollection = 'users';
-
   async create(createHealthDto: any, user: any) {
-    const record = await this.firestore.create(this.collection, {
-      ...createHealthDto,
-      schoolId: user.schoolId,
+    const record = await this.prisma.medicalRecord.create({
+      data: {
+        studentId: createHealthDto.studentId,
+        date: createHealthDto.date ? new Date(createHealthDto.date) : new Date(),
+        reason: createHealthDto.symptoms || createHealthDto.reason || 'Non spécifié',
+        treatment: createHealthDto.treatment,
+        notes: createHealthDto.severity ? `Sévérité: ${createHealthDto.severity}` : null,
+      }
     });
 
     this.eventEmitter.emit('health.added', {
       studentId: record.studentId,
-      symptoms: record.symptoms,
-      severity: record.severity,
+      symptoms: record.reason,
     });
 
     return record;
   }
 
   async findAll(user: any) {
-    const db = this.firestore.getDb();
-    let query = db.collection(this.collection).where('schoolId', '==', user.schoolId);
-
+    let whereClause: any = {};
+    
+    // We assume students/parents can only see their own records
     if (user.role === 'ELEVE' || user.role === 'PARENT') {
-      query = query.where('studentId', '==', user.userId);
+      whereClause.studentId = user.userId;
+    } else {
+       // Only records from the school (through the student relation)
+       whereClause.student = { schoolId: user.schoolId };
     }
 
-    const snapshot = await query.orderBy('createdAt', 'desc').get();
-    const records = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any }));
-
-    for (const r of records) {
-      r.student = await this.firestore.findOne(this.usersCollection, r.studentId);
-    }
-
-    return records;
+    return this.prisma.medicalRecord.findMany({
+      where: whereClause,
+      orderBy: { createdAt: 'desc' },
+      include: {
+        student: {
+          select: { id: true, firstName: true, lastName: true, matricule: true }
+        }
+      }
+    });
   }
 }
 

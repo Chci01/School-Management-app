@@ -1,24 +1,27 @@
-import { Controller, Post } from '@nestjs/common';
+import { Controller, Post, Headers, ForbiddenException } from '@nestjs/common';
 import { SeedService } from './seed.service';
-import { FirestoreSeedService } from './firestore-seed.service';
-
 @Controller('seed')
 export class SeedController {
   constructor(
     private readonly seedService: SeedService,
-    private readonly firestoreSeedService: FirestoreSeedService
   ) {}
 
-  // Note: In production, this route should be highly secured or completely removed.
+  private validateToken(headers: any) {
+    if (process.env.NODE_ENV === 'production') {
+      const expectedToken = process.env.SEED_SECRET || 'fallback-prod-seed-token-change-me';
+      const actualToken = headers['x-seed-token'];
+      if (!actualToken || actualToken !== expectedToken) {
+        throw new ForbiddenException('Seeding is disabled or unauthorized in production.');
+      }
+    }
+  }
+
+  // In production, this route requires a valid secret token.
   // For development, it allows easily creating the first Super Admin.
   @Post('super-admin')
-  seedSuperAdmin() {
+  seedSuperAdmin(@Headers() headers: any) {
+    this.validateToken(headers);
     return this.seedService.seedSuperAdmin();
   }
 
-  @Post('firestore')
-  seedFirestore() {
-    return this.firestoreSeedService.seedAll();
-  }
 }
-

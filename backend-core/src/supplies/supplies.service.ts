@@ -1,55 +1,42 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateSupplyDto } from './dto/create-supply.dto';
-import { FirestoreService } from '../firebase/firestore.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class SuppliesService {
-  constructor(private firestore: FirestoreService) {}
-
-  private readonly collection = 'supplies';
-  private readonly classesCollection = 'classes';
+  constructor(private prisma: PrismaService) {}
 
   async create(createSupplyDto: CreateSupplyDto, user: any) {
-    return this.firestore.create(this.collection, {
-      ...createSupplyDto,
-      schoolId: user.schoolId,
+    return this.prisma.supply.create({
+      data: {
+        name: createSupplyDto.name,
+        description: createSupplyDto.description || "Fourniture scolaire",
+        quantity: (createSupplyDto as any).quantity || 1,
+        price: createSupplyDto.price || 0,
+        type: (createSupplyDto as any).type || 'STATIONERY',
+        schoolId: user.schoolId,
+      }
     });
   }
 
   async findAllBySchool(user: any) {
-    const db = this.firestore.getDb();
-    const snapshot = await db.collection(this.collection)
-      .where('schoolId', '==', user.schoolId)
-      .orderBy('createdAt', 'desc')
-      .get();
-    
-    const supplies = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() as any }));
-
-    for (const s of supplies) {
-      if (s.classId) {
-        s.class = await this.firestore.findOne(this.classesCollection, s.classId);
-      }
-    }
-
-    return supplies;
+    return this.prisma.supply.findMany({
+      where: { schoolId: user.schoolId },
+      orderBy: { createdAt: 'desc' }
+    });
   }
 
   async findByClass(classId: string, user: any) {
-    const db = this.firestore.getDb();
-    const snapshot = await db.collection(this.collection)
-      .where('schoolId', '==', user.schoolId)
-      .where('classId', '==', classId)
-      .get();
-    
-    return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    // Supplies are generic per school in Prisma, not bound to a specific class.
+    return this.findAllBySchool(user);
   }
 
   async remove(id: string, user: any) {
-    const supply = await this.firestore.findOne(this.collection, id) as any;
+    const supply = await this.prisma.supply.findUnique({ where: { id } });
     if (!supply || supply.schoolId !== user.schoolId) {
       throw new NotFoundException('Item not found');
     }
-    await this.firestore.delete(this.collection, id);
+    await this.prisma.supply.delete({ where: { id } });
     return { id };
   }
 }

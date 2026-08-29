@@ -11,9 +11,9 @@ export class AuthService {
   ) {}
 
   async validateUser(schoolId: string | null, identifier: string, pass: string): Promise<any> {
-    const user = await this.usersService.findByMatricule(schoolId, identifier);
+    // If schoolId is not provided, we search globally by matricule
+    const user = await this.usersService.findByMatricule(schoolId || null, identifier);
     if (!user) {
-       console.log(`[AUTH DEBUG] User not found with ID ${identifier} in school ${schoolId}`);
        return null;
     }
     

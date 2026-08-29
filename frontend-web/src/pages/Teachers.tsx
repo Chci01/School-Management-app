@@ -1,14 +1,23 @@
-
 import { useState } from 'react';
 import { useUsers } from '../hooks/useUsers';
 import { useAuth } from '../hooks/useAuth';
-import { Users, Plus, Search, Trash2, Edit, X, UserPlus, Phone, Mail } from 'lucide-react';
+import { useClasses } from '../hooks/useClasses';
+import { useSubjects } from '../hooks/useSubjects';
+import { useTeacherAssignments } from '../hooks/useTeacherAssignments';
+import { Users, Plus, Search, Trash2, Edit, X, Save } from 'lucide-react';
 
 const Teachers = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAssignModalOpen, setIsAssignModalOpen] = useState(false);
+  const [editingTeacher, setEditingTeacher] = useState<any>(null);
+  const [targetTeacher, setTargetTeacher] = useState<any>(null);
+
   const { currentSchoolId } = useAuth();
-  const { users, isLoading, error, deleteUser, createUser } = useUsers(currentSchoolId!, 'ENSEIGNANT');
+  const { users, isLoading, deleteUser, createUser, updateUser } = useUsers(currentSchoolId!, 'ENSEIGNANT');
+  const { classes } = useClasses(currentSchoolId!);
+  const { subjects } = useSubjects(currentSchoolId!);
+  const { assignments, assignTeacher, removeAssignment } = useTeacherAssignments(currentSchoolId!);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -17,27 +26,63 @@ const Teachers = () => {
     matricule: '',
     email: '',
     phone: '',
-    password: 'password123',
+    expertise: '',
+    password: '',
   });
 
-  const handleCreate = (e: React.FormEvent) => {
+  const [assignForm, setAssignForm] = useState({ classId: '', subjectId: '' });
+
+  const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    createUser({
-      ...formData,
-      role: 'ENSEIGNANT',
-      schoolId: currentSchoolId,
+    if (editingTeacher) {
+      updateUser({ id: editingTeacher.id, data: formData }, {
+        onSuccess: () => { setIsModalOpen(false); setEditingTeacher(null); }
+      });
+    } else {
+      createUser({ ...formData, role: 'ENSEIGNANT', schoolId: currentSchoolId }, {
+        onSuccess: () => {
+          setIsModalOpen(false);
+          setFormData({ firstName: '', lastName: '', matricule: '', email: '', phone: '', expertise: '', password: '' });
+        }
+      });
+    }
+  };
+
+  const handleAssign = () => {
+    if (!assignForm.classId || !assignForm.subjectId || !targetTeacher) return;
+    assignTeacher({
+      teacherId: targetTeacher.id,
+      classId: assignForm.classId,
+      subjectId: assignForm.subjectId
     }, {
-      onSuccess: () => {
-        setIsModalOpen(false);
-        setFormData({ firstName: '', lastName: '', matricule: '', email: '', phone: '', password: 'password123' });
-      }
+      onSuccess: () => setIsAssignModalOpen(false)
     });
+  };
+
+  const openEdit = (teacher: any) => {
+    setEditingTeacher(teacher);
+    setFormData({
+      firstName: teacher.firstName,
+      lastName: teacher.lastName,
+      matricule: teacher.matricule,
+      email: teacher.email || '',
+      phone: teacher.phone || '',
+      expertise: teacher.expertise || '',
+      password: '',
+    });
+    setIsModalOpen(true);
+  };
+
+  const openAssign = (teacher: any) => {
+    setTargetTeacher(teacher);
+    setAssignForm({ classId: '', subjectId: '' });
+    setIsAssignModalOpen(true);
   };
 
   if (isLoading) {
     return (
-      <div className="dashboard-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-        <div className="spinner" style={{ color: 'var(--primary)' }}>Chargement des enseignants...</div>
+      <div className="page-container flex justify-center items-center h-full">
+        <div className="spinner text-primary">Chargement des enseignants...</div>
       </div>
     );
   }
@@ -48,144 +93,136 @@ const Teachers = () => {
   );
 
   return (
-    <div className="dashboard-container" style={{ padding: '24px' }}>
-      <div className="card-header" style={{ marginBottom: '32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div className="page-container p-6">
+      <header className="page-header flex justify-between items-center mb-8">
         <div>
-          <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ padding: '10px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '12px', color: 'var(--primary)' }}>
-              <Users size={28} />
-            </div>
+          <h2 className="text-3xl font-extrabold flex items-center gap-3">
+            <div className="p-3 bg-primary/10 rounded-xl text-primary"><Users size={28} /></div>
             Corps Professoral
           </h2>
-          <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>Gérez les enseignants et leurs informations de contact.</p>
+          <p className="text-gray-400">Gérez les enseignants et leurs attributions pédagogiques.</p>
         </div>
-        <button 
-          className="btn-primary" 
-          onClick={() => setIsModalOpen(true)}
-          style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px', borderRadius: '12px', fontWeight: 700 }}
-        >
+        <button className="btn-primary flex items-center gap-2" onClick={() => { setEditingTeacher(null); setIsModalOpen(true); }}>
           <Plus size={20} /> Ajouter un enseignant
         </button>
-      </div>
+      </header>
 
-      <div className="dash-card glass-panel" style={{ padding: '24px', borderRadius: '24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px', gap: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', background: 'var(--surface)', padding: '12px 20px', borderRadius: '12px', width: '400px', border: '1px solid var(--border)' }}>
-            <Search size={20} color="var(--text-muted)" />
-            <input 
-              type="text" 
-              placeholder="Rechercher par nom ou matricule..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ border: 'none', background: 'transparent', outline: 'none', marginLeft: '12px', width: '100%', color: 'var(--text)', fontSize: '0.95rem' }} 
-            />
+      <div className="glass-panel p-6 rounded-3xl">
+        <div className="flex mb-6">
+          <div className="flex items-center bg-surface border border-white/10 p-3 rounded-xl w-full max-w-md">
+            <Search size={20} className="text-gray-500 mr-3" />
+            <input type="text" placeholder="Rechercher..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} className="bg-transparent border-none outline-none text-white w-full" />
           </div>
         </div>
 
-        {error && (
-          <div style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '16px', borderRadius: '12px', marginBottom: '24px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
-            Erreur de chargement.
-          </div>
-        )}
-
-        <div className="table-responsive" style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0 8px', textAlign: 'left' }}>
-            <thead>
-              <tr style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 600 }}>
-                <th style={{ padding: '12px 20px' }}>Profil</th>
-                <th style={{ padding: '12px 20px' }}>Matricule</th>
-                <th style={{ padding: '12px 20px' }}>Nom Complet</th>
-                <th style={{ padding: '12px 20px' }}>Contact</th>
-                <th style={{ padding: '12px 20px', textAlign: 'right' }}>Actions</th>
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead className="text-gray-500 text-sm uppercase border-b border-white/5">
+              <tr>
+                <th className="p-4">Profil</th>
+                <th className="p-4">Matricule</th>
+                <th className="p-4">Nom Complet</th>
+                <th className="p-4">Attributions</th>
+                <th className="p-4 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-white/5">
               {displayedUsers.map((user: any) => (
-                <tr key={user.id} className="table-row-hover" style={{ background: 'rgba(255,255,255,0.02)', borderRadius: '12px' }}>
-                  <td style={{ padding: '12px 20px', borderTopLeftRadius: '12px', borderBottomLeftRadius: '12px' }}>
-                    <img src={user.photo || `https://ui-avatars.com/api/?name=${user.firstName}+${user.lastName}&background=10b981&color=fff`} alt={user.firstName} style={{ width: '48px', height: '48px', borderRadius: '14px', objectFit: 'cover', border: '2px solid var(--border)' }} />
+                <tr key={user.id} className="hover:bg-white/5 transition-colors">
+                  <td className="p-4">
+                    <img src={user.photo || `https://ui-avatars.com/api/?name=${user.firstName}+${user.lastName}&background=3b82f6&color=fff`} className="w-12 h-12 rounded-xl object-cover" />
                   </td>
-                  <td style={{ padding: '12px 20px' }}>
-                    <span style={{ fontFamily: 'monospace', padding: '4px 8px', background: 'rgba(255,255,255,0.05)', borderRadius: '6px', fontSize: '0.85rem' }}>{user.matricule}</span>
+                  <td className="p-4 font-mono text-sm text-gray-400">{user.matricule}</td>
+                  <td className="p-4">
+                    <div className="font-bold text-white">{user.firstName} {user.lastName}</div>
+                    <div className="text-xs text-primary">{user.expertise || 'Expertise non définie'}</div>
                   </td>
-                  <td style={{ padding: '12px 20px' }}>
-                    <div style={{ fontWeight: 700, fontSize: '1rem' }}>{user.firstName} {user.lastName}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>Expertise: {user.expertise || 'Non définie'}</div>
-                  </td>
-                  <td style={{ padding: '12px 20px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
-                      <Phone size={14} color="var(--primary)" /> {user.phone || 'Non renseigné'}
+                  <td className="p-4">
+                    <div className="flex flex-wrap gap-1">
+                      {assignments.filter((a:any) => a.teacherId === user.id).map((a:any) => (
+                        <span key={a.id} className="bg-white/5 border border-white/10 px-2 py-1 rounded text-[10px] flex items-center gap-1 group">
+                          {a.subject?.name} ({a.class?.name})
+                          <X size={10} className="cursor-pointer text-red-400 opacity-0 group-hover:opacity-100" onClick={() => removeAssignment(a.id)} />
+                        </span>
+                      ))}
+                      <button onClick={() => openAssign(user)} className="bg-primary/10 text-primary px-2 py-1 rounded text-[10px] hover:bg-primary/20">+ Attribuer</button>
                     </div>
-                    {user.email && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                        <Mail size={14} /> {user.email}
-                      </div>
-                    )}
                   </td>
-                  <td style={{ padding: '12px 20px', textAlign: 'right', borderTopRightRadius: '12px', borderBottomRightRadius: '12px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                      <button className="btn-secondary" style={{ padding: '8px' }}><Edit size={16} /></button>
-                      <button onClick={() => { if(window.confirm('Supprimer cet enseignant ?')) deleteUser(user.id) }} className="btn-secondary" style={{ padding: '8px', color: '#ef4444' }}><Trash2 size={16} /></button>
+                  <td className="p-4 text-right">
+                    <div className="flex justify-end gap-2">
+                      <button onClick={() => openEdit(user)} className="p-2 bg-blue-500/10 text-blue-400 rounded-lg hover:bg-blue-500/20"><Edit size={16} /></button>
+                      <button onClick={() => { if(window.confirm('Supprimer ?')) deleteUser(user.id) }} className="p-2 bg-red-500/10 text-red-400 rounded-lg hover:bg-red-500/20"><Trash2 size={16} /></button>
                     </div>
                   </td>
                 </tr>
               ))}
-              {displayedUsers.length === 0 && (
-                <tr>
-                  <td colSpan={5} style={{ padding: '48px', textAlign: 'center', color: 'var(--text-muted)' }}>Aucun enseignant trouvé.</td>
-                </tr>
-              )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* ADD TEACHER MODAL */}
+      {/* MODAL TEACHER */}
       {isModalOpen && (
-        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-          <div className="modal-content glass-panel" style={{ width: '600px', maxWidth: '95%', padding: '32px', borderRadius: '24px', border: '1px solid var(--glass-border)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <div style={{ padding: '10px', background: 'rgba(16, 185, 129, 0.1)', borderRadius: '12px', color: '#10b981' }}>
-                  <UserPlus size={24} />
-                </div>
-                <h3 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 800 }}>Nouvel Enseignant</h3>
-              </div>
-              <button onClick={() => setIsModalOpen(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '8px' }}>
-                <X size={24} />
-              </button>
+        <div className="modal-overlay fixed inset-0 bg-black/80 backdrop-blur-md flex justify-center items-center z-50 p-4">
+          <div className="modal-content glass-panel w-full max-w-xl p-8 rounded-3xl border border-white/10">
+            <div className="flex justify-between items-center mb-8">
+              <h3 className="text-2xl font-bold">{editingTeacher ? 'Modifier Enseignant' : 'Nouvel Enseignant'}</h3>
+              <button onClick={() => setIsModalOpen(false)} className="text-gray-400 hover:text-white"><X size={24} /></button>
             </div>
-
-            <form onSubmit={handleCreate}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
-                <div className="input-group">
-                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '0.9rem' }}>Prénom</label>
-                  <input required type="text" value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value})} style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }} />
-                </div>
-                <div className="input-group">
-                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '0.9rem' }}>Nom</label>
-                  <input required type="text" value={formData.lastName} onChange={e => setFormData({...formData, lastName: e.target.value})} style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }} />
-                </div>
-                <div className="input-group">
-                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '0.9rem' }}>Matricule</label>
-                  <input required type="text" value={formData.matricule} onChange={e => setFormData({...formData, matricule: e.target.value.toUpperCase()})} style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }} />
-                </div>
-                <div className="input-group">
-                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '0.9rem' }}>Téléphone</label>
-                  <input type="text" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }} />
-                </div>
+            <form onSubmit={handleSave} className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div><label className="block text-xs text-gray-500 mb-1">Prénom</label><input required type="text" value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value})} className="w-full bg-surface border border-white/10 rounded-xl p-3 text-white" /></div>
+                <div><label className="block text-xs text-gray-500 mb-1">Nom</label><input required type="text" value={formData.lastName} onChange={e => setFormData({...formData, lastName: e.target.value})} className="w-full bg-surface border border-white/10 rounded-xl p-3 text-white" /></div>
               </div>
-
-              <div className="input-group" style={{ marginBottom: '32px' }}>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '0.9rem' }}>Email</label>
-                <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }} />
+              <div className="grid grid-cols-2 gap-4">
+                <div><label className="block text-xs text-gray-500 mb-1">Matricule</label><input required type="text" value={formData.matricule} onChange={e => setFormData({...formData, matricule: e.target.value.toUpperCase()})} className="w-full bg-surface border border-white/10 rounded-xl p-3 text-white" /></div>
+                <div><label className="block text-xs text-gray-500 mb-1">Téléphone</label><input type="text" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full bg-surface border border-white/10 rounded-xl p-3 text-white" /></div>
               </div>
-
-              <div style={{ display: 'flex', gap: '16px' }}>
-                <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)} style={{ flex: 1, padding: '14px', borderRadius: '12px' }}>Annuler</button>
-                <button type="submit" className="btn-primary" style={{ flex: 2, padding: '14px', borderRadius: '12px', fontWeight: 700, background: '#10b981' }}>Enregistrer l'enseignant</button>
+              <div><label className="block text-xs text-gray-500 mb-1">Email</label><input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full bg-surface border border-white/10 rounded-xl p-3 text-white" /></div>
+              <div><label className="block text-xs text-gray-500 mb-1">Expertise (Ex: Maths, Physique)</label><textarea value={formData.expertise} onChange={e => setFormData({...formData, expertise: e.target.value})} className="w-full bg-surface border border-white/10 rounded-xl p-3 text-white" rows={2} /></div>
+              {!editingTeacher && (
+                <div><label className="block text-xs text-gray-500 mb-1">Mot de Passe par défaut</label><input type="password" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} placeholder="kalan123" className="w-full bg-surface border border-white/10 rounded-xl p-3 text-white" /></div>
+              )}
+              <div className="flex gap-4 pt-4">
+                <button type="button" className="flex-1 btn-secondary py-4 rounded-xl" onClick={() => setIsModalOpen(false)}>Annuler</button>
+                <button type="submit" className="flex-1 btn-primary py-4 rounded-xl font-bold flex items-center justify-center gap-2"><Save size={20}/> {editingTeacher ? 'Enregistrer' : 'Créer'}</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL ASSIGNMENT */}
+      {isAssignModalOpen && (
+        <div className="modal-overlay fixed inset-0 bg-black/80 backdrop-blur-md flex justify-center items-center z-50 p-4">
+          <div className="modal-content glass-panel w-full max-w-md p-8 rounded-3xl border border-white/10 shadow-2xl">
+            <div className="flex justify-between items-center mb-8">
+              <div>
+                <h3 className="text-2xl font-bold">Attribution Pédagogique</h3>
+                <p className="text-primary text-sm font-bold">{targetTeacher?.firstName} {targetTeacher?.lastName}</p>
+              </div>
+              <button onClick={() => setIsAssignModalOpen(false)} className="text-gray-500 hover:text-white"><X size={24} /></button>
+            </div>
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">Choisir la Matière</label>
+                <select value={assignForm.subjectId} onChange={e => setAssignForm({...assignForm, subjectId: e.target.value})} className="w-full bg-surface border border-white/10 rounded-xl p-4 text-white">
+                  <option value="">Sélectionner une matière</option>
+                  {subjects.map((s:any) => <option key={s.id} value={s.id}>{s.name} (coeff {s.coefficient})</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">Choisir la Classe</label>
+                <select value={assignForm.classId} onChange={e => setAssignForm({...assignForm, classId: e.target.value})} className="w-full bg-surface border border-white/10 rounded-xl p-4 text-white">
+                  <option value="">Sélectionner une classe</option>
+                  {classes.map((c:any) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </div>
+              <div className="flex gap-4 pt-4">
+                <button className="flex-1 btn-secondary py-4 rounded-xl" onClick={() => setIsAssignModalOpen(false)}>Annuler</button>
+                <button className="flex-1 btn-primary py-4 rounded-xl font-bold" onClick={handleAssign} disabled={!assignForm.classId || !assignForm.subjectId}>Confirmer</button>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -194,4 +231,3 @@ const Teachers = () => {
 };
 
 export default Teachers;
-

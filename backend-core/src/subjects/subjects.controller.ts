@@ -1,7 +1,5 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request } from '@nestjs/common';
 import { SubjectsService } from './subjects.service';
-import { CreateSubjectDto } from './dto/create-subject.dto';
-import { UpdateSubjectDto } from './dto/update-subject.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { LicenseGuard } from '../auth/license.guard';
 import { RolesGuard } from '../auth/roles/roles.guard';
@@ -13,32 +11,38 @@ export class SubjectsController {
   constructor(private readonly subjectsService: SubjectsService) {}
 
   @Post()
-  @Roles(Role.ADMIN_ECOLE, Role.ENSEIGNANT)
-  create(@Request() req, @Body() createSubjectDto: CreateSubjectDto) {
-    return this.subjectsService.create(req.user.schoolId, createSubjectDto);
+  @Roles(Role.ADMIN_ECOLE, Role.SUPER_ADMIN)
+  create(@Request() req, @Body() data: any) {
+    return this.subjectsService.create(req.user.schoolId, data);
   }
 
   @Get()
-  @Roles(Role.ADMIN_ECOLE, Role.ENSEIGNANT)
+  @Roles(Role.ADMIN_ECOLE, Role.ENSEIGNANT, Role.SUPER_ADMIN)
   findAll(@Request() req) {
     return this.subjectsService.findAll(req.user.schoolId);
   }
 
   @Get(':id')
-  @Roles(Role.ADMIN_ECOLE, Role.ENSEIGNANT)
-  findOne(@Request() req, @Param('id') id: string) {
-    return this.subjectsService.findOne(req.user.schoolId, id);
+  @Roles(Role.ADMIN_ECOLE, Role.ENSEIGNANT, Role.SUPER_ADMIN)
+  findOne(@Param('id') id: string) {
+    return this.subjectsService.findOne(id);
   }
 
   @Patch(':id')
-  @Roles(Role.ADMIN_ECOLE)
-  update(@Request() req, @Param('id') id: string, @Body() updateSubjectDto: UpdateSubjectDto) {
-    return this.subjectsService.update(req.user.schoolId, id, updateSubjectDto);
+  @Roles(Role.ADMIN_ECOLE, Role.SUPER_ADMIN)
+  update(@Param('id') id: string, @Body() data: any) {
+    return this.subjectsService.update(id, data);
+  }
+
+  @Post(':id') // Fallback
+  @Roles(Role.ADMIN_ECOLE, Role.SUPER_ADMIN)
+  updatePost(@Param('id') id: string, @Body() data: any) {
+    return this.subjectsService.update(id, data);
   }
 
   @Delete(':id')
-  @Roles(Role.ADMIN_ECOLE)
-  remove(@Request() req, @Param('id') id: string) {
-    return this.subjectsService.remove(req.user.schoolId, id);
+  @Roles(Role.ADMIN_ECOLE, Role.SUPER_ADMIN)
+  remove(@Param('id') id: string) {
+    return this.subjectsService.remove(id);
   }
 }

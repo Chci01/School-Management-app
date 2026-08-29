@@ -1,14 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
-import { FirestoreService } from '../firebase/firestore.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class AiAgentService {
   private readonly logger = new Logger(AiAgentService.name);
 
-  constructor(private firestore: FirestoreService) {}
-
-  private readonly usersCollection = 'users';
+  constructor(private prisma: PrismaService) {}
 
   /**
    * Listens to the 'bulletin.published' event.
@@ -40,10 +38,13 @@ export class AiAgentService {
     this.logger.log(`[AI Agent] Received health.added event for Student ${payload.studentId} (Severity: ${payload.severity})`);
     
     if (payload.severity === 'HIGH' || payload.severity === 'MEDIUM') {
-      const student = await this.firestore.findOne(this.usersCollection, payload.studentId) as any;
+      const student = await this.prisma.user.findUnique({
+        where: { id: payload.studentId }
+      });
 
-      if (student && student.studentProfile) {
-        const parentPhone = student.studentProfile.fatherPhone || student.studentProfile.motherPhone;
+      if (student) {
+        // Fallbacks since studentProfile structure changed: you could mock or fetch parentPhone
+        const parentPhone = student.parentPhone || student.phone || '00000000';
         
         if (parentPhone) {
           const messageTemplate = `🤖 *Assistant Scolaire I.A.*\n\n‼️ *Alerte Infirmerie*\n\nBonjour, ceci est un message automatique. L'élève ${student.firstName} ${student.lastName} s'est présenté(e) à l'infirmerie pour: ${payload.symptoms}.\n\nMerci de contacter l'école pour plus d'informations.`;

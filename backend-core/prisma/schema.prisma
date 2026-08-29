@@ -3,78 +3,107 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model School {
-  id               String   @id @default(uuid())
+  id               String    @id @default(uuid())
   name             String
-  email            String?  @unique
-  isActive         Boolean  @default(true)
+  email            String?   @unique
+  isActive         Boolean   @default(true)
   licenseKey       String?
   licenseExpiresAt DateTime?
-  theme            String   @default("light")
+  theme            String    @default("light")
   logo             String?
   slogan           String?
   address          String?
   phone            String?
   website          String?
   primaryColor     String?
-  defaultLanguage  String?  @default("fr")
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  defaultLanguage  String?   @default("fr")
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
-  users            User[]
-  academicYears    AcademicYear[]
-  classes          Class[]
+  users           User[]
+  academicYears   AcademicYear[]
+  classes         Class[]
+  payments        Payment[]
+  communications  Communication[]
+  academicRecords AcademicRecord[] @relation("SchoolAcademicRecords")
+  supplies        Supply[]
+  documents       Document[]
 }
 
 model User {
-  id        String   @id @default(uuid())
+  id        String  @id @default(uuid())
   schoolId  String
-  matricule String   @unique
-  email     String?  @unique
+  matricule String  @unique
+  email     String? @unique
   password  String
   firstName String
   lastName  String
-  role      String   // ADMIN_SYSTEM, ADMIN_ECOLE, TEACHER, STUDENT, PARENT
-  
-  // Champs de Profil
+  role      String // ADMIN_SYSTEM, ADMIN_ECOLE, TEACHER, STUDENT, PARENT
+
+  // Profil
   phone        String?
   address      String?
-  gender       String?   // M, F
+  gender       String?
   dateOfBirth  DateTime?
   placeOfBirth String?
-  photo        String?   // URL de la photo d'identité
-  
-  // Spécifique aux Professeurs
-  expertise    String?   // Matières enseignées (ex: "Maths, Physique")
-  
-  // Spécifique aux élèves
-  classId      String?
-  parentName   String?
-  parentPhone  String?
+  photo        String?
+
+  // Relations Élève
+  classId     String?
+  parentId    String? // Lien vers le compte PARENT
+  parentName  String? // Fallback texte
+  parentPhone String? // Fallback texte
+
+  // Relations Prof
+  expertise String? // Texte libre pour l'expertise globale
 
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  school    School   @relation(fields: [schoolId], references: [id])
+  school School @relation(fields: [schoolId], references: [id])
+
+  // Auto-relation pour les parents/enfants
+  parent   User?  @relation("ParentToChildren", fields: [parentId], references: [id])
+  children User[] @relation("ParentToChildren")
+
+  assignments     TeacherAssignment[]
+  gradesReceived  Grade[]              @relation("StudentGrades")
+  gradesGiven     Grade[]              @relation("TeacherGrades")
+  attendances     Attendance[]         @relation("StudentAttendance")
+  homeworksGiven  Homework[]           @relation("TeacherHomeworks")
+  payments        Payment[]            @relation("StudentPayments")
+  messagesSent    Communication[]      @relation("SentCommunications")
+  messagesRcvd    Communication[]      @relation("ReceivedCommunications")
+  medicalRecords  MedicalRecord[]      @relation("StudentMedical")
+  conductRecords  DisciplinaryRecord[] @relation("StudentConduct")
+  academicRecords AcademicRecord[]     @relation("StudentAcademicRecords")
+  scheduleEvents  ScheduleEvent[]      @relation("TeacherScheduleEvents")
+  badgesReceived  Badge[]              @relation("StudentBadges")
+  badgesGranted   Badge[]              @relation("TeacherBadges")
+  documents       Document[]           @relation("UserDocuments")
+  documentRequests DocumentRequest[]   @relation("StudentDocumentRequests")
 }
 
 model AcademicYear {
   id        String   @id @default(uuid())
   schoolId  String
-  name      String   // e.g., "2025-2026"
+  name      String // e.g., "2025-2026"
   startDate DateTime
   endDate   DateTime
   isActive  Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  school    School   @relation(fields: [schoolId], references: [id])
-  classes   Class[]
+  school          School           @relation(fields: [schoolId], references: [id])
+  classes         Class[]
+  academicRecords AcademicRecord[] @relation("YearAcademicRecords")
 }
 
 model Class {
@@ -82,11 +111,293 @@ model Class {
   schoolId       String
   academicYearId String?
   name           String
-  level          String   // e.g., "6ème", "9ème", "Terminale"
+  level          String   @default("")
   capacity       Int      @default(0)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  school         School        @relation(fields: [schoolId], references: [id])
-  academicYear   AcademicYear? @relation(fields: [academicYearId], references: [id])
+  school          School              @relation(fields: [schoolId], references: [id])
+  academicYear    AcademicYear?       @relation(fields: [academicYearId], references: [id])
+  assignments     TeacherAssignment[]
+  grades          Grade[]
+  attendances     Attendance[]
+  homeworks       Homework[]
+  academicRecords AcademicRecord[]    @relation("ClassAcademicRecords")
+  scheduleEvents  ScheduleEvent[]
+}
+
+model Subject {
+  id          String   @id @default(uuid())
+  schoolId    String
+  name        String
+  code        String?
+  coefficient Int      @default(1)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  assignments    TeacherAssignment[]
+  grades         Grade[]
+  homeworks      Homework[]
+  scheduleEvents ScheduleEvent[]
+}
+
+model TeacherAssignment {
+  id        String   @id @default(uuid())
+  teacherId String
+  classId   String
+  subjectId String
+  createdAt DateTime @default(now())
+
+  teacher User    @relation(fields: [teacherId], references: [id])
+  class   Class   @relation(fields: [classId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id])
+
+  @@unique([teacherId, classId, subjectId])
+}
+
+model Grade {
+  id             String   @id @default(uuid())
+  studentId      String
+  subjectId      String
+  classId        String
+  academicYearId String
+  term           Int // 1, 2, 3
+  value          Float
+  type           String // DEVOIR, COMPOSITION
+  teacherId      String?
+  comments       String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  student User    @relation("StudentGrades", fields: [studentId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id])
+  class   Class   @relation(fields: [classId], references: [id])
+  teacher User?   @relation("TeacherGrades", fields: [teacherId], references: [id])
+}
+
+model Attendance {
+  id        String   @id @default(uuid())
+  studentId String
+  classId   String
+  date      DateTime
+  status    String // ABSENT, LATE, EXCUSED
+  reason    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student User  @relation("StudentAttendance", fields: [studentId], references: [id])
+  class   Class @relation(fields: [classId], references: [id])
+}
+
+model Homework {
+  id          String   @id @default(uuid())
+  classId     String
+  subjectId   String
+  teacherId   String
+  title       String
+  description String?
+  dueDate     DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  class   Class   @relation(fields: [classId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id])
+  teacher User    @relation("TeacherHomeworks", fields: [teacherId], references: [id])
+}
+
+model Payment {
+  id        String   @id @default(uuid())
+  schoolId  String
+  studentId String?
+  amount    Float
+  currency  String   @default("XOF")
+  status    String // PENDING, COMPLETED, FAILED
+  method    String // LIGDICASH, CASH, BANK
+  reference String?
+  token     String?
+  type      String   @default("TUITION") // SUBSCRIPTION, TUITION
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  school  School @relation(fields: [schoolId], references: [id])
+  student User?  @relation("StudentPayments", fields: [studentId], references: [id])
+}
+
+model Communication {
+  id          String   @id @default(uuid())
+  schoolId    String
+  senderId    String
+  receiverId  String?
+  type        String // NEWS, ANNOUNCEMENT, MESSAGE
+  title       String?
+  content     String
+  attachments String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  school   School @relation(fields: [schoolId], references: [id])
+  sender   User   @relation("SentCommunications", fields: [senderId], references: [id])
+  receiver User?  @relation("ReceivedCommunications", fields: [receiverId], references: [id])
+}
+
+model MedicalRecord {
+  id        String   @id @default(uuid())
+  studentId String
+  date      DateTime
+  reason    String
+  treatment String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student User @relation("StudentMedical", fields: [studentId], references: [id])
+}
+
+model DisciplinaryRecord {
+  id          String   @id @default(uuid())
+  studentId   String
+  date        DateTime
+  type        String // OBSERVATION, WARNING, EXCLUSION
+  reason      String
+  actionTaken String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  student User @relation("StudentConduct", fields: [studentId], references: [id])
+}
+
+model AcademicRecord {
+  id             String   @id @default(uuid())
+  studentId      String
+  academicYearId String
+  classId        String
+  schoolId       String
+  average        Float?
+  status         String? // PASS, FAIL
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  student      User         @relation("StudentAcademicRecords", fields: [studentId], references: [id])
+  academicYear AcademicYear @relation("YearAcademicRecords", fields: [academicYearId], references: [id])
+  class        Class        @relation("ClassAcademicRecords", fields: [classId], references: [id])
+  school       School       @relation("SchoolAcademicRecords", fields: [schoolId], references: [id])
+}
+
+model ScheduleEvent {
+  id        String   @id @default(uuid())
+  classId   String
+  subjectId String
+  teacherId String
+  dayOfWeek Int // 1 (Lundi) to 7 (Dimanche)
+  startTime String // e.g., "08:00"
+  endTime   String // e.g., "09:00"
+  room      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  class   Class   @relation(fields: [classId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id])
+  teacher User    @relation("TeacherScheduleEvents", fields: [teacherId], references: [id])
+}
+
+model Supply {
+  id          String   @id @default(uuid())
+  schoolId    String
+  name        String
+  description String?
+  quantity    Int      @default(0)
+  price       Float
+  type        String // BOOK, UNIFORM, STATIONERY
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  school School @relation(fields: [schoolId], references: [id])
+}
+
+model Badge {
+  id          String   @id @default(uuid())
+  studentId   String
+  name        String
+  icon        String
+  description String?
+  awardedBy   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  student User  @relation("StudentBadges", fields: [studentId], references: [id])
+  granter User? @relation("TeacherBadges", fields: [awardedBy], references: [id])
+}
+
+model Document {
+  id        String   @id @default(uuid())
+  schoolId  String
+  ownerId   String?
+  title     String
+  url       String
+  type      String // PDF, IMAGE, DOC
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  school School @relation(fields: [schoolId], references: [id])
+  owner  User?  @relation("UserDocuments", fields: [ownerId], references: [id])
+}
+
+model ConductGrade {
+  id          String   @id @default(uuid())
+  schoolId    String?
+  studentId   String
+  teacherId   String
+  month       Int
+  year        Int
+  grade       Float
+  appreciation String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model GlobalConduct {
+  id          String   @id @default(uuid())
+  schoolId    String?
+  studentId   String
+  month       Int
+  year        Int
+  grade       Float
+  appreciation String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model DocumentRequest {
+  id          String   @id @default(uuid())
+  schoolId    String
+  studentId   String
+  type        String
+  reason      String?
+  status      String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  student     User     @relation("StudentDocumentRequests", fields: [studentId], references: [id])
+}
+
+model TermPublication {
+  id             String   @id @default(uuid())
+  schoolId       String
+  academicYearId String
+  classId        String?
+  term           Int
+  isPublished    Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model LicenseVoucher {
+  id          String   @id @default(uuid())
+  code        String   @unique
+  days        Int      @default(30)
+  isUsed      Boolean  @default(false)
+  schoolId    String?
+  usedAt      DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }

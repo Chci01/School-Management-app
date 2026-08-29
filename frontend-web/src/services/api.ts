@@ -2,8 +2,8 @@ import axios from 'axios';
 
 // Create a globally configured Axios instance
 export const api = axios.create({
-  // baseURL: 'https://school-management-app-6pkq.onrender.com', // Old Render backend
   baseURL: 'https://school-management-app-6pkq.onrender.com', // Render backend
+  // baseURL: 'http://localhost:3000', // Local backend
   headers: {
     'Content-Type': 'application/json',
   },
