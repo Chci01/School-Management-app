@@ -149,11 +149,25 @@ const RootLayout = () => {
                           
                           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
                               <div className="avatar" style={{ width: '40px', height: '40px', borderRadius: '50%', overflow: 'hidden' }}>
-                                  <img src={user?.photo || "https://i.pravatar.cc/150?u=admin"} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                  <img src={user?.photo || user?.school?.logoUrl || "https://i.pravatar.cc/150?u=admin"} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                               </div>
-                              <div className="user-info mobile-hidden">
-                                  <span className="user-name" style={{ color: 'var(--text)', fontWeight: 600, fontSize: '14px' }}>{user?.firstName || 'Admin'}</span>
-                                  <span className="user-role" style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{user?.role || 'Administrateur'}</span>
+                              <div className="user-info mobile-hidden" style={{ display: 'flex', flexDirection: 'column' }}>
+                                  <span className="user-name" style={{ color: 'var(--text)', fontWeight: 600, fontSize: '14px' }}>
+                                       {user?.firstName ? `${user.firstName} ${user.lastName || ''}` : (
+                                          (() => {
+                                              switch(user?.role?.toUpperCase()) {
+                                                  case 'SUPER_ADMIN': return 'Dev Admin';
+                                                  case 'ADMIN_ECOLE': return 'Direction';
+                                                  case 'SECRETAIRE': return 'Secrétaire';
+                                                  case 'SURVEILLANT': return 'Surveillant';
+                                                  case 'ENSEIGNANT': return 'Enseignant';
+                                                  case 'GARDIEN': return 'Gardien';
+                                                  default: return user?.role || 'Admin';
+                                              }
+                                          })()
+                                       )}
+                                  </span>
+                                  <span className="user-role" style={{ fontSize: '12px', color: 'var(--text-muted)', lineHeight: '1.2' }}>{schoolName}</span>
                               </div>
                           </div>
                      </div>
