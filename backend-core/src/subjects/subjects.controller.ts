@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Request, Query } from '@nestjs/common';
 import { SubjectsService } from './subjects.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { LicenseGuard } from '../auth/license.guard';
@@ -18,8 +18,10 @@ export class SubjectsController {
 
   @Get()
   @Roles(Role.ADMIN_ECOLE, Role.ENSEIGNANT, Role.SUPER_ADMIN)
-  findAll(@Request() req) {
-    return this.subjectsService.findAll(req.user.schoolId);
+  findAll(@Request() req, @Query('schoolId') querySchoolId?: string) {
+    const schoolId = req.user.schoolId || querySchoolId;
+    if (!schoolId) return [];
+    return this.subjectsService.findAll(schoolId);
   }
 
   @Get(':id')

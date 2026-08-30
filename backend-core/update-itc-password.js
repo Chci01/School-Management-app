@@ -6,7 +6,11 @@ async function main() {
   try {
     const adminUser = await prisma.user.findFirst({
       where: {
-        email: 'local_admin_3@itc.com',
+        OR: [
+          { email: 'local_admin_3@itc.com' },
+          { email: 'admin@itc.com' },
+          { role: 'ADMIN_ECOLE' }
+        ]
       },
     });
 
@@ -17,12 +21,17 @@ async function main() {
 
     const hashedPassword = await bcrypt.hash('admin1234', 10);
 
-    await prisma.user.update({
+    const updated = await prisma.user.update({
       where: { id: adminUser.id },
-      data: { password: hashedPassword },
+      data: { 
+        email: 'admin@itc.com',
+        password: hashedPassword 
+      },
     });
 
-    console.log('Password changed successfully for local_admin_3@itc.com to admin1234');
+    console.log('Password and email changed successfully for user ID:', updated.id);
+    console.log('New Email:', updated.email);
+    console.log('Matricule:', updated.matricule);
   } catch (error) {
     console.error('Error:', error);
   } finally {

@@ -5,10 +5,17 @@ const Payments = () => {
   const { payments, isLoading, error } = usePayments();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [receiptToPrint, setReceiptToPrint] = useState<any>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   // Derive sums
-  const displayedPayments = Array.isArray(payments) ? payments : [];
-  const totalCollected = displayedPayments.reduce((acc: number, curr: any) => acc + (curr.amount || 0), 0);
+  const allPayments = Array.isArray(payments) ? payments : [];
+  const displayedPayments = allPayments.filter((p: any) => 
+     p.receiptNumber?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+     p.student?.firstName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+     p.student?.lastName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+     p.student?.matricule?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+  const totalCollected = allPayments.reduce((acc: number, curr: any) => acc + (curr.amount || 0), 0);
 
   if (isLoading) {
       return (
@@ -43,7 +50,7 @@ const Payments = () => {
       {/* Toolbar */}
       <div className="toolbar glass-panel" style={{ padding: '16px', marginBottom: '24px', display: 'flex', gap: '16px', alignItems: 'center' }}>
           <div className="input-group" style={{ margin: 0, flex: 1 }}>
-              <input type="text" placeholder="Rechercher par n° de reçu ou élève..." style={{ width: '100%', maxWidth: '300px' }} />
+              <input type="text" placeholder="Rechercher par n° de reçu ou élève..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)} style={{ width: '100%', maxWidth: '300px' }} />
           </div>
       </div>
 

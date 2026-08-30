@@ -4,6 +4,7 @@ import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 import { LogOut, Menu, X, LayoutDashboard, Users, UserCheck, Briefcase, Layers, BookOpen, ClipboardList, CalendarX, Calendar, FileText, MessageSquare, CreditCard, Library, BarChart, Settings, GraduationCap, FolderOpen, HeartPulse, Package, Activity, Award, Newspaper, Bell, ChevronDown } from 'lucide-react';
 import logo from '../../assets/logo.png';
+import { useAcademic } from '../../hooks/useAcademic';
 import { BackButton } from '../common/BackButton';
 
 const RootLayout = () => {
@@ -13,6 +14,7 @@ const RootLayout = () => {
 
     const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
     const closeSidebar = () => setIsSidebarOpen(false);
+    const { academicYears, activeYear } = useAcademic(user?.schoolId);
 
     const routeNames: Record<string, string> = {
         '/': 'Tableau de bord',
@@ -39,7 +41,7 @@ const RootLayout = () => {
         '/settings': 'Paramètres'
     };
     const currentPageName = routeNames[location.pathname] || 'Tableau de bord';
-    const schoolName = "Lycée KalanSira"; // Could be dynamically fetched
+    const schoolName = user?.schoolName || "Lycée KalanSira";
 
     const isMobileRole = ['TEACHER', 'PROFESSOR', 'PARENT', 'STUDENT', 'ENSEIGNANT', 'ELEVE'].includes(user?.role?.toUpperCase() || '');
 
@@ -61,10 +63,10 @@ const RootLayout = () => {
             <aside className={`sidebar glass-panel ${isSidebarOpen ? 'open' : ''}`}>
                 <div className="sidebar-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <img src={logo} alt="App Logo" style={{ height: '32px', objectFit: 'contain' }} />
+                        <img src={user?.schoolLogo || logo} alt="App Logo" style={{ height: '32px', objectFit: 'contain' }} />
                         <div>
-                            <h3 style={{ fontSize: '1.1rem', margin: 0 }}>KalanSira Mali</h3>
-                            <p style={{ fontSize: '0.75rem', margin: 0, color: 'var(--text-muted)' }}>{schoolName}</p>
+                            <h3 style={{ fontSize: '1.1rem', margin: 0, color: 'var(--text)' }}>{schoolName}</h3>
+                            <p style={{ fontSize: '0.75rem', margin: 0, color: 'var(--text-muted)' }}>Mali</p>
                         </div>
                     </div>
                     <button className="sidebar-close-btn" onClick={closeSidebar}>
@@ -128,8 +130,12 @@ const RootLayout = () => {
                               {schoolName}
                           </div>
                           
-                          <div className="dropdown-mini mobile-hidden" style={{ border: '1px solid var(--glass-border)', padding: '8px 16px', borderRadius: '8px', color: 'var(--text)', fontSize: '14px', background: 'var(--surface)', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                              Année scolaire 2024-2025 <ChevronDown size={16} />
+                          <div className="dropdown-mini mobile-hidden" style={{ border: '1px solid var(--glass-border)', padding: '4px 8px', borderRadius: '8px', color: 'var(--text)', fontSize: '14px', background: 'var(--surface)', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                              <select style={{ background: 'transparent', border: 'none', color: 'inherit', outline: 'none', cursor: 'pointer' }} defaultValue={activeYear?.id || ''}>
+                                  {academicYears && academicYears.length > 0 ? academicYears.map((y: any) => (
+                                      <option key={y.id} value={y.id}>{y.name}</option>
+                                  )) : <option value="">Année scolaire --</option>}
+                              </select>
                           </div>
                           
                           <div style={{ position: 'relative', cursor: 'pointer', padding: '8px' }}>

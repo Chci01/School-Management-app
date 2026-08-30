@@ -56,7 +56,7 @@ export class SchoolsController {
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard, LicenseGuard, RolesGuard)
-  @Roles(Role.SUPER_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN_ECOLE)
   update(@Param('id') id: string, @Body() updateSchoolDto: UpdateSchoolDto) {
     return this.schoolsService.update(id, updateSchoolDto);
   }

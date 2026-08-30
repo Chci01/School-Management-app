@@ -33,6 +33,11 @@ export class AuthService {
       matricule: user.matricule,
       role: user.role,
       schoolId: user.schoolId,
+      firstName: user.firstName,
+      photo: user.photo,
+      schoolName: user.school?.name || 'Monalisa',
+      schoolLogo: user.school?.logo || '',
+      schoolTheme: user.school?.theme || 'light',
     };
     return {
       access_token: this.jwtService.sign(payload),

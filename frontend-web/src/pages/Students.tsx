@@ -1,37 +1,94 @@
-
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useUsers } from '../hooks/useUsers';
 import { useAuth } from '../hooks/useAuth';
-import { Users, Plus, Search, Trash2, Edit, X, UserPlus, Phone, Mail, Hash } from 'lucide-react';
+import { Users, Plus, Search, Trash2, Edit, X, UserPlus, Phone, Mail, Hash, Calendar, MapPin, Upload, Link } from 'lucide-react';
 
 const Students = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingStudentId, setEditingStudentId] = useState<string | null>(null);
+  
   const { currentSchoolId } = useAuth();
-  const { users, isLoading, error, deleteUser, createUser } = useUsers(currentSchoolId!, 'ELEVE');
+  const { users, isLoading, error, deleteUser, createUser, updateUser } = useUsers(currentSchoolId!, 'ELEVE');
+  const { users: parents } = useUsers(currentSchoolId!, 'PARENT'); // Pour la liste deroulante
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form state
-  const [formData, setFormData] = useState({
+  const defaultForm = {
     firstName: '',
     lastName: '',
     matricule: '',
     email: '',
     phone: '',
-    password: 'password123', // Default password
-  });
+    dateOfBirth: '',
+    placeOfBirth: '',
+    parentId: '',
+    photo: '',
+    password: 'password123',
+  };
+  const [formData, setFormData] = useState(defaultForm);
 
-  const handleCreate = (e: React.FormEvent) => {
+  const handleEditClick = (student: any) => {
+    setEditingStudentId(student.id);
+    setFormData({
+      firstName: student.firstName || '',
+      lastName: student.lastName || '',
+      matricule: student.matricule || '',
+      email: student.email || '',
+      phone: student.phone || '',
+      dateOfBirth: student.dateOfBirth ? new Date(student.dateOfBirth).toISOString().split('T')[0] : '',
+      placeOfBirth: student.placeOfBirth || '',
+      parentId: student.parentId || '',
+      photo: student.photo || '',
+      password: '', // Leave empty when editing to not change
+    });
+    setIsModalOpen(true);
+  };
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData({ ...formData, photo: reader.result as string });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCreateOrUpdate = (e: React.FormEvent) => {
     e.preventDefault();
-    createUser({
+    
+    const payload = {
       ...formData,
       role: 'ELEVE',
       schoolId: currentSchoolId,
-    }, {
-      onSuccess: () => {
-        setIsModalOpen(false);
-        setFormData({ firstName: '', lastName: '', matricule: '', email: '', phone: '', password: 'password123' });
+    };
+    if (!payload.password) delete payload.password; // Don't send empty password
+
+    if (editingStudentId) {
+      updateUser({ id: editingStudentId, data: payload }, {
+        onSuccess: () => {
+          setIsModalOpen(false);
+          setEditingStudentId(null);
+          setFormData(defaultForm);
+        }
+      });
+    } else {
+      createUser(payload, {
+        onSuccess: () => {
+          setIsModalOpen(false);
+          setFormData(defaultForm);
+        }
+      });
+    }
+  };
+
+  const handleImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (file) {
+          alert('La fonctionnalité d\'import automatique arrive bientôt. En attendant, veuillez rajouter les élèves manuellement.');
       }
-    });
   };
 
   if (isLoading) {
@@ -57,11 +114,11 @@ const Students = () => {
             </div>
             Gestion des Élèves
           </h2>
-          <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>Consultez et gérez les profils des élèves de votre établissement.</p>
+          <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>Consultez, ajoutez et liez les élèves à leurs parents.</p>
         </div>
         <button 
           className="btn-primary" 
-          onClick={() => setIsModalOpen(true)}
+          onClick={() => { setEditingStudentId(null); setFormData(defaultForm); setIsModalOpen(true); }}
           style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 24px', borderRadius: '12px', fontWeight: 700 }}
         >
           <Plus size={20} /> Ajouter un élève
@@ -69,7 +126,7 @@ const Students = () => {
       </div>
 
       <div className="dash-card glass-panel" style={{ padding: '24px', borderRadius: '24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px', gap: '16px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px', gap: '16px', flexWrap: 'wrap' }}>
           <div style={{ display: 'flex', alignItems: 'center', background: 'var(--surface)', padding: '12px 20px', borderRadius: '12px', width: '400px', border: '1px solid var(--border)' }}>
             <Search size={20} color="var(--text-muted)" />
             <input 
@@ -83,13 +140,16 @@ const Students = () => {
           
           <div style={{ display: 'flex', gap: '12px' }}>
              <button className="btn-secondary" style={{ padding: '10px 20px' }}>Exporter CSV</button>
-             <button className="btn-secondary" style={{ padding: '10px 20px' }}>Importer</button>
+             <label className="btn-secondary" style={{ padding: '10px 20px', cursor: 'pointer' }}>
+                 Importer
+                 <input type="file" accept=".csv" onChange={handleImport} style={{ display: 'none' }} />
+             </label>
           </div>
         </div>
 
         {error && (
           <div style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '16px', borderRadius: '12px', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
-            <X size={20} /> Erreur de chargement. Veuillez vérifier votre connexion ou votre licence.
+            <X size={20} /> Erreur de chargement.
           </div>
         )}
 
@@ -100,7 +160,7 @@ const Students = () => {
                 <th style={{ padding: '12px 20px' }}>Profil</th>
                 <th style={{ padding: '12px 20px' }}>Matricule</th>
                 <th style={{ padding: '12px 20px' }}>Nom Complet</th>
-                <th style={{ padding: '12px 20px' }}>Contact</th>
+                <th style={{ padding: '12px 20px' }}>Parent li&eacute;</th>
                 <th style={{ padding: '12px 20px', textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
@@ -117,21 +177,18 @@ const Students = () => {
                   </td>
                   <td style={{ padding: '12px 20px' }}>
                     <div style={{ fontWeight: 700, fontSize: '1rem' }}>{user.firstName} {user.lastName}</div>
-                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>Inscrit le {new Date(user.createdAt?.seconds * 1000 || Date.now()).toLocaleDateString()}</div>
+                    <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '2px' }}>Né(e) le {user.dateOfBirth ? new Date(user.dateOfBirth).toLocaleDateString() : 'N/A'} {user.placeOfBirth ? `à ${user.placeOfBirth}` : ''}</div>
                   </td>
                   <td style={{ padding: '12px 20px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
-                      <Phone size={14} color="var(--primary)" /> {user.phone || 'Non renseigné'}
-                    </div>
-                    {user.email && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
-                        <Mail size={14} /> {user.email}
-                      </div>
+                    {user.parent ? (
+                        <div style={{ fontSize: '0.9rem', color: 'var(--primary)' }}>{user.parent.firstName} {user.parent.lastName}</div>
+                    ) : (
+                        <span style={{ fontSize: '0.8rem', color: '#ef4444' }}>Non rattaché</span>
                     )}
                   </td>
                   <td style={{ padding: '12px 20px', textAlign: 'right', borderTopRightRadius: '12px', borderBottomRightRadius: '12px' }}>
                     <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                      <button className="btn-secondary" style={{ padding: '8px' }}><Edit size={16} /></button>
+                      <button onClick={() => handleEditClick(user)} className="btn-secondary" style={{ padding: '8px' }}><Edit size={16} /></button>
                       <button onClick={() => { if(window.confirm('Supprimer cet élève ?')) deleteUser(user.id) }} className="btn-secondary" style={{ padding: '8px', color: '#ef4444' }}><Trash2 size={16} /></button>
                     </div>
                   </td>
@@ -142,7 +199,6 @@ const Students = () => {
                   <td colSpan={5} style={{ padding: '48px', textAlign: 'center' }}>
                     <Users size={48} style={{ margin: '0 auto 16px', opacity: 0.2 }} />
                     <div style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>Aucun élève trouvé.</div>
-                    <button className="btn-primary" onClick={() => setIsModalOpen(true)} style={{ marginTop: '16px' }}>Ajouter un élève</button>
                   </td>
                 </tr>
               )}
@@ -151,24 +207,36 @@ const Students = () => {
         </div>
       </div>
 
-      {/* ADD STUDENT MODAL */}
+      {/* MODAL AJOUT / MODIF */}
       {isModalOpen && (
-        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-          <div className="modal-content glass-panel" style={{ width: '600px', maxWidth: '95%', padding: '32px', borderRadius: '24px', border: '1px solid var(--glass-border)' }}>
+        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, overflowY: 'auto' }}>
+          <div className="modal-content glass-panel" style={{ width: '700px', maxWidth: '95%', padding: '32px', borderRadius: '24px', border: '1px solid var(--glass-border)', margin: 'auto' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div style={{ padding: '10px', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '12px', color: 'var(--primary)' }}>
-                  <UserPlus size={24} />
+                  {editingStudentId ? <Edit size={24} /> : <UserPlus size={24} />}
                 </div>
-                <h3 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 800 }}>Nouvel Élève</h3>
+                <h3 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 800 }}>{editingStudentId ? 'Modifier l\'élève' : 'Nouvel Élève'}</h3>
               </div>
-              <button onClick={() => setIsModalOpen(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '8px' }}>
+              <button type="button" onClick={() => setIsModalOpen(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '8px' }}>
                 <X size={24} />
               </button>
             </div>
 
-            <form onSubmit={handleCreate}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
+            <form onSubmit={handleCreateOrUpdate}>
+              
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
+                 <div style={{ position: 'relative', width: '100px', height: '100px', borderRadius: '50%', border: '2px dashed var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', cursor: 'pointer' }} onClick={() => fileInputRef.current?.click()}>
+                    {formData.photo ? (
+                        <img src={formData.photo} alt="Photo" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                        <Upload size={32} color="var(--primary)" />
+                    )}
+                 </div>
+                 <input type="file" accept="image/png, image/jpeg, image/jpg" ref={fileInputRef} style={{ display: 'none' }} onChange={handlePhotoUpload} />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '16px' }}>
                 <div className="input-group">
                   <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '0.9rem' }}>Prénom</label>
                   <input required type="text" value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value})} style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }} />
@@ -177,6 +245,39 @@ const Students = () => {
                   <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '0.9rem' }}>Nom</label>
                   <input required type="text" value={formData.lastName} onChange={e => setFormData({...formData, lastName: e.target.value})} style={{ width: '100%', padding: '12px 16px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }} />
                 </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '16px' }}>
+                <div className="input-group">
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '0.9rem' }}>Date de naissance</label>
+                  <div style={{ position: 'relative' }}>
+                    <Calendar size={16} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                    <input type="date" value={formData.dateOfBirth} onChange={e => setFormData({...formData, dateOfBirth: e.target.value})} style={{ width: '100%', padding: '12px 16px 12px 40px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }} />
+                  </div>
+                </div>
+                <div className="input-group">
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '0.9rem' }}>Lieu de naissance</label>
+                  <div style={{ position: 'relative' }}>
+                     <MapPin size={16} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                     <input type="text" value={formData.placeOfBirth} onChange={e => setFormData({...formData, placeOfBirth: e.target.value})} style={{ width: '100%', padding: '12px 16px 12px 40px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }} />
+                  </div>
+                </div>
+              </div>
+
+              <div className="input-group" style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '0.9rem' }}>Rattacher à un parent (Lien Parent-Élève)</label>
+                <div style={{ position: 'relative' }}>
+                  <Link size={16} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+                  <select value={formData.parentId} onChange={e => setFormData({...formData, parentId: e.target.value})} style={{ width: '100%', padding: '12px 16px 12px 40px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }}>
+                     <option value="">-- Aucun parent sélectionné --</option>
+                     {Array.isArray(parents) && parents.map((p: any) => (
+                         <option key={p.id} value={p.id}>{p.firstName} {p.lastName} ({p.phone})</option>
+                     ))}
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '32px' }}>
                 <div className="input-group">
                   <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '0.9rem' }}>Matricule</label>
                   <div style={{ position: 'relative' }}>
@@ -185,7 +286,7 @@ const Students = () => {
                   </div>
                 </div>
                 <div className="input-group">
-                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '0.9rem' }}>Téléphone</label>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '0.9rem' }}>Téléphone / Urgence</label>
                   <div style={{ position: 'relative' }}>
                     <Phone size={16} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                     <input type="text" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} style={{ width: '100%', padding: '12px 16px 12px 40px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }} />
@@ -193,17 +294,11 @@ const Students = () => {
                 </div>
               </div>
 
-              <div className="input-group" style={{ marginBottom: '32px' }}>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '0.9rem' }}>Email (Optionnel)</label>
-                <div style={{ position: 'relative' }}>
-                  <Mail size={16} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                  <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} style={{ width: '100%', padding: '12px 16px 12px 40px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }} />
-                </div>
-              </div>
-
               <div style={{ display: 'flex', gap: '16px' }}>
                 <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)} style={{ flex: 1, padding: '14px', borderRadius: '12px' }}>Annuler</button>
-                <button type="submit" className="btn-primary" style={{ flex: 2, padding: '14px', borderRadius: '12px', fontWeight: 700 }}>Enregistrer l'élève</button>
+                <button type="submit" className="btn-primary" style={{ flex: 2, padding: '14px', borderRadius: '12px', fontWeight: 700 }}>
+                  {editingStudentId ? 'Mettre à jour' : 'Enregistrer l\'élève'}
+                </button>
               </div>
             </form>
           </div>
@@ -214,4 +309,3 @@ const Students = () => {
 };
 
 export default Students;
-

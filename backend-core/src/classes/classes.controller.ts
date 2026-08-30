@@ -19,8 +19,9 @@ export class ClassesController {
 
   @Get()
   @Roles(Role.ADMIN_ECOLE, Role.ENSEIGNANT, Role.SUPER_ADMIN)
-  findAll(@Request() req) {
-    const schoolId = req.user.schoolId;
+  findAll(@Request() req, @Query('schoolId') querySchoolId?: string) {
+    const schoolId = req.user.schoolId || querySchoolId;
+    if (!schoolId) return [];
     return this.classesService.findAll(schoolId);
   }
 
