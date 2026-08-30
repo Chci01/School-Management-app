@@ -121,14 +121,14 @@ const Grades = () => {
             <label className="block text-[10px] font-bold text-gray-500 mb-1">CLASSE</label>
             <select value={selectedClass} onChange={(e) => setSelectedClass(e.target.value)} className="w-full bg-surface border border-white/10 rounded-lg p-2 text-sm text-white">
               <option value="">Toutes les classes</option>
-              {classes.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
+              {Array.isArray(classes) && classes.map((c: any) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </div>
           <div>
             <label className="block text-[10px] font-bold text-gray-500 mb-1">MATIÈRE</label>
             <select value={selectedSubject} onChange={(e) => setSelectedSubject(e.target.value)} className="w-full bg-surface border border-white/10 rounded-lg p-2 text-sm text-white">
               <option value="">Toutes les matières</option>
-              {subjects.map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}
+              {Array.isArray(subjects) && subjects.map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
           </div>
           <div>

@@ -41,7 +41,7 @@ export const useSubjects = (schoolId?: string, academicYearId?: string) => {
   });
 
   return { 
-    subjects, 
+    subjects: subjects || [],
     isLoading, 
     error, 
     createSubject: createSubjectMutation.mutateAsync, 
