@@ -20,4 +20,30 @@ export class AuthController {
 
     return this.authService.login(user);
   }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('setup-admin')
+  async setupAdmin() {
+    const prismaClient = new (require('@prisma/client').PrismaClient)();
+    try {
+      const bcrypt = require('bcrypt');
+      const adminUser = await prismaClient.user.findFirst({
+        where: { role: 'ADMIN_ECOLE' }
+      });
+      if (adminUser) {
+        const hashedPassword = await bcrypt.hash('admin1234', 10);
+        await prismaClient.user.update({
+          where: { id: adminUser.id },
+          data: { 
+            email: 'admin@itc.com',
+            password: hashedPassword 
+          }
+        });
+        return { success: true, message: 'Admin updated successfully' };
+      }
+      return { success: false, message: 'No admin found' };
+    } finally {
+      await prismaClient.$disconnect();
+    }
+  }
 }
