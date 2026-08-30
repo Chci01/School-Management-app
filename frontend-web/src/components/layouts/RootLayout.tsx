@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
 
 import { useAuth } from '../../hooks/useAuth';
-import { LogOut, Menu, X, LayoutDashboard, Users, UserCheck, Briefcase, Layers, BookOpen, ClipboardList, CalendarX, Calendar, FileText, MessageSquare, CreditCard, Library, BarChart, Settings, GraduationCap, FolderOpen, HeartPulse, Package, Activity, Award, Newspaper, Bell, ChevronDown } from 'lucide-react';
+import { LogOut, Menu, X, LayoutDashboard, Users, UserCheck, Briefcase, Layers, BookOpen, ClipboardList, CalendarX, Calendar, FileText, MessageSquare, CreditCard, Library, BarChart, Settings, GraduationCap, FolderOpen, HeartPulse, Package, Activity, Award, Newspaper, Bell, UserCog, DollarSign } from 'lucide-react';
 import logo from '../../assets/logo.png';
 import { useAcademic } from '../../hooks/useAcademic';
 import { BackButton } from '../common/BackButton';
@@ -34,6 +34,8 @@ const RootLayout = () => {
         '/conduct': 'Conduite',
         '/badges': 'Badges',
         '/payments': 'Frais scolaires',
+        '/finances': 'Finances',
+        '/personnel': 'Personnel',
         '/library': 'Bibliothèque',
         '/documents': 'Documents',
         '/health': 'Infirmerie',
@@ -98,7 +100,9 @@ const RootLayout = () => {
                          <li><NavLink to="/badges" onClick={closeSidebar}><Award size={20} /> Badges</NavLink></li>
                          
                          <li className="nav-group-title" style={{ padding: '12px 16px', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '1px', color: 'var(--text-muted)', fontWeight: 600, marginTop: '8px' }}>Administration</li>
+                         <li><NavLink to="/personnel" onClick={closeSidebar}><UserCog size={20} /> Personnel</NavLink></li>
                          <li><NavLink to="/payments" onClick={closeSidebar}><CreditCard size={20} /> Frais scolaires</NavLink></li>
+                         <li><NavLink to="/finances" onClick={closeSidebar}><DollarSign size={20} /> Finances (Dépenses)</NavLink></li>
                          <li><NavLink to="/library" onClick={closeSidebar}><Library size={20} /> Bibliothèque</NavLink></li>
                          <li><NavLink to="/documents" onClick={closeSidebar}><FolderOpen size={20} /> Documents</NavLink></li>
                          <li><NavLink to="/health" onClick={closeSidebar}><HeartPulse size={20} /> Infirmerie</NavLink></li>

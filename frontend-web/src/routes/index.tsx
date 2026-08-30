@@ -22,6 +22,8 @@ import Subscription from '../pages/Subscription';
 import Students from '../pages/Students';
 import Parents from '../pages/Parents';
 import Teachers from '../pages/Teachers';
+import Personnel from '../pages/Personnel';
+import Finances from '../pages/Finances';
 import Classes from '../pages/Classes';
 import Subjects from '../pages/Subjects';
 import Grades from '../pages/Grades';
@@ -99,6 +101,10 @@ export const router = createHashRouter([
         element: <Payments />,
       },
       {
+        path: 'finances',
+        element: <Finances />,
+      },
+      {
         path: 'announcements',
         element: <Announcements />,
       },
@@ -155,6 +161,14 @@ export const router = createHashRouter([
         element: (
           <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'ADMIN_SYSTEM', 'ADMIN_ECOLE']}>
             <Teachers />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'personnel',
+        element: (
+          <ProtectedRoute allowedRoles={['SUPER_ADMIN', 'ADMIN_SYSTEM', 'ADMIN_ECOLE']}>
+            <Personnel />
           </ProtectedRoute>
         ),
       },

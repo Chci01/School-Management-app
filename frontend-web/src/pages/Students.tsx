@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { useUsers } from '../hooks/useUsers';
 import { useAuth } from '../hooks/useAuth';
-import { Users, Plus, Search, Trash2, Edit, X, UserPlus, Phone, Mail, Hash, Calendar, MapPin, Upload, Link } from 'lucide-react';
+import { Users, Plus, Search, Trash2, Edit, X, UserPlus, Phone, Hash, Calendar, MapPin, Upload, Link } from 'lucide-react';
 
 const Students = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -64,7 +64,7 @@ const Students = () => {
       role: 'ELEVE',
       schoolId: currentSchoolId,
     };
-    if (!payload.password) delete payload.password; // Don't send empty password
+    if (!payload.password) delete (payload as any).password; // Don't send empty password
 
     if (editingStudentId) {
       updateUser({ id: editingStudentId, data: payload }, {
