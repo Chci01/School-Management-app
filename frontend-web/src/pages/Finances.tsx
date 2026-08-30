@@ -1,24 +1,66 @@
-import { useState } from 'react';
-import { DollarSign, Plus, ArrowDownRight, Download } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { DollarSign, Plus, ArrowDownRight, Download, Edit2, Trash2 } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 
 const Finances = () => {
+  const { currentSchoolId } = useAuth();
+  const storageKey = `finances_${currentSchoolId}`;
+  
   const [activeTab, setActiveTab] = useState<'DEPENSES' | 'SALAIRES' | 'EQUIPEMENTS'>('DEPENSES');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
 
-  // Mock data for UI demonstration
-  const stats = {
-    budget: 5000000,
-    depenses: 1250000,
-    salaires: 2000000,
-    equipements: 450000,
+  // Initialize Data
+  const [budget, setBudget] = useState(0);
+  const [transactions, setTransactions] = useState<any[]>([]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(storageKey);
+    if (saved) {
+      const data = JSON.parse(saved);
+      setBudget(data.budget || 0);
+      setTransactions(data.transactions || []);
+    }
+  }, [storageKey]);
+
+  const saveToStorage = (newBudget: number, newTransactions: any[]) => {
+    localStorage.setItem(storageKey, JSON.stringify({ budget: newBudget, transactions: newTransactions }));
   };
 
-  const transactions = [
-    { id: 1, type: 'DEPENSES', title: 'Facture Électricité (JIRAMA)', amount: 45000, date: '2026-08-01', status: 'Payé' },
-    { id: 2, type: 'SALAIRES', title: 'Salaire Prof Titulaire', amount: 350000, date: '2026-08-05', status: 'Payé' },
-    { id: 3, type: 'EQUIPEMENTS', title: 'Achat de 5 Table-bancs', amount: 150000, date: '2026-08-10', status: 'Payé' },
-    { id: 4, type: 'DEPENSES', title: 'Maintenance Informatique', amount: 75000, date: '2026-08-15', status: 'En attente' },
-  ];
+  const [newOp, setNewOp] = useState({ title: '', amount: '', type: 'DEPENSES', date: new Date().toISOString().split('T')[0] });
+  const [tempBudget, setTempBudget] = useState(budget.toString());
+
+  useEffect(() => setTempBudget(budget.toString()), [budget]);
+
+  const handleAddOp = () => {
+    if (!newOp.title || !newOp.amount) return;
+    const t = { id: Date.now(), ...newOp, amount: Number(newOp.amount), status: 'Payé' };
+    const updated = [t, ...transactions];
+    setTransactions(updated);
+    saveToStorage(budget, updated);
+    setIsModalOpen(false);
+    setNewOp({ title: '', amount: '', type: 'DEPENSES', date: new Date().toISOString().split('T')[0] });
+  };
+
+  const handleDeleteOp = (id: number) => {
+    if (!window.confirm('Supprimer cette opération ?')) return;
+    const updated = transactions.filter(t => t.id !== id);
+    setTransactions(updated);
+    saveToStorage(budget, updated);
+  };
+
+  const handleSaveBudget = () => {
+    const val = Number(tempBudget);
+    setBudget(val);
+    saveToStorage(val, transactions);
+    setIsBudgetModalOpen(false);
+  };
+
+  // Derive sums
+  const getSum = (type: string) => transactions.filter(t => t.type === type).reduce((acc, curr) => acc + curr.amount, 0);
+  const sumDepenses = getSum('DEPENSES');
+  const sumSalaires = getSum('SALAIRES');
+  const sumEquipements = getSum('EQUIPEMENTS');
 
   const displayedTransactions = transactions.filter(t => t.type === activeTab);
 
@@ -35,8 +77,8 @@ const Finances = () => {
           <p style={{ color: 'var(--text-secondary)', marginTop: '4px' }}>Enregistrez vos dépenses, paiements de salaires et achats d'équipements.</p>
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
-          <button className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-             <Download size={18} /> Rapport
+          <button className="btn-secondary" onClick={() => setIsBudgetModalOpen(true)} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+             <Edit2 size={18} /> Définir le Budget
           </button>
           <button 
             className="btn-primary" 
@@ -51,20 +93,20 @@ const Finances = () => {
       {/* KPI Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '32px' }}>
         <div className="glass-panel" style={{ padding: '20px', borderRadius: '16px', borderLeft: '4px solid #3b82f6' }}>
-           <h4 style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '8px' }}>Prévision Budgétaire</h4>
-           <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text)' }}>{stats.budget.toLocaleString()} F</div>
+           <h4 style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '8px', cursor: 'pointer' }} onClick={() => setIsBudgetModalOpen(true)}>Prévision Budgétaire ✎</h4>
+           <div style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text)' }}>{budget.toLocaleString()} F</div>
         </div>
         <div className="glass-panel" style={{ padding: '20px', borderRadius: '16px', borderLeft: '4px solid #ef4444' }}>
            <h4 style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '8px', display: 'flex', alignItems: 'center', gap: '6px' }}><ArrowDownRight size={16} color="#ef4444" /> Dépenses Courantes</h4>
-           <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#ef4444' }}>{stats.depenses.toLocaleString()} F</div>
+           <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#ef4444' }}>{sumDepenses.toLocaleString()} F</div>
         </div>
         <div className="glass-panel" style={{ padding: '20px', borderRadius: '16px', borderLeft: '4px solid #f59e0b' }}>
            <h4 style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '8px' }}>Paiement Salaires</h4>
-           <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#f59e0b' }}>{stats.salaires.toLocaleString()} F</div>
+           <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#f59e0b' }}>{sumSalaires.toLocaleString()} F</div>
         </div>
         <div className="glass-panel" style={{ padding: '20px', borderRadius: '16px', borderLeft: '4px solid #8b5cf6' }}>
            <h4 style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '8px' }}>Achat Équipements</h4>
-           <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#8b5cf6' }}>{stats.equipements.toLocaleString()} F</div>
+           <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#8b5cf6' }}>{sumEquipements.toLocaleString()} F</div>
         </div>
       </div>
 
@@ -100,6 +142,7 @@ const Finances = () => {
                 <th style={{ padding: '12px 20px' }}>Libellé de l'opération</th>
                 <th style={{ padding: '12px 20px' }}>Montant</th>
                 <th style={{ padding: '12px 20px' }}>Statut</th>
+                <th style={{ padding: '12px 20px', textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -114,7 +157,7 @@ const Finances = () => {
                   <td style={{ padding: '16px 20px', fontWeight: 800, color: activeTab === 'DEPENSES' ? '#ef4444' : (activeTab === 'SALAIRES' ? '#f59e0b' : '#8b5cf6') }}>
                     - {t.amount.toLocaleString()} F
                   </td>
-                  <td style={{ padding: '16px 20px', borderTopRightRadius: '12px', borderBottomRightRadius: '12px' }}>
+                  <td style={{ padding: '16px 20px' }}>
                     <span style={{ 
                         padding: '4px 10px', 
                         borderRadius: '6px', 
@@ -126,11 +169,14 @@ const Finances = () => {
                       {t.status}
                     </span>
                   </td>
+                  <td style={{ padding: '16px 20px', textAlign: 'right', borderTopRightRadius: '12px', borderBottomRightRadius: '12px' }}>
+                     <button onClick={() => handleDeleteOp(t.id)} style={{ background: 'transparent', border: 'none', color: '#ef4444', cursor: 'pointer' }}><Trash2 size={16} /></button>
+                  </td>
                 </tr>
               ))}
               {displayedTransactions.length === 0 && (
                 <tr>
-                  <td colSpan={4} style={{ padding: '48px', textAlign: 'center' }}>
+                  <td colSpan={5} style={{ padding: '48px', textAlign: 'center' }}>
                     <div style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>Aucune opération trouvée pour cette catégorie.</div>
                   </td>
                 </tr>
@@ -147,7 +193,7 @@ const Finances = () => {
             
             <div className="input-group" style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>Type de dépense</label>
-              <select style={{ width: '100%', padding: '12px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }}>
+              <select value={newOp.type} onChange={e => setNewOp({...newOp, type: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }}>
                 <option value="DEPENSES">Dépense Courante</option>
                 <option value="SALAIRES">Salaire</option>
                 <option value="EQUIPEMENTS">Équipement</option>
@@ -155,18 +201,41 @@ const Finances = () => {
             </div>
             
             <div className="input-group" style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>Date</label>
+              <input type="date" value={newOp.date} onChange={e => setNewOp({...newOp, date: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }} />
+            </div>
+            
+            <div className="input-group" style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>Libellé (Description)</label>
-              <input type="text" placeholder="Ex: Achat de craies..." style={{ width: '100%', padding: '12px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }} />
+              <input type="text" value={newOp.title} onChange={e => setNewOp({...newOp, title: e.target.value})} placeholder="Ex: Achat de craies..." style={{ width: '100%', padding: '12px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }} />
             </div>
 
             <div className="input-group" style={{ marginBottom: '32px' }}>
                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>Montant (FCFA)</label>
-               <input type="number" placeholder="0" style={{ width: '100%', padding: '12px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }} />
+               <input type="number" value={newOp.amount} onChange={e => setNewOp({...newOp, amount: e.target.value})} placeholder="0" style={{ width: '100%', padding: '12px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }} />
             </div>
 
             <div style={{ display: 'flex', gap: '16px' }}>
               <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)} style={{ flex: 1, padding: '14px', borderRadius: '12px' }}>Annuler</button>
-              <button type="button" className="btn-primary" onClick={() => setIsModalOpen(false)} style={{ flex: 2, padding: '14px', borderRadius: '12px', background: '#22c55e', border: 'none' }}>Valider l'opération</button>
+              <button type="button" className="btn-primary" onClick={handleAddOp} style={{ flex: 2, padding: '14px', borderRadius: '12px', background: '#22c55e', border: 'none' }}>Valider l'opération</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isBudgetModalOpen && (
+        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.85)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
+          <div className="modal-content glass-panel" style={{ width: '400px', maxWidth: '95%', padding: '32px', borderRadius: '24px' }}>
+            <h3 style={{ margin: '0 0 24px 0', fontSize: '1.5rem', fontWeight: 800 }}>Définir le Budget Global</h3>
+            
+            <div className="input-group" style={{ marginBottom: '32px' }}>
+               <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>Prévision Budgétaire (FCFA)</label>
+               <input type="number" value={tempBudget} onChange={e => setTempBudget(e.target.value)} placeholder="5000000" style={{ width: '100%', padding: '16px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)', fontSize: '1.2rem', fontWeight: 700 }} />
+            </div>
+
+            <div style={{ display: 'flex', gap: '16px' }}>
+              <button type="button" className="btn-secondary" onClick={() => setIsBudgetModalOpen(false)} style={{ flex: 1, padding: '14px', borderRadius: '12px' }}>Annuler</button>
+              <button type="button" className="btn-primary" onClick={handleSaveBudget} style={{ flex: 2, padding: '14px', borderRadius: '12px', background: '#3b82f6', border: 'none' }}>Sauvegarder</button>
             </div>
           </div>
         </div>
