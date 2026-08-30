@@ -10,13 +10,8 @@ async function bootstrap() {
   // Activate Helmet middleware to secure HTTP headers
   app.use(helmet());
   
-  // Configure CORS securely (support credentials and allow specified origins)
-  const allowedOrigins = process.env.ALLOWED_ORIGINS
-    ? process.env.ALLOWED_ORIGINS.split(',')
-    : ['http://localhost:5173', 'http://localhost:3000', 'https://school-management-app-6pkq.onrender.com'];
-
   app.enableCors({
-    origin: allowedOrigins,
+    origin: true, // Allows all origins dynamically
     credentials: true,
   });
 
