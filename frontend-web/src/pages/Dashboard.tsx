@@ -1,8 +1,7 @@
 
 import { 
   Users, BookOpen, GraduationCap, CalendarX, 
-  UserPlus, ChevronDown, Calendar as CalendarIcon, 
-  FileText, ArrowUpRight
+  UserPlus, ChevronDown, ArrowUpRight
 } from 'lucide-react';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
