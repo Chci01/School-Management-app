@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { FileText, Plus, Calendar, Trash2, X } from 'lucide-react';
+import { FileText, Plus, Trash2, X } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useClasses } from '../hooks/useClasses';
 import { useSubjects } from '../hooks/useSubjects';
