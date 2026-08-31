@@ -40,11 +40,20 @@ export const useSubjects = (schoolId?: string, academicYearId?: string) => {
     },
   });
 
+  const updateSubjectMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: string; data: Partial<{ name: string; coefficient: number }> }) => {
+      const res = await api.patch(`/subjects/${id}`, data);
+      return res.data;
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['subjects'] }),
+  });
+
   return { 
     subjects: subjects || [],
     isLoading, 
     error, 
     createSubject: createSubjectMutation.mutateAsync, 
+    updateSubject: updateSubjectMutation.mutateAsync,
     deleteSubject: deleteSubjectMutation.mutateAsync 
   };
 };
