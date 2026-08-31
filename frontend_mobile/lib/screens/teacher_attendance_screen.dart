@@ -9,7 +9,7 @@ class TeacherAttendanceScreen extends StatefulWidget {
   const TeacherAttendanceScreen({super.key});
 
   @override
-  _TeacherAttendanceScreenState createState() => _TeacherAttendanceScreenState();
+  State<TeacherAttendanceScreen> createState() => _TeacherAttendanceScreenState();
 }
 
 class _TeacherAttendanceScreenState extends State<TeacherAttendanceScreen> {
@@ -86,7 +86,7 @@ class _TeacherAttendanceScreenState extends State<TeacherAttendanceScreen> {
     } catch(e) {
        if (!mounted) return;
        setState(() => _isLoading = false);
-       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur: impossible de charger les élèves. Pensez à l\'AcademicYearID.')));
+       if (!mounted) return; ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur: impossible de charger les élèves. Pensez à l\'AcademicYearID.')));
     }
   }
 
@@ -111,14 +111,11 @@ class _TeacherAttendanceScreenState extends State<TeacherAttendanceScreen> {
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Appel enregistré!'), backgroundColor: Colors.green));
-      Navigator.pop(context);
+      if (!mounted) return; Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red));
-    } finally {
-      if (!mounted) return;
-      setState(() => _isLoading = false);
-    }
+    } finally { if (mounted) setState(() => _isLoading = false); }
   }
 
   @override

@@ -5,7 +5,7 @@ class AnnouncementsScreen extends StatefulWidget {
   const AnnouncementsScreen({super.key});
 
   @override
-  _AnnouncementsScreenState createState() => _AnnouncementsScreenState();
+  State<AnnouncementsScreen> createState() => _AnnouncementsScreenState();
 }
 
 class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
@@ -30,7 +30,7 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
       setState(() {
         _isLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
+      if (!mounted) return; ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur de chargement des annonces')),
       );
     }
@@ -71,10 +71,10 @@ class _AnnouncementsScreenState extends State<AnnouncementsScreen> {
                               margin: EdgeInsets.only(bottom: 16),
                               padding: EdgeInsets.all(20),
                               decoration: BoxDecoration(
-                                color: Colors.blueAccent.withOpacity(0.05),
+                                color: Colors.blueAccent.withValues(alpha: 0.05),
                                 borderRadius: BorderRadius.circular(16),
                                 border: Border.all(
-                                  color: Colors.blueAccent.withOpacity(0.2),
+                                  color: Colors.blueAccent.withValues(alpha: 0.2),
                                 ),
                               ),
                               child: Column(

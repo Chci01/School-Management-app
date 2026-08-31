@@ -9,7 +9,7 @@ class TeacherClassesScreen extends StatefulWidget {
   const TeacherClassesScreen({super.key});
 
   @override
-  _TeacherClassesScreenState createState() => _TeacherClassesScreenState();
+  State<TeacherClassesScreen> createState() => _TeacherClassesScreenState();
 }
 
 class _TeacherClassesScreenState extends State<TeacherClassesScreen> {
@@ -82,7 +82,7 @@ class _TeacherClassesScreenState extends State<TeacherClassesScreen> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       child: ListTile(
                         leading: CircleAvatar(
-                          backgroundColor: settings.themeColor.withOpacity(0.2),
+                          backgroundColor: settings.themeColor.withValues(alpha: 0.2),
                           child: Icon(Icons.class_, color: settings.themeColor),
                         ),
                         title: Text(cls['name'], style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),

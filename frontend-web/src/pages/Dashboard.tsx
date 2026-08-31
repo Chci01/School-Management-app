@@ -2,7 +2,7 @@
 import { 
   Users, BookOpen, GraduationCap, CalendarX, 
   UserPlus, ChevronDown, Calendar as CalendarIcon, 
-  FileText, ArrowUpRight, ArrowDownRight
+  FileText, ArrowUpRight
 } from 'lucide-react';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer,
@@ -27,14 +27,6 @@ const lineData = [
   { name: 'Juin', value: 14.6 },
 ];
 
-const pieData = [
-  { name: '6ème', value: 192, color: '#3B82F6' },
-  { name: '5ème', value: 208, color: '#10B981' },
-  { name: '4ème', value: 200, color: '#F59E0B' },
-  { name: '3ème', value: 224, color: '#8B5CF6' },
-  { name: '2nde', value: 216, color: '#EC4899' },
-  { name: '1ère', value: 208, color: '#F43F5E' },
-];
 
 const notifications = [
   { id: 1, title: 'Réunion parents-profs', desc: 'La réunion du 25 mai est confirmée à 15h30.', time: 'Il y a 2h', icon: Users, color: '#3B82F6', bgColor: '#EFF6FF' },
@@ -58,9 +50,28 @@ const events = [
   { dateDay: '20', dateMonth: 'JUIN', title: 'Fin de l\'année scolaire', time: 'Dernier jour de cours', type: 'Info', color: '#3B82F6', bgColor: '#EFF6FF' },
 ];
 
+import { useUsers } from '../hooks/useUsers';
+import { useClasses } from '../hooks/useClasses';
+
 const Dashboard = () => {
-    const { user } = useAuth();
+    const { user, currentSchoolId } = useAuth();
     const role = user?.role?.toUpperCase();
+    const { users } = useUsers(currentSchoolId!);
+    const { classes } = useClasses(currentSchoolId!);
+
+    const allUsers = Array.isArray(users) ? users : [];
+    const students = allUsers.filter(u => u.role === 'ELEVE');
+    const teachers = allUsers.filter(u => u.role === 'ENSEIGNANT');
+    const allClasses = Array.isArray(classes) ? classes : [];
+
+    const pieDataReal = allClasses.map((c, i) => ({
+        name: c.name,
+        value: students.filter(s => s.classId === c.id).length,
+        color: ['#3B82F6', '#10B981', '#F59E0B', '#8B5CF6', '#EC4899', '#F43F5E'][i % 6]
+    })).filter(c => c.value > 0);
+    
+    // Fallback if empty for preview
+    const activePieData = pieDataReal.length > 0 ? pieDataReal : [{name: 'Aucun', value: 1, color: '#CBD5E1'}];
 
     if (role === 'TEACHER' || role === 'PROFESSOR' || role === 'ENSEIGNANT') {
         return <ProfessorDashboard />;
@@ -86,10 +97,10 @@ const Dashboard = () => {
                     <div className="stat-content">
                         <span className="stat-label">Élèves</span>
                         <div className="stat-value-row">
-                            <span className="stat-val">1 248</span>
+                            <span className="stat-val">{students.length}</span>
                         </div>
                         <div className="stat-trend trend-up">
-                            <ArrowUpRight size={14} /> <span>+ 5 ce mois</span>
+                            <ArrowUpRight size={14} /> <span>Synchronisé</span>
                         </div>
                     </div>
                 </div>
@@ -101,10 +112,10 @@ const Dashboard = () => {
                     <div className="stat-content">
                         <span className="stat-label">Enseignants</span>
                         <div className="stat-value-row">
-                            <span className="stat-val">82</span>
+                            <span className="stat-val">{teachers.length}</span>
                         </div>
                         <div className="stat-trend trend-up">
-                            <ArrowUpRight size={14} /> <span>+ 2 ce mois</span>
+                            <ArrowUpRight size={14} /> <span>Synchronisé</span>
                         </div>
                     </div>
                 </div>
@@ -116,10 +127,10 @@ const Dashboard = () => {
                     <div className="stat-content">
                         <span className="stat-label">Classes</span>
                         <div className="stat-value-row">
-                            <span className="stat-val">45</span>
+                            <span className="stat-val">{allClasses.length}</span>
                         </div>
                         <div className="stat-trend trend-up">
-                            <ArrowUpRight size={14} /> <span>+ 1 ce mois</span>
+                            <ArrowUpRight size={14} /> <span>Synchronisé</span>
                         </div>
                     </div>
                 </div>
@@ -131,10 +142,10 @@ const Dashboard = () => {
                     <div className="stat-content">
                         <span className="stat-label">Moyenne générale</span>
                         <div className="stat-value-row">
-                            <span className="stat-val">14,6</span><span className="stat-suffix">/20</span>
+                            <span className="stat-val">--</span><span className="stat-suffix">/20</span>
                         </div>
                         <div className="stat-trend trend-up">
-                            <ArrowUpRight size={14} /> <span>En augmentation</span>
+                            <span>Calcul en cours...</span>
                         </div>
                     </div>
                 </div>
@@ -144,12 +155,12 @@ const Dashboard = () => {
                         <CalendarX size={24} />
                     </div>
                     <div className="stat-content">
-                        <span className="stat-label">Absences aujourd'hui</span>
+                        <span className="stat-label">Absences (Simulation)</span>
                         <div className="stat-value-row">
-                            <span className="stat-val">23</span>
+                            <span className="stat-val">0</span>
                         </div>
-                        <div className="stat-trend trend-down">
-                            <ArrowDownRight size={14} /> <span>- 3 par rapport à hier</span>
+                        <div className="stat-trend">
+                            <span>En attente de données</span>
                         </div>
                     </div>
                 </div>
@@ -213,7 +224,7 @@ const Dashboard = () => {
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
                                     <Pie
-                                        data={pieData}
+                                        data={activePieData}
                                         cx="50%"
                                         cy="50%"
                                         innerRadius={60}
@@ -222,7 +233,7 @@ const Dashboard = () => {
                                         dataKey="value"
                                         stroke="none"
                                     >
-                                        {pieData.map((entry, index) => (
+                                        {activePieData.map((entry: any, index: number) => (
                                             <Cell key={`cell-${index}`} fill={entry.color} />
                                         ))}
                                     </Pie>
@@ -230,19 +241,19 @@ const Dashboard = () => {
                                 </PieChart>
                             </ResponsiveContainer>
                             <div className="pie-center-text">
-                                <span className="pie-total">1 248</span>
+                                <span className="pie-total">{students.length}</span>
                                 <span className="pie-label">Élèves</span>
                             </div>
                         </div>
                         <div className="pie-legend">
-                            {pieData.map((d, i) => (
+                            {activePieData.map((d: any, i: number) => (
                                 <div key={i} className="legend-item">
                                     <div className="legend-left">
                                         <div className="legend-dot" style={{ backgroundColor: d.color }}></div>
                                         <span className="legend-name">{d.name}</span>
                                     </div>
                                     <div className="legend-right">
-                                        <span className="legend-pct">{((d.value / 1248) * 100).toFixed(1)}%</span>
+                                        <span className="legend-pct">{students.length > 0 ? ((d.value / students.length) * 100).toFixed(1) : 0}%</span>
                                         <span className="legend-val">({d.value})</span>
                                     </div>
                                 </div>

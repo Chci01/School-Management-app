@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
 
 import { useAuth } from '../../hooks/useAuth';
@@ -6,11 +6,25 @@ import { LogOut, Menu, X, LayoutDashboard, Users, UserCheck, Briefcase, Layers, 
 import logo from '../../assets/logo.png';
 import { useAcademic } from '../../hooks/useAcademic';
 import { BackButton } from '../common/BackButton';
+import { api } from '../../services/api';
 
 const RootLayout = () => {
     const { logout, user } = useAuth();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [liveSchoolName, setLiveSchoolName] = useState(user?.schoolName || "Lycée KalanSira");
+    const [liveSchoolLogo, setLiveSchoolLogo] = useState(user?.schoolLogo || logo);
     const location = useLocation();
+    
+    useEffect(() => {
+        if (user?.schoolId) {
+            api.get(`/schools/${user.schoolId}`).then((res: any) => {
+                if(res.data) {
+                    setLiveSchoolName(res.data.name || user?.schoolName || "Lycée KalanSira");
+                    setLiveSchoolLogo(res.data.logo || user?.schoolLogo || logo);
+                }
+            }).catch(console.error);
+        }
+    }, [user?.schoolId]);
 
     const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
     const closeSidebar = () => setIsSidebarOpen(false);
@@ -43,7 +57,7 @@ const RootLayout = () => {
         '/settings': 'Paramètres'
     };
     const currentPageName = routeNames[location.pathname] || 'Tableau de bord';
-    const schoolName = user?.schoolName || "Lycée KalanSira";
+    const schoolName = liveSchoolName;
 
     const isMobileRole = ['TEACHER', 'PROFESSOR', 'PARENT', 'STUDENT', 'ENSEIGNANT', 'ELEVE'].includes(user?.role?.toUpperCase() || '');
 
@@ -65,7 +79,7 @@ const RootLayout = () => {
             <aside className={`sidebar glass-panel ${isSidebarOpen ? 'open' : ''}`}>
                 <div className="sidebar-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <img src={user?.schoolLogo || logo} alt="App Logo" style={{ height: '32px', objectFit: 'contain' }} />
+                        <img src={liveSchoolLogo} alt="App Logo" style={{ height: '32px', objectFit: 'contain' }} />
                         <div>
                             <h3 style={{ fontSize: '1.1rem', margin: 0, color: 'var(--text)' }}>{schoolName}</h3>
                             <p style={{ fontSize: '0.75rem', margin: 0, color: 'var(--text-muted)' }}>Mali</p>
@@ -149,7 +163,7 @@ const RootLayout = () => {
                           
                           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
                               <div className="avatar" style={{ width: '40px', height: '40px', borderRadius: '50%', overflow: 'hidden' }}>
-                                  <img src={user?.photo || user?.school?.logoUrl || "https://i.pravatar.cc/150?u=admin"} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                  <img src={user?.photo || liveSchoolLogo || "https://i.pravatar.cc/150?u=admin"} alt="Profile" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                               </div>
                               <div className="user-info mobile-hidden" style={{ display: 'flex', flexDirection: 'column' }}>
                                   <span className="user-name" style={{ color: 'var(--text)', fontWeight: 600, fontSize: '14px' }}>

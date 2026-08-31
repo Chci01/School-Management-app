@@ -12,7 +12,7 @@ class SettingsScreen extends StatelessWidget {
     {'name': 'Pink', 'color': Color(0xFFD56062)},
   ];
 
-  SettingsScreen({super.key});
+  const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +56,7 @@ class SettingsScreen extends StatelessWidget {
             Wrap(
               spacing: 16,
               children: _colors.map((c) {
-                final isSelected = settings.themeColor.value == (c['color'] as Color).value;
+                final isSelected = settings.themeColor.toARGB32() == (c['color'] as Color).toARGB32();
                 return GestureDetector(
                   onTap: () => settings.setThemeColor(c['color']),
                   child: Container(
@@ -67,7 +67,7 @@ class SettingsScreen extends StatelessWidget {
                       shape: BoxShape.circle,
                       border: isSelected ? Border.all(color: Theme.of(context).textTheme.bodyMedium?.color ?? Colors.white, width: 3) : null,
                       boxShadow: isSelected
-                          ? [BoxShadow(color: c['color'].withOpacity(0.5), blurRadius: 10, spreadRadius: 2)]
+                          ? [BoxShadow(color: c['color'].withValues(alpha: 0.5), blurRadius: 10, spreadRadius: 2)]
                           : [],
                     ),
                     child: isSelected ? Icon(Icons.check, color: Theme.of(context).scaffoldBackgroundColor) : null,
@@ -99,9 +99,9 @@ class SettingsScreen extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? settings.themeColor.withOpacity(0.2) : Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.05),
+          color: isSelected ? settings.themeColor.withValues(alpha: 0.2) : Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: isSelected ? settings.themeColor : (Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.1) ?? Colors.transparent)),
+          border: Border.all(color: isSelected ? settings.themeColor : (Theme.of(context).textTheme.bodyMedium?.color?.withValues(alpha: 0.1) ?? Colors.transparent)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,

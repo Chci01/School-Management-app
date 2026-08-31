@@ -7,7 +7,7 @@ class BulletinScreen extends StatefulWidget {
   const BulletinScreen({super.key});
 
   @override
-  _BulletinScreenState createState() => _BulletinScreenState();
+  State<BulletinScreen> createState() => _BulletinScreenState();
 }
 
 class _BulletinScreenState extends State<BulletinScreen> {

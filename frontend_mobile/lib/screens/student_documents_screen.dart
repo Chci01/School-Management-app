@@ -9,7 +9,7 @@ class StudentDocumentsScreen extends StatefulWidget {
   const StudentDocumentsScreen({super.key});
 
   @override
-  _StudentDocumentsScreenState createState() => _StudentDocumentsScreenState();
+  State<StudentDocumentsScreen> createState() => _StudentDocumentsScreenState();
 }
 
 class _StudentDocumentsScreenState extends State<StudentDocumentsScreen> {
@@ -49,12 +49,12 @@ class _StudentDocumentsScreenState extends State<StudentDocumentsScreen> {
         'reason': _reasonController.text,
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Demande envoyée!'), backgroundColor: Colors.green));
+      if (!mounted) return; ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Demande envoyée!'), backgroundColor: Colors.green));
       _reasonController.clear();
       _fetchRequests(); // Refresh list
     } catch (e) {
       setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red));
+      if (!mounted) return; ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red));
     }
   }
 
@@ -155,7 +155,7 @@ class _StudentDocumentsScreenState extends State<StudentDocumentsScreen> {
                               trailing: Container(
                                 padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                 decoration: BoxDecoration(
-                                  color: _getStatusColor(req['status']).withOpacity(0.2),
+                                  color: _getStatusColor(req['status']).withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 child: Text(_getStatusText(req['status']), style: TextStyle(color: _getStatusColor(req['status']), fontSize: 12, fontWeight: FontWeight.bold)),

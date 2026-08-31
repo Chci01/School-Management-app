@@ -42,7 +42,7 @@ const Settings = () => {
   
   const [licenseKey, setLicenseKey] = useState('');
   const [activating, setActivating] = useState(false);
-  const [requesting, setRequesting] = useState(false);
+
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [schoolData, setSchoolData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -99,18 +99,47 @@ const Settings = () => {
     }
   };
 
-  const handleRequestLicense = async () => {
-    setRequesting(true);
+  const handleRequestLicense = () => {
+    const schoolName = schoolData?.name || 'Notre établissement';
+    const messageText = `Bonjour, ${schoolName} sollicite une licence pour utiliser Kalansira School Management. Nous aimerions échanger à ce sujet.`;
+    const encodedMessage = encodeURIComponent(messageText);
+    const whatsappUrl = `https://wa.me/22370224691?text=${encodedMessage}`;
+    window.open(whatsappUrl, '_blank');
+  };
+
+  // ─── Personnalisation Etablissement ───────────────────────────────────────
+  const [updatingSchool, setUpdatingSchool] = useState(false);
+  const [customLogo, setCustomLogo] = useState('');
+  const [customPhone, setCustomPhone] = useState('');
+  const [customAddress, setCustomAddress] = useState('');
+
+  useEffect(() => {
+    if (schoolData) {
+      setCustomLogo(schoolData.logo || '');
+      setCustomPhone(schoolData.phone || '');
+      setCustomAddress(schoolData.address || '');
+    }
+  }, [schoolData]);
+
+  const handleUpdateSchool = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setUpdatingSchool(true);
     setMessage(null);
     try {
-      await api.post(`/schools/${user?.schoolId}/request-license`, {});
-      setMessage({ type: 'success', text: 'Demande de licence envoyée. Un agent vous contactera sous peu.' });
+      await api.patch(`/schools/${user?.schoolId}`, {
+        logo: customLogo,
+        phone: customPhone,
+        address: customAddress,
+      });
+      setMessage({ type: 'success', text: 'Paramètres de l\'établissement mis à jour.' });
+      fetchSchoolData();
     } catch (error) {
-      setMessage({ type: 'error', text: 'Échec de l\'envoi de la demande.' });
+      setMessage({ type: 'error', text: 'Échec de la mise à jour.' });
     } finally {
-      setRequesting(false);
+      setUpdatingSchool(false);
     }
   };
+  // ─────────────────────────────────────────────────────────────────────────
 
   // ─── LigdiCash ────────────────────────────────────────────────────────────
   const lancerPaiementLigdiCash = async () => {
@@ -439,11 +468,10 @@ const Settings = () => {
             <button
               onClick={handleRequestLicense}
               className="btn-secondary"
-              disabled={requesting}
               style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'center' }}
             >
-              {requesting ? <RefreshCw className="animate-spin" size={18} /> : <Mail size={18} />}
-              {requesting ? t('settings.requesting') : t('settings.request_license')}
+              <Mail size={18} />
+              {t('settings.request_license')}
             </button>
           </div>
 
@@ -465,8 +493,63 @@ const Settings = () => {
           )}
         </section>
 
+        {/* SECTION PERSONNALISATION */}
+        <section className="glass-panel" style={{ padding: '32px', borderRadius: '24px', marginTop: '32px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
+            <Globe color="var(--primary)" size={24} />
+            <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>Personnalisation de l'établissement</h3>
+          </div>
+          
+          <p style={{ color: 'var(--text-secondary)', marginBottom: '24px' }}>
+            Modifiez ici le logo, le téléphone et l'adresse de votre école. Ces informations seront visibles sur toutes les interfaces (Mobile, Web, Desktop) par vos élèves et enseignants.
+          </p>
+
+          <form onSubmit={handleUpdateSchool} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div className="input-group">
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 500 }}>URL du Logo</label>
+              <input
+                type="text"
+                placeholder="https://mon-site.com/logo.png"
+                value={customLogo}
+                onChange={(e) => setCustomLogo(e.target.value)}
+                style={{ width: '100%', padding: '14px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }}
+              />
+            </div>
+            <div className="input-group">
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 500 }}>Téléphone de contact</label>
+              <input
+                type="text"
+                placeholder="+223 XXXXXXXX"
+                value={customPhone}
+                onChange={(e) => setCustomPhone(e.target.value)}
+                style={{ width: '100%', padding: '14px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }}
+              />
+            </div>
+            <div className="input-group">
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 500 }}>Adresse physique</label>
+              <input
+                type="text"
+                placeholder="Ex: Bamako, ACI 2000"
+                value={customAddress}
+                onChange={(e) => setCustomAddress(e.target.value)}
+                style={{ width: '100%', padding: '14px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }}
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="btn-primary"
+              disabled={updatingSchool}
+              style={{ width: '100%', padding: '14px', borderRadius: '12px', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', fontSize: '1rem', fontWeight: 700, marginTop: '16px' }}
+            >
+              {updatingSchool ? <RefreshCw className="animate-spin" size={20} /> : <CheckCircle size={20} />}
+              Enregistrer les modifications
+            </button>
+          </form>
+        </section>
+
         {/* SECTION 3: SUPPORT & DOCUMENTATION */}
-        <section className="glass-panel" style={{ padding: '32px', borderRadius: '24px' }}>
+        <section className="glass-panel" style={{ padding: '32px', borderRadius: '24px', marginTop: '32px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
             <LifeBuoy color="var(--primary)" size={24} />
             <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>{t('settings.help_manual')}</h3>

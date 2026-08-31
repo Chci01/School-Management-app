@@ -7,7 +7,7 @@ class NewsScreen extends StatefulWidget {
   const NewsScreen({super.key});
 
   @override
-  _NewsScreenState createState() => _NewsScreenState();
+  State<NewsScreen> createState() => _NewsScreenState();
 }
 
 class _NewsScreenState extends State<NewsScreen> {
@@ -58,7 +58,7 @@ class _NewsScreenState extends State<NewsScreen> {
                       itemBuilder: (context, index) {
                         final item = _newsItems[index];
                         return Card(
-                          color: Colors.white.withOpacity(0.05),
+                          color: Colors.white.withValues(alpha: 0.05),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                           child: Padding(
                             padding: const EdgeInsets.all(16.0),

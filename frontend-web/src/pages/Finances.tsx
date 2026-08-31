@@ -1,68 +1,109 @@
-import { useState, useEffect } from 'react';
-import { DollarSign, Plus, ArrowDownRight, Download, Edit2, Trash2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { DollarSign, Plus, ArrowDownRight, Edit2, Trash2, Loader2 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { api } from '../services/api';
 
 const Finances = () => {
   const { currentSchoolId } = useAuth();
-  const storageKey = `finances_${currentSchoolId}`;
   
   const [activeTab, setActiveTab] = useState<'DEPENSES' | 'SALAIRES' | 'EQUIPEMENTS'>('DEPENSES');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
-
-  // Initialize Data
+  
   const [budget, setBudget] = useState(0);
   const [transactions, setTransactions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  
+  const [newOp, setNewOp] = useState({ title: '', amount: '', type: 'DEPENSES', date: new Date().toISOString().split('T')[0] });
+  const [tempBudget, setTempBudget] = useState('0');
 
   useEffect(() => {
-    const saved = localStorage.getItem(storageKey);
-    if (saved) {
-      const data = JSON.parse(saved);
-      setBudget(data.budget || 0);
-      setTransactions(data.transactions || []);
+    if (currentSchoolId) {
+      fetchFinances();
     }
-  }, [storageKey]);
+  }, [currentSchoolId]);
 
-  const saveToStorage = (newBudget: number, newTransactions: any[]) => {
-    localStorage.setItem(storageKey, JSON.stringify({ budget: newBudget, transactions: newTransactions }));
+  const fetchFinances = async () => {
+    try {
+      setLoading(true);
+      // Fetch Expenses
+      const expensesRes = await api.get('/finances/expenses', { params: { schoolId: currentSchoolId } });
+      setTransactions(expensesRes.data || []);
+      
+      // Fetch Budgets (get latest active one or sum)
+      const budgetsRes = await api.get('/finances/budgets', { params: { schoolId: currentSchoolId } });
+      const budgets = budgetsRes.data || [];
+      if (budgets.length > 0) {
+        setBudget(budgets[0].amount); // Taking the most recent budget for simplicity
+        setTempBudget(budgets[0].amount.toString());
+      } else {
+        setBudget(0);
+        setTempBudget('0');
+      }
+    } catch (error) {
+      console.error('Error fetching finances', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const [newOp, setNewOp] = useState({ title: '', amount: '', type: 'DEPENSES', date: new Date().toISOString().split('T')[0] });
-  const [tempBudget, setTempBudget] = useState(budget.toString());
-
-  useEffect(() => setTempBudget(budget.toString()), [budget]);
-
-  const handleAddOp = () => {
+  const handleAddOp = async () => {
     if (!newOp.title || !newOp.amount) return;
-    const t = { id: Date.now(), ...newOp, amount: Number(newOp.amount), status: 'Payé' };
-    const updated = [t, ...transactions];
-    setTransactions(updated);
-    saveToStorage(budget, updated);
-    setIsModalOpen(false);
-    setNewOp({ title: '', amount: '', type: 'DEPENSES', date: new Date().toISOString().split('T')[0] });
+    
+    try {
+      await api.post('/finances/expenses', {
+        schoolId: currentSchoolId,
+        title: newOp.title,
+        amount: Number(newOp.amount),
+        category: newOp.type,
+        date: new Date(newOp.date)
+      });
+      setIsModalOpen(false);
+      setNewOp({ title: '', amount: '', type: 'DEPENSES', date: new Date().toISOString().split('T')[0] });
+      fetchFinances();
+    } catch (e) {
+      alert("Erreur lors de l'ajout de l'opération.");
+    }
   };
 
-  const handleDeleteOp = (id: number) => {
+  const handleDeleteOp = async (id: string) => {
     if (!window.confirm('Supprimer cette opération ?')) return;
-    const updated = transactions.filter(t => t.id !== id);
-    setTransactions(updated);
-    saveToStorage(budget, updated);
+    try {
+      await api.delete(`/finances/expenses/${id}`);
+      fetchFinances();
+    } catch (e) {
+      alert("Erreur lors de la suppression.");
+    }
   };
 
-  const handleSaveBudget = () => {
+  const handleSaveBudget = async () => {
     const val = Number(tempBudget);
-    setBudget(val);
-    saveToStorage(val, transactions);
-    setIsBudgetModalOpen(false);
+    try {
+      // Create a new budget record
+      await api.post('/finances/budgets', {
+        schoolId: currentSchoolId,
+        title: `Budget Annuel ${new Date().getFullYear()}`,
+        amount: val,
+        type: 'ANNUAL'
+      });
+      setIsBudgetModalOpen(false);
+      fetchFinances();
+    } catch (e) {
+      alert("Erreur lors de la mise à jour du budget.");
+    }
   };
 
   // Derive sums
-  const getSum = (type: string) => transactions.filter(t => t.type === type).reduce((acc, curr) => acc + curr.amount, 0);
+  const getSum = (type: string) => transactions.filter(t => t.category === type).reduce((acc, curr) => acc + curr.amount, 0);
   const sumDepenses = getSum('DEPENSES');
   const sumSalaires = getSum('SALAIRES');
   const sumEquipements = getSum('EQUIPEMENTS');
 
-  const displayedTransactions = transactions.filter(t => t.type === activeTab);
+  const displayedTransactions = transactions.filter(t => t.category === activeTab);
+
+  if (loading) {
+    return <div className="dashboard-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}><Loader2 className="animate-spin" size={32} /></div>;
+  }
 
   return (
     <div className="dashboard-container" style={{ padding: '24px' }}>
@@ -163,10 +204,10 @@ const Finances = () => {
                         borderRadius: '6px', 
                         fontSize: '0.8rem', 
                         fontWeight: 600,
-                        background: t.status === 'Payé' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
-                        color: t.status === 'Payé' ? '#22c55e' : '#ef4444'
+                        background: 'rgba(34, 197, 94, 0.1)',
+                        color: '#22c55e'
                      }}>
-                      {t.status}
+                      Payé
                     </span>
                   </td>
                   <td style={{ padding: '16px 20px', textAlign: 'right', borderTopRightRadius: '12px', borderBottomRightRadius: '12px' }}>

@@ -9,7 +9,7 @@ class TeacherHomeworkScreen extends StatefulWidget {
   const TeacherHomeworkScreen({super.key});
 
   @override
-  _TeacherHomeworkScreenState createState() => _TeacherHomeworkScreenState();
+  State<TeacherHomeworkScreen> createState() => _TeacherHomeworkScreenState();
 }
 
 class _TeacherHomeworkScreenState extends State<TeacherHomeworkScreen> {
@@ -81,14 +81,11 @@ class _TeacherHomeworkScreenState extends State<TeacherHomeworkScreen> {
 
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Devoir ajouté avec succès!'), backgroundColor: Colors.green));
-      Navigator.pop(context);
+      if (!mounted) return; Navigator.pop(context);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red));
-    } finally {
-      if (!mounted) return;
-      setState(() => _isLoading = false);
-    }
+    } finally { if (mounted) setState(() => _isLoading = false); }
   }
 
   Future<void> _pickDate() async {

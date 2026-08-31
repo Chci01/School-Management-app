@@ -9,7 +9,7 @@ class TeacherGradingScreen extends StatefulWidget {
   const TeacherGradingScreen({super.key});
 
   @override
-  _TeacherGradingScreenState createState() => _TeacherGradingScreenState();
+  State<TeacherGradingScreen> createState() => _TeacherGradingScreenState();
 }
 
 class _TeacherGradingScreenState extends State<TeacherGradingScreen> {
@@ -104,7 +104,7 @@ class _TeacherGradingScreenState extends State<TeacherGradingScreen> {
   }
 
   Future<void> _submitGrade() async {
-    final user = Provider.of<AuthProvider>(context, listen: false).user;
+    // Removed unused user
     if (_selectedClassId == null ||
         _selectedStudentId == null ||
         _selectedSubjectId == null ||
@@ -126,16 +126,16 @@ class _TeacherGradingScreenState extends State<TeacherGradingScreen> {
         'evaluationType': _evaluationType,
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
+      if (!mounted) return; ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Note ajoutée avec succès!'),
           backgroundColor: Colors.green,
         ),
       );
       _gradeController.clear();
-      Navigator.pop(context);
+      if (!mounted) return; Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      if (!mounted) return; ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erreur: $e'), backgroundColor: Colors.red),
       );
     } finally {

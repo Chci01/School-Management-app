@@ -1,5 +1,5 @@
 
-import { Bell, TrendingUp, BookOpen, Calendar, LogOut } from 'lucide-react';
+import { Bell, TrendingUp, LogOut } from 'lucide-react';
 import '../MobileAesthetics.css';
 import BottomNav from '../components/BottomNav';
 import { useAuth } from '../hooks/useAuth';
@@ -33,14 +33,14 @@ const StudentDashboard = () => {
           <div className="stat-row">
             <div className="stat-group">
               <label>Moyenne générale</label>
-              <div className="big-stat">14,6<span style={{ fontSize: '1rem', color: '#94A3B8' }}>/20</span></div>
+              <div className="big-stat">--<span style={{ fontSize: '1rem', color: '#94A3B8' }}>/20</span></div>
             </div>
             <div className="rank-box">
               <label>Classement</label>
-              <div className="rank-val">8 / 28</div>
+              <div className="rank-val">-- / --</div>
               <div className="rank-trend">
                 <TrendingUp size={14} />
-                <span>↑ 2 ce mois</span>
+                <span>Synchronisation...</span>
               </div>
             </div>
           </div>
@@ -55,26 +55,8 @@ const StudentDashboard = () => {
         </div>
 
         <div className="mobile-list-card">
-          <div className="list-item">
-            <div className="time-box">08:00 - 09:00</div>
-            <div className="item-main-info">
-              <div className="item-title">Mathématiques</div>
-            </div>
-            <div className="item-extra" style={{ color: '#3B82F6', background: '#EFF6FF', padding: '4px 8px', borderRadius: '6px', fontSize: '0.75rem' }}>Salle 12</div>
-          </div>
-          <div className="list-item">
-            <div className="time-box">10:00 - 11:00</div>
-            <div className="item-main-info">
-              <div className="item-title">Français</div>
-            </div>
-            <div className="item-extra" style={{ color: '#8B5CF6', background: '#F5F3FF', padding: '4px 8px', borderRadius: '6px', fontSize: '0.75rem' }}>Salle 5</div>
-          </div>
-          <div className="list-item">
-            <div className="time-box">14:00 - 15:00</div>
-            <div className="item-main-info">
-              <div className="item-title">SVT</div>
-            </div>
-            <div className="item-extra" style={{ color: '#10B981', background: '#ECFDF5', padding: '4px 8px', borderRadius: '6px', fontSize: '0.75rem' }}>Salle 9</div>
+          <div className="list-item" style={{display:'flex', justifyContent:'center', color:'#64748B'}}>
+            Synchronisation de l'emploi du temps...
           </div>
         </div>
 
@@ -84,33 +66,8 @@ const StudentDashboard = () => {
         </div>
 
         <div className="mobile-list-card">
-          <div className="list-item">
-            <div className="summary-icon-box" style={{ background: '#F5F3FF', color: '#8B5CF6', marginRight: '16px', marginBottom: 0, width: '40px', height: '40px' }}>
-              <BookOpen size={18} />
-            </div>
-            <div className="item-main-info">
-              <div className="item-title">Mathématiques</div>
-              <div className="item-subtitle">Exercices n°24 à 36</div>
-            </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', color: '#64748B' }}>
-                <Calendar size={12} /> 27 Mai
-              </div>
-            </div>
-          </div>
-          <div className="list-item">
-            <div className="summary-icon-box" style={{ background: '#FDF2F8', color: '#DB2777', marginRight: '16px', marginBottom: 0, width: '40px', height: '40px' }}>
-              <BookOpen size={18} />
-            </div>
-            <div className="item-main-info">
-              <div className="item-title">Français</div>
-              <div className="item-subtitle">Rédaction : Le roman</div>
-            </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.75rem', color: '#64748B' }}>
-                <Calendar size={12} /> 28 Mai
-              </div>
-            </div>
+          <div className="list-item" style={{display:'flex', justifyContent:'center', color:'#64748B'}}>
+            Synchronisation des devoirs...
           </div>
         </div>
 
@@ -120,14 +77,8 @@ const StudentDashboard = () => {
         </div>
 
         <div className="mobile-list-card">
-          <div className="list-item">
-            <div className="item-main-info">
-              <div className="item-title">Mathématiques</div>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ fontWeight: 700, color: '#10B981' }}>18/20</div>
-              <div style={{ fontSize: '0.75rem', color: '#94A3B8' }}>22 Mai</div>
-            </div>
+          <div className="list-item" style={{display:'flex', justifyContent:'center', color:'#64748B'}}>
+            Synchronisation des notes...
           </div>
         </div>
       </main>

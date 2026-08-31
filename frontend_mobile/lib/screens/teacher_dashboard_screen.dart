@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
-import '../providers/settings_provider.dart';
-import '../utils/translations.dart';
 import 'login_screen.dart';
 import 'schedule_screen.dart';
 import 'settings_screen.dart';
@@ -11,13 +9,13 @@ import 'teacher_attendance_screen.dart';
 import 'teacher_grading_screen.dart';
 import 'teacher_homework_screen.dart';
 import 'teacher_conduct_screen.dart';
-import 'news_screen.dart';
+import 'announcements_screen.dart';
 
 class TeacherDashboardScreen extends StatefulWidget {
   const TeacherDashboardScreen({super.key});
 
   @override
-  _TeacherDashboardScreenState createState() => _TeacherDashboardScreenState();
+  State<TeacherDashboardScreen> createState() => _TeacherDashboardScreenState();
 }
 
 class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
@@ -28,6 +26,7 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
     TeacherClassesScreen(),
     TeacherHomeworkScreen(),
     const Center(child: Text("Messages")), // Placeholder
+    SettingsScreen(),
   ];
 
   @override
@@ -42,7 +41,7 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
           color: Colors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, -5),
             ),
@@ -56,13 +55,9 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
           type: BottomNavigationBarType.fixed,
           elevation: 0,
           onTap: (index) {
-            if (index == 4) {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => SettingsScreen()));
-            } else {
-              setState(() {
-                _currentIndex = index;
-              });
-            }
+            setState(() {
+              _currentIndex = index;
+            });
           },
           items: const [
             BottomNavigationBarItem(
@@ -86,8 +81,9 @@ class _TeacherDashboardScreenState extends State<TeacherDashboardScreen> {
               label: 'Messages',
             ),
             BottomNavigationBarItem(
-              icon: Icon(Icons.more_horiz),
-              label: 'Plus',
+              icon: Icon(Icons.settings_outlined),
+              activeIcon: Icon(Icons.settings),
+              label: 'Paramètres',
             ),
           ],
         ),
@@ -126,7 +122,7 @@ class TeacherHomeTab extends StatelessWidget {
                   children: [
                     CircleAvatar(
                       radius: 24,
-                      backgroundColor: Colors.white.withOpacity(0.2),
+                      backgroundColor: Colors.white.withValues(alpha: 0.2),
                       backgroundImage: user?['photo'] != null ? NetworkImage(user!['photo']) : null,
                       child: user?['photo'] == null 
                           ? const Icon(Icons.person, color: Colors.white, size: 28) 
@@ -143,7 +139,7 @@ class TeacherHomeTab extends StatelessWidget {
                         Row(
                           children: [
                             Text(
-                              'M. ${user?['lastName'] ?? ''}',
+                              '${user?['firstName'] ?? ''} ${user?['lastName'] ?? ''}'.trim(),
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 20,
@@ -162,7 +158,9 @@ class TeacherHomeTab extends StatelessWidget {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.notifications_outlined, color: Colors.white, size: 28),
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => AnnouncementsScreen()));
+                      },
                     ),
                     Positioned(
                       right: 8,
@@ -197,7 +195,7 @@ class TeacherHomeTab extends StatelessWidget {
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 20,
                       offset: const Offset(0, 10),
                     ),
@@ -217,10 +215,10 @@ class TeacherHomeTab extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(child: _buildStatItem(Icons.class_outlined, 'Mes classes', '4', Colors.blue)),
-                        Expanded(child: _buildStatItem(Icons.calendar_today_outlined, 'Cours du jour', '3', Colors.orange)),
-                        Expanded(child: _buildStatItem(Icons.assignment_outlined, 'Devoirs à\ncorriger', '12', Colors.purple)),
-                        Expanded(child: _buildStatItem(Icons.person_off_outlined, 'Absences', '2', Colors.red)),
+                        Expanded(child: _buildStatItem(Icons.class_outlined, 'Mes classes', '--', Colors.blue)),
+                        Expanded(child: _buildStatItem(Icons.calendar_today_outlined, 'Cours du jour', '--', Colors.orange)),
+                        Expanded(child: _buildStatItem(Icons.assignment_outlined, 'Devoirs à\ncorriger', '--', Colors.purple)),
+                        Expanded(child: _buildStatItem(Icons.person_off_outlined, 'Absences', '--', Colors.red)),
                       ],
                     ),
                   ],
@@ -297,7 +295,7 @@ class TeacherHomeTab extends StatelessWidget {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
           child: Icon(icon, color: color, size: 24),
@@ -323,7 +321,7 @@ class TeacherHomeTab extends StatelessWidget {
           border: Border.all(color: Colors.grey[100]!),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.02),
+              color: Colors.black.withValues(alpha: 0.02),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -335,7 +333,7 @@ class TeacherHomeTab extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, color: color, size: 28),

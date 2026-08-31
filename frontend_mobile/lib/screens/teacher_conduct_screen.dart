@@ -7,7 +7,7 @@ class TeacherConductScreen extends StatefulWidget {
   const TeacherConductScreen({super.key});
 
   @override
-  _TeacherConductScreenState createState() => _TeacherConductScreenState();
+  State<TeacherConductScreen> createState() => _TeacherConductScreenState();
 }
 
 class _TeacherConductScreenState extends State<TeacherConductScreen> {
@@ -75,7 +75,7 @@ class _TeacherConductScreenState extends State<TeacherConductScreen> {
         _selectedStudentId = null;
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+      if (!mounted) return; ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur: $e')));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -83,13 +83,13 @@ class _TeacherConductScreenState extends State<TeacherConductScreen> {
 
   Future<void> _submitConduct() async {
     if (_selectedStudentId == null || _gradeController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Veuillez remplir les champs requis')));
+      if (!mounted) return; ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Veuillez remplir les champs requis')));
       return;
     }
 
     final grade = double.tryParse(_gradeController.text);
     if (grade == null || grade < 0 || grade > 20) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Note invalide (entre 0 et 20)')));
+      if (!mounted) return; ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Note invalide (entre 0 et 20)')));
       return;
     }
 
@@ -102,11 +102,11 @@ class _TeacherConductScreenState extends State<TeacherConductScreen> {
         grade: grade,
         appreciation: _appreciationController.text,
       );
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Note de conduite enregistrée avec succès')));
+      if (!mounted) return; ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Note de conduite enregistrée avec succès')));
       _gradeController.clear();
       _appreciationController.clear();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+      if (!mounted) return; ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur: $e')));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -135,7 +135,7 @@ class _TeacherConductScreenState extends State<TeacherConductScreen> {
                        labelText: 'Sélectionner une classe',
                        labelStyle: TextStyle(color: Colors.grey),
                        filled: true,
-                       fillColor: Colors.white.withOpacity(0.05),
+                       fillColor: Colors.white.withValues(alpha: 0.05),
                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     initialValue: _selectedClassId,
@@ -158,7 +158,7 @@ class _TeacherConductScreenState extends State<TeacherConductScreen> {
                          labelText: 'Sélectionner un élève',
                          labelStyle: TextStyle(color: Colors.grey),
                          filled: true,
-                         fillColor: Colors.white.withOpacity(0.05),
+                         fillColor: Colors.white.withValues(alpha: 0.05),
                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                       initialValue: _selectedStudentId,
@@ -179,7 +179,7 @@ class _TeacherConductScreenState extends State<TeacherConductScreen> {
                           decoration: InputDecoration(
                              labelText: 'Mois',
                              filled: true,
-                             fillColor: Colors.white.withOpacity(0.05),
+                             fillColor: Colors.white.withValues(alpha: 0.05),
                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                           ),
                           initialValue: _selectedMonth,
@@ -199,7 +199,7 @@ class _TeacherConductScreenState extends State<TeacherConductScreen> {
                             labelText: 'Note sur 20',
                             labelStyle: TextStyle(color: Colors.grey),
                             filled: true,
-                            fillColor: Colors.white.withOpacity(0.05),
+                            fillColor: Colors.white.withValues(alpha: 0.05),
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                           ),
                           controller: _gradeController,
@@ -216,7 +216,7 @@ class _TeacherConductScreenState extends State<TeacherConductScreen> {
                       labelText: 'Appréciation (Optionnel)',
                       labelStyle: TextStyle(color: Colors.grey),
                       filled: true,
-                      fillColor: Colors.white.withOpacity(0.05),
+                      fillColor: Colors.white.withValues(alpha: 0.05),
                       border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                     ),
                     controller: _appreciationController,

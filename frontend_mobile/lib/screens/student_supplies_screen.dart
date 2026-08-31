@@ -5,7 +5,7 @@ class StudentSuppliesScreen extends StatefulWidget {
   const StudentSuppliesScreen({super.key});
 
   @override
-  _StudentSuppliesScreenState createState() => _StudentSuppliesScreenState();
+  State<StudentSuppliesScreen> createState() => _StudentSuppliesScreenState();
 }
 
 class _StudentSuppliesScreenState extends State<StudentSuppliesScreen> {
@@ -27,7 +27,7 @@ class _StudentSuppliesScreenState extends State<StudentSuppliesScreen> {
         _supplies = supplies;
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+      if (!mounted) return; ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur: $e')));
     } finally {
       setState(() {
         _isLoading = false;
@@ -55,13 +55,13 @@ class _StudentSuppliesScreenState extends State<StudentSuppliesScreen> {
                     final item = _supplies[index];
                     final isUniform = item['type'] == 'UNIFORM';
                     return Card(
-                      color: Colors.white.withOpacity(0.05),
+                      color: Colors.white.withValues(alpha: 0.05),
                       margin: EdgeInsets.only(bottom: 12),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       child: ListTile(
                         contentPadding: EdgeInsets.all(16),
                         leading: CircleAvatar(
-                          backgroundColor: isUniform ? Colors.orange.withOpacity(0.2) : Colors.blue.withOpacity(0.2),
+                          backgroundColor: isUniform ? Colors.orange.withValues(alpha: 0.2) : Colors.blue.withValues(alpha: 0.2),
                           child: Icon(
                             isUniform ? Icons.checkroom : Icons.menu_book, 
                             color: isUniform ? Colors.orangeAccent : Colors.lightBlueAccent,

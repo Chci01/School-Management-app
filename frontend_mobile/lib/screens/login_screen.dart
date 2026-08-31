@@ -10,7 +10,7 @@ class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  State<LoginScreen> createState() => _LoginScreenState();
 }
 
 class _LoginScreenState extends State<LoginScreen> {
@@ -22,7 +22,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final password = _passwordController.text.trim();
 
     if (matricule.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      if (!mounted) return; ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Veuillez remplir tous les champs')),
       );
       return;
@@ -36,13 +36,13 @@ class _LoginScreenState extends State<LoginScreen> {
           ? TeacherDashboardScreen() 
           : DashboardScreen();
 
-      Navigator.pushReplacement(
+      if (!mounted) return; Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => nextScreen),
       );
     } catch (e) {
       final lang = Provider.of<SettingsProvider>(context, listen: false).languageCode;
-      ScaffoldMessenger.of(context).showSnackBar(
+      if (!mounted) return; ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('${AppTranslations.translate('login_error_failed', lang)}${e.toString()}')),
       );
     }
@@ -83,7 +83,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
+                            color: Colors.black.withValues(alpha: 0.1),
                             blurRadius: 10,
                             offset: const Offset(0, 5),
                           ),
@@ -106,7 +106,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       AppTranslations.translate('login_subtitle_student', lang),
                       style: TextStyle(
                         fontSize: 16,
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withValues(alpha: 0.8),
                       ),
                     ),
                   ],
@@ -126,7 +126,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withValues(alpha: 0.05),
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       ),

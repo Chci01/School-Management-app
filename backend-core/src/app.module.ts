@@ -30,6 +30,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { TeacherAssignmentsModule } from './teacher-assignments/teacher-assignments.module';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
+import { FinancesModule } from './finances/finances.module';
 
 @Module({
   imports: [
@@ -65,6 +66,7 @@ import { APP_GUARD } from '@nestjs/core';
     NewsModule,
     EventEmitterModule.forRoot(),
     TeacherAssignmentsModule,
+    FinancesModule,
   ],
   controllers: [AppController],
   providers: [

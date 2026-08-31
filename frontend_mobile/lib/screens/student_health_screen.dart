@@ -9,7 +9,7 @@ class StudentHealthScreen extends StatefulWidget {
   const StudentHealthScreen({super.key});
 
   @override
-  _StudentHealthScreenState createState() => _StudentHealthScreenState();
+  State<StudentHealthScreen> createState() => _StudentHealthScreenState();
 }
 
 class _StudentHealthScreenState extends State<StudentHealthScreen> {
@@ -87,7 +87,7 @@ class _StudentHealthScreenState extends State<StudentHealthScreen> {
                                 Container(
                                   padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: _getSeverityColor(record['severity']).withOpacity(0.2),
+                                    color: _getSeverityColor(record['severity']).withValues(alpha: 0.2),
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Text(

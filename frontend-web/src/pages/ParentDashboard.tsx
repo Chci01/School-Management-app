@@ -1,5 +1,5 @@
 
-import { Bell, Calendar, FileText, AlertCircle, Clock, Plus, LogOut } from 'lucide-react';
+import { Bell, FileText, AlertCircle, Clock, Plus, LogOut } from 'lucide-react';
 import '../MobileAesthetics.css';
 import BottomNav from '../components/BottomNav';
 import { useAuth } from '../hooks/useAuth';
@@ -37,21 +37,8 @@ const ParentDashboard = () => {
         </div>
 
         <div className="child-selector">
-          <div className="child-tab active">
-            <img src="https://i.pravatar.cc/150?img=44" alt="Emma" className="child-avatar" />
-            <div>
-              <div className="item-title" style={{ fontSize: '0.85rem' }}>Emma Martin</div>
-              <div className="item-subtitle" style={{ fontSize: '0.75rem' }}>4ème B</div>
-              <div style={{ fontSize: '0.7rem', color: '#10B981', fontWeight: 600, marginTop: '2px' }}>Moyenne: 14,2/20</div>
-            </div>
-          </div>
-          <div className="child-tab">
-            <img src="https://i.pravatar.cc/150?img=11" alt="Lucas" className="child-avatar" />
-            <div>
-              <div className="item-title" style={{ fontSize: '0.85rem' }}>Lucas Martin</div>
-              <div className="item-subtitle" style={{ fontSize: '0.75rem' }}>2nde A</div>
-              <div style={{ fontSize: '0.7rem', color: '#10B981', fontWeight: 600, marginTop: '2px' }}>Moyenne: 12,8/20</div>
-            </div>
+          <div className="child-tab active" style={{ display: 'flex', justifyContent: 'center', width: '100%', padding: '16px', color: 'rgba(255,255,255,0.7)' }}>
+            Synchronisation des données des enfants en cours...
           </div>
         </div>
 
@@ -65,7 +52,7 @@ const ParentDashboard = () => {
               <AlertCircle size={24} />
             </div>
             <h3>Absences</h3>
-            <span className="summary-value">1</span>
+            <span className="summary-value">--</span>
             <span style={{ fontSize: '0.7rem', color: '#64748B' }}>ce mois</span>
           </div>
           <div className="summary-card">
@@ -73,7 +60,7 @@ const ParentDashboard = () => {
               <Clock size={24} />
             </div>
             <h3>Retards</h3>
-            <span className="summary-value">2</span>
+            <span className="summary-value">--</span>
             <span style={{ fontSize: '0.7rem', color: '#64748B' }}>ce mois</span>
           </div>
           <div className="summary-card" style={{ gridColumn: 'span 2' }}>
@@ -83,7 +70,7 @@ const ParentDashboard = () => {
               </div>
               <div style={{ textAlign: 'left' }}>
                 <h3 style={{ marginBottom: '2px' }}>Notes moyennes</h3>
-                <span className="summary-value">13,5/20</span>
+                <span className="summary-value">-- / 20</span>
               </div>
             </div>
           </div>
@@ -95,26 +82,8 @@ const ParentDashboard = () => {
         </div>
 
         <div className="mobile-list-card">
-          <div className="list-item">
-            <div className="item-main-info">
-              <div className="item-title">Mathématiques</div>
-              <div className="item-subtitle">22 Mai</div>
-            </div>
-            <div className="item-extra" style={{ color: '#10B981' }}>18/20</div>
-          </div>
-          <div className="list-item">
-            <div className="item-main-info">
-              <div className="item-title">Français</div>
-              <div className="item-subtitle">21 Mai</div>
-            </div>
-            <div className="item-extra" style={{ color: '#10B981' }}>14/20</div>
-          </div>
-          <div className="list-item">
-            <div className="item-main-info">
-              <div className="item-title">Anglais</div>
-              <div className="item-subtitle">20 Mai</div>
-            </div>
-            <div className="item-extra" style={{ color: '#EF4444' }}>12/20</div>
+          <div className="list-item" style={{display:'flex', justifyContent:'center', color:'#64748B'}}>
+            Synchronisation des notes en cours...
           </div>
         </div>
 
@@ -123,18 +92,8 @@ const ParentDashboard = () => {
         </div>
 
         <div className="mobile-list-card">
-          <div className="list-item">
-            <div className="summary-icon-box" style={{ background: '#EFF6FF', color: '#3B82F6', marginRight: '16px', marginBottom: 0 }}>
-              <Calendar size={20} />
-            </div>
-            <div className="item-main-info">
-              <div className="item-title">Conseil de classe</div>
-              <div className="item-subtitle">4ème B</div>
-            </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontWeight: 600, fontSize: '0.85rem' }}>30 Mai</div>
-              <div style={{ fontSize: '0.75rem', color: '#64748B' }}>14:00</div>
-            </div>
+          <div className="list-item" style={{display:'flex', justifyContent:'center', color:'#64748B'}}>
+            Synchronisation des annonces en cours...
           </div>
         </div>
       </main>

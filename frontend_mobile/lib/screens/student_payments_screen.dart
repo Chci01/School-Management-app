@@ -9,7 +9,7 @@ class StudentPaymentsScreen extends StatefulWidget {
   const StudentPaymentsScreen({super.key});
 
   @override
-  _StudentPaymentsScreenState createState() => _StudentPaymentsScreenState();
+  State<StudentPaymentsScreen> createState() => _StudentPaymentsScreenState();
 }
 
 class _StudentPaymentsScreenState extends State<StudentPaymentsScreen> {
@@ -65,7 +65,7 @@ class _StudentPaymentsScreenState extends State<StudentPaymentsScreen> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       child: ListTile(
                         leading: CircleAvatar(
-                          backgroundColor: Colors.green.withOpacity(0.2),
+                          backgroundColor: Colors.green.withValues(alpha: 0.2),
                           child: Icon(Icons.attach_money, color: Colors.green),
                         ),
                         title: Text('Tranche ${payment['tranche']}', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),

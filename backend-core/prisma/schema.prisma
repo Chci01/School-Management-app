@@ -34,6 +34,8 @@ model School {
   academicRecords AcademicRecord[] @relation("SchoolAcademicRecords")
   supplies        Supply[]
   documents       Document[]
+  budgets         Budget[]
+  expenses        Expense[]
 }
 
 model User {
@@ -400,4 +402,33 @@ model LicenseVoucher {
   usedAt      DateTime?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+}
+
+model Budget {
+  id          String   @id @default(uuid())
+  schoolId    String
+  title       String
+  amount      Float
+  type        String   @default("ANNUAL") // MONTHLY, ANNUAL
+  startDate   DateTime
+  endDate     DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  school      School   @relation(fields: [schoolId], references: [id])
+}
+
+model Expense {
+  id          String   @id @default(uuid())
+  schoolId    String
+  title       String
+  amount      Float
+  category    String   // PAYROLL, EQUIPMENT, OPERATION, OTHER
+  date        DateTime
+  description String?
+  reference   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  school      School   @relation(fields: [schoolId], references: [id])
 }

@@ -18,7 +18,7 @@ class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
   @override
-  _DashboardScreenState createState() => _DashboardScreenState();
+  State<DashboardScreen> createState() => _DashboardScreenState();
 }
 
 class _DashboardScreenState extends State<DashboardScreen> {
@@ -29,6 +29,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     ScheduleScreen(),
     AnnouncementsScreen(),
     BulletinScreen(),
+    SettingsScreen(),
   ];
 
   @override
@@ -52,7 +53,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           color: Colors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, -5),
             ),
@@ -92,8 +93,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
               label: 'Messages',
             ),
             const BottomNavigationBarItem(
-              icon: Icon(Icons.more_horiz),
-              label: 'Plus',
+              icon: Icon(Icons.settings_outlined),
+              activeIcon: Icon(Icons.settings),
+              label: 'Paramètres',
             ),
           ],
         ),
@@ -106,7 +108,7 @@ class HomeTab extends StatefulWidget {
   const HomeTab({super.key});
 
   @override
-  _HomeTabState createState() => _HomeTabState();
+  State<HomeTab> createState() => _HomeTabState();
 }
 
 class _HomeTabState extends State<HomeTab> {
@@ -166,7 +168,7 @@ class _HomeTabState extends State<HomeTab> {
                   children: [
                     CircleAvatar(
                       radius: 24,
-                      backgroundColor: Colors.white.withOpacity(0.2),
+                      backgroundColor: Colors.white.withValues(alpha: 0.2),
                       backgroundImage: user?['photo'] != null ? NetworkImage(user!['photo']) : null,
                       child: user?['photo'] == null 
                           ? const Icon(Icons.person, color: Colors.white, size: 28) 
@@ -183,7 +185,7 @@ class _HomeTabState extends State<HomeTab> {
                         Row(
                           children: [
                             Text(
-                              isParent ? 'M/Mme ${user?['lastName'] ?? ''}' : '${user?['firstName'] ?? ''}',
+                              '${user?['firstName'] ?? ''} ${user?['lastName'] ?? ''}'.trim(),
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 20,
@@ -202,7 +204,9 @@ class _HomeTabState extends State<HomeTab> {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.notifications_outlined, color: Colors.white, size: 28),
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.push(context, MaterialPageRoute(builder: (_) => AnnouncementsScreen()));
+                      },
                     ),
                     Positioned(
                       right: 8,
@@ -237,7 +241,7 @@ class _HomeTabState extends State<HomeTab> {
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Colors.black.withValues(alpha: 0.05),
                       blurRadius: 20,
                       offset: const Offset(0, 10),
                     ),
@@ -334,7 +338,7 @@ class _HomeTabState extends State<HomeTab> {
                   textBaseline: TextBaseline.alphabetic,
                   children: [
                     Text(
-                      '14,6',
+                      '--',
                       style: TextStyle(color: themeColor, fontSize: 32, fontWeight: FontWeight.bold),
                     ),
                     const Text(
@@ -352,22 +356,9 @@ class _HomeTabState extends State<HomeTab> {
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    const Text('8', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                    const Text('/28', style: TextStyle(color: Colors.grey)),
+                    const Text('--', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                    const Text('/--', style: TextStyle(color: Colors.grey)),
                     const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: Colors.green.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Row(
-                        children: [
-                          Icon(Icons.arrow_upward, size: 12, color: Colors.green),
-                          Text('2', style: TextStyle(color: Colors.green, fontSize: 12, fontWeight: FontWeight.bold)),
-                        ],
-                      ),
-                    ),
                   ],
                 ),
               ],
@@ -409,63 +400,11 @@ class _HomeTabState extends State<HomeTab> {
           ],
         ),
         const SizedBox(height: 16),
-        // Mock children
-        Row(
-          children: [
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey[200]!),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  children: [
-                    const CircleAvatar(radius: 20, backgroundColor: Colors.blueAccent),
-                    const SizedBox(height: 8),
-                    const Text('Emma', style: TextStyle(fontWeight: FontWeight.bold)),
-                    const Text('4ème B', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: themeColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text('Moy: 14,2/20', style: TextStyle(color: themeColor, fontSize: 10, fontWeight: FontWeight.bold)),
-                    )
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey[200]!),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Column(
-                  children: [
-                    const CircleAvatar(radius: 20, backgroundColor: Colors.orangeAccent),
-                    const SizedBox(height: 8),
-                    const Text('Lucas', style: TextStyle(fontWeight: FontWeight.bold)),
-                    const Text('2nde A', style: TextStyle(color: Colors.grey, fontSize: 12)),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: themeColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text('Moy: 12,8/20', style: TextStyle(color: themeColor, fontSize: 10, fontWeight: FontWeight.bold)),
-                    )
-                  ],
-                ),
-              ),
-            ),
-          ],
+        const Center(
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: Text('Synchronisation avec votre établissement...', style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic)),
+          ),
         ),
       ],
     );
@@ -482,7 +421,7 @@ class _HomeTabState extends State<HomeTab> {
           border: Border.all(color: Colors.grey[100]!),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.02),
+              color: Colors.black.withValues(alpha: 0.02),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -494,7 +433,7 @@ class _HomeTabState extends State<HomeTab> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.1),
+                color: color.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, color: color, size: 28),
