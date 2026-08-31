@@ -31,7 +31,7 @@ class _NewsScreenState extends State<NewsScreen> {
         _isLoading = false;
       });
     } catch (e) {
-      print('Error fetching news: $e');
+      // print('Error fetching news: $e');
       setState(() => _isLoading = false);
     }
   }

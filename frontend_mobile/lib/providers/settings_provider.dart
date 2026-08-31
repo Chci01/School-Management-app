@@ -41,7 +41,7 @@ class SettingsProvider with ChangeNotifier {
   Future<void> setThemeColor(Color color) async {
     _themeColor = color;
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('themeColor', color.value);
+    await prefs.setInt('themeColor', color.toARGB32());
     notifyListeners();
   }
 

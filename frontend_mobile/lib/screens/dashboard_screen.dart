@@ -113,7 +113,7 @@ class HomeTab extends StatefulWidget {
 
 class _HomeTabState extends State<HomeTab> {
   final ApiService _apiService = ApiService();
-  dynamic _monthlyConduct;
+  
 
   @override
   void initState() {
@@ -131,7 +131,7 @@ class _HomeTabState extends State<HomeTab> {
       final conduct = await _apiService.getGlobalConduct(studentId, now.month, now.year);
       if (mounted) {
         setState(() {
-          _monthlyConduct = conduct;
+          
         });
       }
     } catch (e) {
@@ -307,7 +307,7 @@ class _HomeTabState extends State<HomeTab> {
                         onTap: () async {
                           final auth = Provider.of<AuthProvider>(context, listen: false);
                           await auth.logout();
-                          Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => LoginScreen()));
+                          if (!mounted) return; Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => LoginScreen()));
                         },
                       ),
                     ],

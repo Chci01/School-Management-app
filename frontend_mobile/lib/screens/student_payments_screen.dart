@@ -41,7 +41,7 @@ class _StudentPaymentsScreenState extends State<StudentPaymentsScreen> {
   Widget build(BuildContext context) {
     final settings = Provider.of<SettingsProvider>(context);
 
-    // TODO: Dynamic translations for the title
+    
     return Scaffold(
       backgroundColor: Color(0xFF0F172A),
       appBar: AppBar(

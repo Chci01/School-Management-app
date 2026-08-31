@@ -89,7 +89,7 @@ class _TeacherClassesScreenState extends State<TeacherClassesScreen> {
                         subtitle: Text('Niveau: ${cls['level']}', style: TextStyle(color: Colors.grey[400])),
                         trailing: Icon(Icons.chevron_right, color: Colors.white),
                         onTap: () {
-                          // TODO: Navigate to Class students list
+                          
                         },
                       ),
                     );
