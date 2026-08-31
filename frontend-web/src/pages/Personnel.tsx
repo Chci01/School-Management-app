@@ -4,6 +4,10 @@ import { useAuth } from '../hooks/useAuth';
 import { UserCog, Plus, Search, Trash2, Edit, X, UserPlus, Phone } from 'lucide-react';
 
 const ROLES = [
+  { value: 'DIRECTEUR', label: 'Directeur / Directrice' },
+  { value: 'MANAGER', label: 'Manager' },
+  { value: 'COMPTABLE', label: 'Comptable' },
+  { value: 'PROMOTEUR', label: 'Promoteur / Promotrice' },
   { value: 'SECRETAIRE', label: 'Secrétaire' },
   { value: 'STAGIAIRE', label: 'Stagiaire' },
   { value: 'MONITEUR', label: 'Moniteur / Monitrice' },
@@ -225,8 +229,8 @@ const Personnel = () => {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '32px' }}>
                 <div className="input-group">
-                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>Matricule</label>
-                  <input required type="text" value={formData.matricule} onChange={e => setFormData({...formData, matricule: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '12px', background: 'var(--surface)' }} />
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>Matricule {editingUserId ? '' : '(Généré automatiquement si vide)'}</label>
+                  <input type="text" value={formData.matricule} onChange={e => setFormData({...formData, matricule: e.target.value})} disabled={!!editingUserId} style={{ width: '100%', padding: '12px', borderRadius: '12px', background: 'var(--surface)', opacity: editingUserId ? 0.6 : 1 }} placeholder="Auto-généré" />
                 </div>
                 <div className="input-group">
                   <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>Téléphone</label>

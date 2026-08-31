@@ -175,7 +175,7 @@ const Teachers = () => {
                 <div><label className="block text-xs text-gray-500 mb-1">Nom</label><input required type="text" value={formData.lastName} onChange={e => setFormData({...formData, lastName: e.target.value})} className="w-full bg-surface border border-white/10 rounded-xl p-3 text-white" /></div>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div><label className="block text-xs text-gray-500 mb-1">Matricule</label><input required type="text" value={formData.matricule} onChange={e => setFormData({...formData, matricule: e.target.value.toUpperCase()})} className="w-full bg-surface border border-white/10 rounded-xl p-3 text-white" /></div>
+                <div><label className="block text-xs text-gray-500 mb-1">Matricule {editingTeacher ? '' : '(Auto)'}</label><input type="text" value={formData.matricule} onChange={e => setFormData({...formData, matricule: e.target.value.toUpperCase()})} disabled={!!editingTeacher} className={`w-full bg-surface border border-white/10 rounded-xl p-3 text-white ${editingTeacher ? 'opacity-50' : ''}`} placeholder="Généré auto" /></div>
                 <div><label className="block text-xs text-gray-500 mb-1">Téléphone</label><input type="text" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full bg-surface border border-white/10 rounded-xl p-3 text-white" /></div>
               </div>
               <div><label className="block text-xs text-gray-500 mb-1">Email</label><input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full bg-surface border border-white/10 rounded-xl p-3 text-white" /></div>

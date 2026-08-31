@@ -67,11 +67,25 @@ export class UsersService {
     const rawPassword = password || 'kalan123';
     const hashedPassword = await bcrypt.hash(rawPassword, 10);
     
-    if (!rest.matricule) {
-      const prefix = rest.role ? rest.role.substring(0, 3).toUpperCase() : 'USR';
-      const year = new Date().getFullYear();
-      const random = Math.floor(1000 + Math.random() * 9000);
-      rest.matricule = `KS-${prefix}-${year}-${random}`;
+    if (!rest.matricule || rest.matricule.trim() === '') {
+      const prefix = rest.role ? rest.role.substring(0, 3).toUpperCase() : 'APP';
+      const year = new Date().getFullYear().toString().slice(-2);
+      let uniqueMatricule = '';
+      let isUnique = false;
+      
+      while (!isUnique) {
+        const random = Math.floor(10000 + Math.random() * 90000); // 5 digits
+        uniqueMatricule = `${prefix}${year}${random}`; // e.g. ELE2498213
+        
+        const existing = await this.prisma.user.findFirst({
+          where: { matricule: uniqueMatricule }
+        });
+        
+        if (!existing) {
+          isUnique = true;
+        }
+      }
+      rest.matricule = uniqueMatricule;
     }
     
     const validFields = [

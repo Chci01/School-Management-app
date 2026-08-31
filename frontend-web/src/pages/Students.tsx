@@ -279,10 +279,10 @@ const Students = () => {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '32px' }}>
                 <div className="input-group">
-                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '0.9rem' }}>Matricule</label>
+                  <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500, fontSize: '0.9rem' }}>Matricule {editingStudentId ? '' : '(Généré auto)'}</label>
                   <div style={{ position: 'relative' }}>
                     <Hash size={16} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-                    <input required type="text" value={formData.matricule} onChange={e => setFormData({...formData, matricule: e.target.value.toUpperCase()})} style={{ width: '100%', padding: '12px 16px 12px 40px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }} />
+                    <input type="text" value={formData.matricule} onChange={e => setFormData({...formData, matricule: e.target.value.toUpperCase()})} disabled={!!editingStudentId} style={{ width: '100%', padding: '12px 16px 12px 40px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)', opacity: editingStudentId ? 0.6 : 1 }} placeholder="Laisser vide..." />
                   </div>
                 </div>
                 <div className="input-group">
