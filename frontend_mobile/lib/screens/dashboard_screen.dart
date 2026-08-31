@@ -128,7 +128,7 @@ class _HomeTabState extends State<HomeTab> {
     final studentId = auth.user!['id'];
     final now = DateTime.now();
     try {
-      final conduct = await _apiService.getGlobalConduct(studentId, now.month, now.year);
+      await _apiService.getGlobalConduct(studentId, now.month, now.year);
       if (mounted) {
         setState(() {
           
@@ -307,7 +307,7 @@ class _HomeTabState extends State<HomeTab> {
                         onTap: () async {
                           final auth = Provider.of<AuthProvider>(context, listen: false);
                           await auth.logout();
-                          if (!mounted) return; Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => LoginScreen()));
+                          if (!context.mounted) return; Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => LoginScreen()));
                         },
                       ),
                     ],

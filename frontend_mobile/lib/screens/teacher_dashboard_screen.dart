@@ -274,7 +274,7 @@ class TeacherHomeTab extends StatelessWidget {
                         onTap: () async {
                           final auth = Provider.of<AuthProvider>(context, listen: false);
                           await auth.logout();
-                          if (!mounted) return; Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
+                          if (!context.mounted) return; Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const LoginScreen()));
                         },
                       ),
                     ],
