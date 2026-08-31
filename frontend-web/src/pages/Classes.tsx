@@ -25,13 +25,13 @@ const Classes = () => {
 
   const handleCreateOrUpdate = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!activeYear) return alert('Aucune année scolaire active.');
+    // if (!activeYear) return alert('Aucune année scolaire active.');
 
     const payload = { 
       ...formData, 
-      level: parseInt(formData.level),
+      level: formData.level.toString(),
       schoolId: currentSchoolId,
-      academicYearId: activeYear.id
+      academicYearId: activeYear?.id || null
     };
 
     if (editingClass) {

@@ -4,8 +4,30 @@ import { useAuth } from '../hooks/useAuth';
 
 const Health = () => {
   const { currentSchoolId } = useAuth();
-  const { records, isLoading } = useHealth(currentSchoolId || undefined);
+  const { records, isLoading, createRecord, isCreating } = useHealth(currentSchoolId || undefined);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const [formData, setFormData] = useState({
+    studentId: '',
+    studentName: '',
+    symptoms: '',
+    actionsTaken: '',
+    severity: 'FAIBLE'
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    createRecord({
+        ...formData,
+        schoolId: currentSchoolId,
+        date: new Date().toISOString()
+    }, {
+        onSuccess: () => {
+            setIsModalOpen(false);
+            setFormData({ studentId: '', studentName: '', symptoms: '', actionsTaken: '', severity: 'FAIBLE' });
+        }
+    });
+  };
 
   if (isLoading) {
       return (
@@ -33,7 +55,7 @@ const Health = () => {
            </div>
            <div className="stat-card glass-panel" style={{ padding: '20px', borderRadius: '12px', borderLeft: '4px solid #f59e0b' }}>
               <h4 style={{ color: 'var(--text-secondary)', marginBottom: '8px' }}>Urgences Traitées</h4>
-              <div style={{ fontSize: '32px', fontWeight: 'bold' }}>0</div>
+              <div style={{ fontSize: '32px', fontWeight: 'bold' }}>{records.filter((r:any) => r.severity==='GRAVE').length}</div>
            </div>
       </div>
 
@@ -52,7 +74,7 @@ const Health = () => {
               {records.map((record: any) => (
                   <tr key={record.id} style={{ borderBottom: '1px solid var(--border)' }}>
                        <td style={{ padding: '16px', fontSize: '14px', whiteSpace: 'nowrap' }}>
-                           {new Date(record.date).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' })}
+                           {new Date(record.date || record.createdAt).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' })}
                        </td>
                        <td style={{ padding: '16px', fontWeight: 'bold' }}>{record.studentName}</td>
                        <td style={{ padding: '16px', color: 'var(--text-secondary)' }}>{record.symptoms}</td>
@@ -78,29 +100,27 @@ const Health = () => {
       {/* New Record Modal */}
       {isModalOpen && (
           <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-              <div className="modal-content glass-panel" style={{ width: '600px', maxWidth: '90%', padding: '24px' }}>
+              <form onSubmit={handleSubmit} className="modal-content glass-panel" style={{ width: '600px', maxWidth: '90%', padding: '24px' }}>
                   <h3 style={{color: 'var(--text)'}}>Rapport d'Infirmerie</h3>
                   
                   <div className="input-group" style={{ marginTop: '16px' }}>
-                      <label>Élève concerné</label>
-                      <select style={{ width: '100%', padding: '10px', background: 'var(--surface)', color: 'var(--text)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px' }}>
-                          <option>Rechercher un élève...</option>
-                      </select>
+                      <label>Nom du Patient</label>
+                      <input required type="text" value={formData.studentName} onChange={e => setFormData({...formData, studentName: e.target.value})} placeholder="Ex: Jean Dupont" style={{ width: '100%', padding: '10px', background: 'var(--surface)', color: 'var(--text)' }} />
                   </div>
 
                   <div className="input-group" style={{ marginTop: '16px' }}>
                       <label>Symptômes constatés</label>
-                      <input type="text" placeholder="Ex: Fièvre, Blessure..." style={{ width: '100%' }} />
+                      <input required type="text" value={formData.symptoms} onChange={e => setFormData({...formData, symptoms: e.target.value})} placeholder="Ex: Fièvre, Blessure..." style={{ width: '100%', padding: '10px', background: 'var(--surface)', color: 'var(--text)' }} />
                   </div>
 
                   <div className="input-group" style={{ marginTop: '16px' }}>
                       <label>Actions / Soins apportés</label>
-                      <textarea placeholder="Ex: Désinfection, appel aux parents..." style={{ width: '100%', minHeight: '80px', padding: '12px', background: 'rgba(0,0,0,0.2)', color: 'var(--text)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}></textarea>
+                      <textarea required value={formData.actionsTaken} onChange={e => setFormData({...formData, actionsTaken: e.target.value})} placeholder="Ex: Désinfection, appel aux parents..." style={{ width: '100%', minHeight: '80px', padding: '12px', background: 'rgba(0,0,0,0.2)', color: 'var(--text)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}></textarea>
                   </div>
 
                   <div className="input-group" style={{ marginTop: '16px' }}>
                       <label>Niveau de Gravité</label>
-                      <select style={{ width: '100%', padding: '10px', background: 'var(--surface)', color: 'var(--text)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px' }}>
+                      <select required value={formData.severity} onChange={e => setFormData({...formData, severity: e.target.value})} style={{ width: '100%', padding: '10px', background: 'var(--surface)', color: 'var(--text)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '6px' }}>
                           <option value="FAIBLE">Faible (Soins bénins)</option>
                           <option value="MOYENNE">Moyenne (Alerte parents)</option>
                           <option value="GRAVE">Grave (Urgence médicale)</option>
@@ -108,13 +128,12 @@ const Health = () => {
                   </div>
 
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '24px' }}>
-                      <button className="btn-secondary" onClick={() => setIsModalOpen(false)}>Annuler</button>
-                      <button className="btn-primary" onClick={() => setIsModalOpen(false)}>Enregistrer au registre</button>
+                      <button type="button" className="btn-secondary" onClick={() => setIsModalOpen(false)}>Annuler</button>
+                      <button type="submit" className="btn-primary" disabled={isCreating}>{isCreating ? 'Enregistrement...' : 'Enregistrer au registre'}</button>
                   </div>
-              </div>
+              </form>
           </div>
       )}
-
     </div>
   );
 };

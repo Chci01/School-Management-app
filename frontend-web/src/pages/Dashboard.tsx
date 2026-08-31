@@ -14,41 +14,10 @@ import ProfessorDashboard from './ProfessorDashboard';
 import ParentDashboard from './ParentDashboard';
 import StudentDashboard from './StudentDashboard';
 
-const lineData = [
-  { name: 'Sept.', value: 9.5 },
-  { name: 'Oct.', value: 10.2 },
-  { name: 'Nov.', value: 10.8 },
-  { name: 'Déc.', value: 11.5 },
-  { name: 'Jan.', value: 12.6 },
-  { name: 'Fév.', value: 12.6 },
-  { name: 'Mar.', value: 13.8 },
-  { name: 'Avr.', value: 14.2 },
-  { name: 'Mai', value: 14.3 },
-  { name: 'Juin', value: 14.6 },
-];
-
-
-const notifications = [
-  { id: 1, title: 'Réunion parents-profs', desc: 'La réunion du 25 mai est confirmée à 15h30.', time: 'Il y a 2h', icon: Users, color: '#3B82F6', bgColor: '#EFF6FF' },
-  { id: 2, title: 'Paiement des frais', desc: 'Rappel : Certains frais scolaires sont en attente.', time: 'Il y a 5h', icon: CalendarIcon, color: '#10B981', bgColor: '#ECFDF5' },
-  { id: 3, title: 'Examens de fin d\'année', desc: 'Le calendrier des examens est disponible.', time: 'Il y a 1j', icon: FileText, color: '#F59E0B', bgColor: '#FFFBEB' },
-  { id: 4, title: 'Absences', desc: '5 élèves ont été absents aujourd\'hui.', time: 'Il y a 1j', icon: CalendarX, color: '#EF4444', bgColor: '#FEF2F2' },
-];
-
-const topStudents = [
-  { rank: 1, name: 'Camara Aissata', className: '1ère S', grade: '18.7/20', img: 'https://i.pravatar.cc/150?img=1' },
-  { rank: 2, name: 'Diouf Amadou', className: 'Tale S', grade: '17.9/20', img: 'https://i.pravatar.cc/150?img=11' },
-  { rank: 3, name: 'Traoré Mariam', className: '1ère L', grade: '17.5/20', img: 'https://i.pravatar.cc/150?img=5' },
-  { rank: 4, name: 'Diallo Moussa', className: 'Tale S', grade: '16.8/20', img: 'https://i.pravatar.cc/130?img=13' },
-  { rank: 5, name: 'Konaté Fatou', className: '1ère ES', grade: '16.5/20', img: 'https://i.pravatar.cc/150?img=9' },
-];
-
-const events = [
-  { dateDay: '25', dateMonth: 'MAI', title: 'Réunion parents-profs', time: '15h30 - Salle A', type: 'Réunion', color: '#8B5CF6', bgColor: '#F5F3FF' },
-  { dateDay: '02', dateMonth: 'JUIN', title: 'Examens de Français', time: '08h00 - 11h00', type: 'Examen', color: '#10B981', bgColor: '#ECFDF5' },
-  { dateDay: '10', dateMonth: 'JUIN', title: 'Sortie pédagogique', time: 'Toute la journée', type: 'Sortie', color: '#F59E0B', bgColor: '#FFFBEB' },
-  { dateDay: '20', dateMonth: 'JUIN', title: 'Fin de l\'année scolaire', time: 'Dernier jour de cours', type: 'Info', color: '#3B82F6', bgColor: '#EFF6FF' },
-];
+const lineData: any[] = [];
+const notifications: any[] = [];
+const topStudents: any[] = [];
+const events: any[] = [];
 
 import { useUsers } from '../hooks/useUsers';
 import { useClasses } from '../hooks/useClasses';
