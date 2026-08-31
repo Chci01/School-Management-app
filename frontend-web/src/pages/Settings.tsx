@@ -110,16 +110,31 @@ const Settings = () => {
   // ─── Personnalisation Etablissement ───────────────────────────────────────
   const [updatingSchool, setUpdatingSchool] = useState(false);
   const [customLogo, setCustomLogo] = useState('');
+  const [logoPreview, setLogoPreview] = useState('');
   const [customPhone, setCustomPhone] = useState('');
   const [customAddress, setCustomAddress] = useState('');
 
   useEffect(() => {
     if (schoolData) {
       setCustomLogo(schoolData.logo || '');
+      setLogoPreview(schoolData.logo || '');
       setCustomPhone(schoolData.phone || '');
       setCustomAddress(schoolData.address || '');
     }
   }, [schoolData]);
+
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const base64 = reader.result as string;
+        setCustomLogo(base64);
+        setLogoPreview(base64);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleUpdateSchool = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -506,14 +521,18 @@ const Settings = () => {
 
           <form onSubmit={handleUpdateSchool} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             <div className="input-group">
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 500 }}>URL du Logo</label>
-              <input
-                type="text"
-                placeholder="https://mon-site.com/logo.png"
-                value={customLogo}
-                onChange={(e) => setCustomLogo(e.target.value)}
-                style={{ width: '100%', padding: '14px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }}
-              />
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 500 }}>Logo de l'établissement</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <input
+                  type="file"
+                  accept="image/png, image/jpeg, image/jpg"
+                  onChange={handleLogoUpload}
+                  style={{ flex: 1, padding: '10px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }}
+                />
+                {logoPreview && (
+                  <img src={logoPreview} alt="Logo" style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '8px', border: '1px solid var(--border)' }} />
+                )}
+              </div>
             </div>
             <div className="input-group">
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 500 }}>Téléphone de contact</label>
