@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { useSubjects } from '../hooks/useSubjects';
 import { useAuth } from '../hooks/useAuth';
 import { BookOpen, Plus, Trash2, Edit, X } from 'lucide-react';
-import { useClasses } from '../hooks/useClasses';
+
 
 const Subjects = () => {
   const { currentSchoolId } = useAuth();
   const { subjects, isLoading, error, deleteSubject, createSubject, updateSubject } = useSubjects(currentSchoolId!);
-  const { classes } = useClasses(currentSchoolId!);
+
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState<any>(null);
