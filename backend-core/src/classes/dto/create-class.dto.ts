@@ -5,10 +5,9 @@ export class CreateClassDto {
   @IsNotEmpty()
   name: string; // ex: "7ème Année A"
 
-  @IsInt()
-  @Min(1)
-  @Max(12)
-  level: number; // 1 to 12 (fundamental vs highschool)
+  @IsString()
+  @IsNotEmpty()
+  level: string; // ex: "1", "6ème", "Terminale"
 
   @IsString()
   @IsNotEmpty()

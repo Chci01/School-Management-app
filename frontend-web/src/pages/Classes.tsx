@@ -27,12 +27,15 @@ const Classes = () => {
     e.preventDefault();
     // if (!activeYear) return alert('Aucune année scolaire active.');
 
-    const payload = { 
-      ...formData, 
+    const payload: any = { 
+      name: formData.name,
       level: formData.level.toString(),
+      capacity: formData.capacity,
       schoolId: currentSchoolId,
-      academicYearId: activeYear?.id || null
     };
+    if (activeYear?.id) {
+      payload.academicYearId = activeYear.id;
+    }
 
     if (editingClass) {
       updateClass({ id: editingClass.id, data: payload }, {

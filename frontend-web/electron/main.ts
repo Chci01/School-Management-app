@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'path';
 import fs from 'fs';
 
@@ -90,6 +90,23 @@ app.on('window-all-closed', () => {
 app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
         createWindow();
+    }
+});
+
+// Archive IPC Handler
+ipcMain.handle('save-local-archive', async (event, { filename, content }) => {
+    try {
+        const archivesDir = path.join(app.getPath('documents'), 'Kalan_Archives');
+        if (!fs.existsSync(archivesDir)) {
+            fs.mkdirSync(archivesDir, { recursive: true });
+        }
+        const filePath = path.join(archivesDir, filename);
+        fs.writeFileSync(filePath, content, 'utf-8');
+        log(`Archive locale sauvegardée: ${filePath}`);
+        return { success: true, path: filePath };
+    } catch (error: any) {
+        log(`Erreur sauvegarde archive: ${error.message}`);
+        return { success: false, error: error.message };
     }
 });
 

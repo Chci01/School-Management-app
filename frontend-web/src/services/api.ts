@@ -26,7 +26,24 @@ api.interceptors.request.use(
 
 // Optional: Intercept responses to handle global errors (e.g. 401 Unauthorized redirect)
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Auto-archive creations and modifications
+    const method = response.config.method?.toUpperCase();
+    if (method === 'POST' || method === 'PATCH') {
+      try {
+        const urlPath = response.config.url?.replace(/\//g, '_') || 'data';
+        const content = JSON.stringify(response.data, null, 2);
+        const filename = `fiche_${urlPath}_${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+
+        if ((window as any).ipcRenderer) {
+          (window as any).ipcRenderer.invoke('save-local-archive', { filename, content });
+        }
+      } catch (e) {
+        console.error('Erreur auto-archivage:', e);
+      }
+    }
+    return response;
+  },
   (error) => {
     if (error.response?.status === 401) {
       // Logic to clear token and redirect to login if session expires

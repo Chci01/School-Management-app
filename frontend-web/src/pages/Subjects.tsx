@@ -12,7 +12,7 @@ const Subjects = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState<any>(null);
   
-  const [formData, setFormData] = useState({ name: '', coefficient: 1, classId: '' });
+  const [formData, setFormData] = useState({ name: '', coefficient: 1 });
 
   if (isLoading) return <div className="dashboard-container"><div className="spinner">Chargement...</div></div>;
 
@@ -20,13 +20,13 @@ const Subjects = () => {
 
   const handleEditClick = (sub: any) => {
     setEditingSubject(sub);
-    setFormData({ name: sub.name, coefficient: sub.coefficient || 1, classId: sub.classId || '' });
+    setFormData({ name: sub.name, coefficient: sub.coefficient || 1 });
     setIsModalOpen(true);
   };
 
   const handleCreateOrUpdate = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.classId) return alert('Veuillez sélectionner une classe.');
+    // no need to validate classId
 
     const payload = { 
       ...formData, 
@@ -45,7 +45,7 @@ const Subjects = () => {
       createSubject(payload, {
         onSuccess: () => {
           setIsModalOpen(false);
-          setFormData({ name: '', coefficient: 1, classId: '' });
+          setFormData({ name: '', coefficient: 1 });
         }
       });
     }
@@ -65,7 +65,7 @@ const Subjects = () => {
         </div>
         <button 
           className="btn-primary" 
-          onClick={() => { setEditingSubject(null); setFormData({ name: '', coefficient: 1, classId: '' }); setIsModalOpen(true); }}
+          onClick={() => { setEditingSubject(null); setFormData({ name: '', coefficient: 1 }); setIsModalOpen(true); }}
           style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#38BDF8', color: 'var(--text)', border: 'none', padding: '12px 24px', borderRadius: '12px', cursor: 'pointer', fontWeight: 700 }}
         >
           <Plus size={20} /> Nouvelle Matière
@@ -79,7 +79,7 @@ const Subjects = () => {
           <thead>
             <tr style={{ borderBottom: '2px solid var(--border)', color: 'var(--text-secondary)' }}>
               <th style={{ padding: '12px 16px', fontWeight: 600 }}>Nom de la matière</th>
-              <th style={{ padding: '12px 16px', fontWeight: 600 }}>Classe associée</th>
+
               <th style={{ padding: '12px 16px', fontWeight: 600 }}>Coefficient</th>
               <th style={{ padding: '12px 16px', fontWeight: 600, textAlign: 'right' }}>Actions</th>
             </tr>
@@ -95,7 +95,7 @@ const Subjects = () => {
                      {sub.name}
                   </div>
                 </td>
-                <td style={{ padding: '16px', color: 'var(--text-secondary)' }}>{sub.class?.name || 'N/A'}</td>
+
                 <td style={{ padding: '16px', color: 'var(--text-secondary)' }}><span style={{ padding: '4px 8px', background: 'var(--surface)', borderRadius: '6px' }}>x {sub.coefficient}</span></td>
                 <td style={{ padding: '16px', textAlign: 'right' }}>
                   <button onClick={() => handleEditClick(sub)} className="btn-secondary" style={{ padding: '8px', marginRight: '12px' }}><Edit size={18} /></button>
@@ -105,7 +105,7 @@ const Subjects = () => {
             ))}
             {displayedSubjects.length === 0 && (
               <tr>
-                <td colSpan={4} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-secondary)' }}>Aucune matière trouvée.</td>
+                <td colSpan={3} style={{ padding: '32px', textAlign: 'center', color: 'var(--text-secondary)' }}>Aucune matière trouvée.</td>
               </tr>
             )}
           </tbody>
@@ -127,15 +127,7 @@ const Subjects = () => {
                 <input required type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Ex: Mathématiques" style={{ width: '100%', padding: '12px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }} />
               </div>
 
-              <div className="input-group" style={{ marginBottom: '16px' }}>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>Classe associée</label>
-                <select required value={formData.classId} onChange={e => setFormData({...formData, classId: e.target.value})} style={{ width: '100%', padding: '12px', borderRadius: '12px', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)' }}>
-                   <option value="">-- Sélectionner une classe --</option>
-                   {classes && classes.map((c: any) => (
-                      <option key={c.id} value={c.id}>{c.name}</option>
-                   ))}
-                </select>
-              </div>
+
 
               <div className="input-group" style={{ marginBottom: '32px' }}>
                 <label style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>Coefficient</label>
