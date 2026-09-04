@@ -1,14 +1,16 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import type { BrowserWindow as BrowserWindowType } from 'electron';
+const { app, BrowserWindow, ipcMain } = require('electron');
 import path from 'path';
 import fs from 'fs';
 
-let win: BrowserWindow | null = null;
+let win: BrowserWindowType | null = null;
 
 // Debug logging
-const logFolder = app.getPath('userData');
-const logFile = path.join(logFolder, 'kalan-debug.log');
+let logFolder = '';
+let logFile = '';
 
 function log(msg: string) {
+    if (!logFile) return; // not initialized yet
     const timestamp = new Date().toISOString();
     try {
         fs.appendFileSync(logFile, `[${timestamp}] ${msg}\n`);
@@ -17,10 +19,6 @@ function log(msg: string) {
     }
 }
 
-log('--- APP START ---');
-log(`Executable path: ${app.getPath('exe')}`);
-log(`User data path: ${logFolder}`);
-log(`__dirname: ${__dirname}`);
 
 function createWindow() {
   try {
@@ -55,15 +53,15 @@ function createWindow() {
 
     if (process.env.VITE_DEV_SERVER_URL) {
       log('Loading dev server URL...');
-      win.loadURL(process.env.VITE_DEV_SERVER_URL);
+      win?.loadURL(process.env.VITE_DEV_SERVER_URL);
     } else {
       log('Loading production file...');
-      win.loadFile(indexPath).catch(err => {
+      win?.loadFile(indexPath).catch((err: any) => {
           log(`FAILED to load file: ${err.message}`);
       });
     }
 
-    win.on('closed', () => {
+    win?.on('closed', () => {
         win = null;
     });
 
@@ -74,9 +72,18 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+    // Initialize paths
+    logFolder = app.getPath('userData');
+    logFile = path.join(logFolder, 'kalan-debug.log');
+    
+    log('--- APP START ---');
+    log(`Executable path: ${app.getPath('exe')}`);
+    log(`User data path: ${logFolder}`);
+    log(`__dirname: ${__dirname}`);
     log('App is ready');
+    
     createWindow();
-}).catch(err => {
+}).catch((err: any) => {
     log(`CRITICAL ERROR in whenReady: ${err.message}`);
 });
 
@@ -94,7 +101,7 @@ app.on('activate', () => {
 });
 
 // Archive IPC Handler
-ipcMain.handle('save-local-archive', async (event, { filename, content }) => {
+ipcMain.handle('save-local-archive', async (event: any, { filename, content }: { filename: string, content: string }) => {
     try {
         const archivesDir = path.join(app.getPath('documents'), 'Kalan_Archives');
         if (!fs.existsSync(archivesDir)) {
